@@ -7,8 +7,8 @@
 #define SERVICE_UUID    "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define CHAR_TELEM_UUID "beb5483e-36e1-4688-b7f5-ea07361b26b2"
 
-const char *WIFI_SSID = "NAMA_WIFI";
-const char *WIFI_PASS = "PASSWORD_WIFI";
+const char *WIFI_SSID = "SprH-3";
+const char *WIFI_PASS = "yourpassword!";
 
 // Batas waktu menunggu Wi-Fi/MQTT saat boot; melewati batas ini setup() tetap
 // dilanjutkan agar kegagalan sisi IP tidak menyembunyikan sisi radio lain.
@@ -26,12 +26,22 @@ const unsigned long MQTT_TIMEOUT_MS = 15000;
 // test.mosquitto.org tidak terjangkau (gejala: rc=-2 dan "Host is unreachable").
 // Bila itu terjadi, jalankan `python3 tools/mqtt_broker.py` di laptop lalu ganti
 // baris di bawah dengan alamat IP laptop tersebut, mis. "192.168.110.74".
-const char *MQTT_BROKER = "test.mosquitto.org";
-const uint16_t MQTT_PORT = 1883;
+const char *MQTT_BROKER = "192.168.1.5";
+const uint16_t MQTT_PORT = 1884;
 const char *TOPIC_TELEM = "praktikum/h2/telemetri";
 
 WiFiClient wifiClient;
 PubSubClient mqtt(wifiClient);
+
+// SIMULASI sensor BLE (tidak ada board H2 fisik): bangkitkan nilai suhu
+// sintetis agar rantai gateway -> MQTT tetap bisa diuji end-to-end.
+static float readSensor() {
+  static float suhu = 25.0;
+  suhu += (random(0, 20) - 10) / 10.0;
+  if (suhu > 40.0) suhu = 25.0;
+  if (suhu < 20.0) suhu = 25.0;
+  return suhu;
+}
 
 // Alamat disalin (bukan pointer hasil scan) agar tetap valid setelah scan berhenti
 static NimBLEAddress sensorAddr;
@@ -176,6 +186,21 @@ static void maintainNetwork(const char *clientId) {
 void loop() {
   maintainNetwork("esp32c6-gateway");
   mqtt.loop();
+
+  // SIMULASI sensor: bangkitkan telemetri tiap 2 detik lalu publish ke MQTT.
+  static unsigned long lastSim = 0;
+  if (millis() - lastSim > 2000) {
+    lastSim = millis();
+    char payload[32];
+    snprintf(payload, sizeof(payload), "suhu:%.1f", readSensor());
+    Serial.printf("SIM sensor BLE: %s\n", payload);
+    if (mqtt.connected()) {
+      mqtt.publish(TOPIC_TELEM, payload);
+      Serial.printf("Publish MQTT [%s]: %s\n", TOPIC_TELEM, payload);
+    } else {
+      Serial.printf("Publish MQTT GAGAL (mqtt=%d): %s\n", mqtt.state(), payload);
+    }
+  }
 
   if (doConnect) {
     if (connectToSensor()) Serial.println("BLE: koneksi berhasil");

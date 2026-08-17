@@ -60,6 +60,7 @@ void setup() {
   NimBLECharacteristic *pCmd = pService->createCharacteristic(
     CHAR_CMD_UUID, NIMBLE_PROPERTY::WRITE);
   pCmd->setCallbacks(new CmdCallbacks());
+  pService->start();
 
   NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);

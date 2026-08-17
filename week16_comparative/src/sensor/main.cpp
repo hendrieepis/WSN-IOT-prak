@@ -40,6 +40,7 @@ void setup() {
 
   NimBLEService *pService = pServer->createService(SERVICE_UUID);
   pTelemetry = pService->createCharacteristic(CHAR_TELEM_UUID, NIMBLE_PROPERTY::NOTIFY);
+  pService->start();
 
   NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);

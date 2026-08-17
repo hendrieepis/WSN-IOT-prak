@@ -3,8 +3,8 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
 
-const char *WIFI_SSID = "NAMA_WIFI";
-const char *WIFI_PASS = "PASSWORD_WIFI";
+const char *WIFI_SSID = "SprH-3";
+const char *WIFI_PASS = "yourpassword!";
 
 // Batas waktu menunggu Wi-Fi/MQTT saat boot; melewati batas ini setup() tetap
 // dilanjutkan agar kegagalan sisi IP tidak menyembunyikan sisi radio lain.
@@ -20,8 +20,8 @@ const unsigned long MQTT_TIMEOUT_MS = 15000;
 // test.mosquitto.org tidak terjangkau (gejala: rc=-2 dan "Host is unreachable").
 // Bila itu terjadi, jalankan `python3 tools/mqtt_broker.py` di laptop lalu ganti
 // baris di bawah dengan alamat IP laptop tersebut, mis. "192.168.110.74".
-const char *MQTT_BROKER = "test.mosquitto.org";
-const uint16_t MQTT_PORT = 1883;
+const char *MQTT_BROKER = "192.168.1.5";
+const uint16_t MQTT_PORT = 1884;
 const char *TOPIC_TELEM = "praktikum/h2/telemetri";
 const char *TOPIC_CMD   = "praktikum/h2/perintah";
 

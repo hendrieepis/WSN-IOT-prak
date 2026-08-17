@@ -99,6 +99,7 @@ void setup() {
   pServer->setCallbacks(new ServerCallbacks());
   NimBLEService *pService = pServer->createService(SERVICE_UUID);
   pRelayOut = pService->createCharacteristic(CHAR_RELAY_UUID, NIMBLE_PROPERTY::NOTIFY);
+  pService->start();
   NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
   // NimBLE 2.x tidak lagi menyisipkan nama device secara otomatis, dan scan

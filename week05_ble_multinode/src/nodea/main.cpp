@@ -31,6 +31,7 @@ void setup() {
 
   NimBLEService *pService = pServer->createService(SERVICE_UUID);
   pNotify = pService->createCharacteristic(CHAR_NOTIFY_UUID, NIMBLE_PROPERTY::NOTIFY);
+  pService->start();
 
   NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);

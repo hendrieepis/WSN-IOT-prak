@@ -10,8 +10,8 @@
 #include "esp_netif.h"
 #include "esp_coexist.h"
 
-const char *WIFI_SSID = "NAMA_WIFI";
-const char *WIFI_PASS = "PASSWORD_WIFI";
+const char *WIFI_SSID = "SprH-3";
+const char *WIFI_PASS = "yourpassword!";
 
 // Batas waktu menunggu Wi-Fi/MQTT saat boot; melewati batas ini setup() tetap
 // dilanjutkan agar kegagalan sisi IP tidak menyembunyikan sisi radio lain.
@@ -23,7 +23,7 @@ const unsigned long WIFI_RETRY_MS = 20000;
 const unsigned long MQTT_TIMEOUT_MS = 15000;
 
 // Endpoint tujuan di sisi Wi-Fi (ganti sesuai server Anda)
-const char *SERVER_URL = "http://httpbin.org/post";
+const char *SERVER_URL = "http://192.168.1.5:8080/post";
 
 const char OT_NETWORK_NAME[] = "ESP_OT_GW";
 const uint8_t  OT_CHANNEL = 15;
@@ -65,6 +65,16 @@ static void restoreWifiAsDefaultNetif() {
 }
 
 OThreadUDP OtUdp;
+
+// SIMULASI sensor H2 (tidak ada board fisik): bangkitkan nilai suhu sintetis
+// agar alur gateway (forward -> Wi-Fi -> HTTP) tetap bisa diuji end-to-end.
+static float readSensor() {
+  static float suhu = 25.0;
+  suhu += (random(0, 20) - 10) / 10.0;
+  if (suhu > 40.0) suhu = 25.0;
+  if (suhu < 20.0) suhu = 25.0;
+  return suhu;
+}
 
 void setup() {
   Serial.begin(115200);
@@ -176,6 +186,16 @@ static void maintainWifi() {
 
 void loop() {
   maintainWifi();
+
+  // SIMULASI sensor: bangkitkan telemetri tiap 3 detik lalu teruskan via HTTP.
+  static unsigned long lastSim = 0;
+  if (millis() - lastSim > 3000) {
+    lastSim = millis();
+    char msg[32];
+    snprintf(msg, sizeof(msg), "suhu:%.1f", readSensor());
+    Serial.printf("SIM sensor (Thread): %s\n", msg);
+    forwardToWifi(msg);
+  }
 
   while (int n = OtUdp.parsePacket()) {
     char buf[64];

@@ -142,7 +142,7 @@ Modul 01–12 yang seragam ESP32-H2.
 | 3 | Kabel USB data | kabel data, bukan charge-only | 2 |
 | 4 | PC/Laptop | PlatformIO Core/IDE, 2 port USB bebas | 1 |
 | 5 | Wi-Fi / hotspot | 2,4 GHz, ada akses internet (C6 tidak mendukung 5 GHz) | 1 |
-| 6 | Server HTTP tujuan | default `http://httpbin.org/post`, atau server lokal | 1 |
+| 6 | Server HTTP tujuan | default `http://httpbin.org/post`, atau server lokal (`http_sink.py`) | 1 |
 
 **Konfigurasi jaringan**
 
@@ -153,6 +153,40 @@ Modul 01–12 yang seragam ESP32-H2.
 | Grup multicast / port | `ff03::abcd` : 5050 |
 | Interval telemetri | 3000 ms |
 | Topic/URL tujuan | `SERVER_URL` di `src/c6_gateway/main.cpp` |
+
+**Server HTTP lokal — `http_sink.py`**
+
+Bila `httpbin.org` terblokir (gejala di Serial Monitor: `HTTP -1`), pakai server
+HTTP lokal yang sudah disertakan di folder modul ini (`http_sink.py`). Server ini
+mendengarkan POST di `0.0.0.0:8080`, mencetak tiap POST yang masuk dengan
+timestamp, lalu membalas HTTP 200 + JSON — berfungsi sebagai pengganti
+`httpbin.org` sekaligus bukti bahwa hop Wi-Fi/HTTP benar-benar sampai.
+
+```bash
+# 1. cari IP laptop di Wi-Fi yang sama dengan board
+ip -4 addr show | grep inet        # mis. 192.168.1.5
+
+# 2. jalankan server (dengar di 0.0.0.0:8080)
+python3 http_sink.py
+```
+
+Arahkan `SERVER_URL` di `src/c6_gateway/main.cpp` ke IP laptop:
+
+```cpp
+const char *SERVER_URL = "http://192.168.1.5:8080/post";
+```
+
+Output contoh (setiap POST yang sampai):
+
+```
+[   0.000] http_sink siap di 0.0.0.0:8080 (POST -> HTTP 200)
+[ 480.308] #1    POST /post from 192.168.1.39  ->  {"sensor":"h2","data":"suhu:23.1"}
+```
+
+Catatan: karena hop Wi-Fi/HTTP di gateway dwi-radio ini paling rapuh (koeksistensi
+Thread + Wi-Fi), sebagian besar POST bisa tercetak `HTTP -1` di Serial Monitor
+sedangkan server tidak menerima apa pun. Tugasmu menghitung berapa `RX via Thread`
+yang berhasil sampai ke server (lihat Bagian 8).
 
 **platformio.ini — dua board berbeda dalam satu proyek**
 
@@ -174,7 +208,7 @@ upload_port  = /dev/ttyACM1
 - ☐ ESP32-H2 dan ESP32-C6 terhubung ke PC via kabel USB, port dicatat lewat `pio device list`.
 - ☐ `WIFI_SSID`, `WIFI_PASS`, dan `SERVER_URL` pada `src/c6_gateway/main.cpp` sudah disesuaikan.
 - ☐ Hotspot/Wi-Fi **2,4 GHz** aktif dan kedua board berada dalam jangkauan sinyal.
-- ☐ Server HTTP tujuan dapat diakses (cek `httpbin.org` dari browser, atau siapkan server lokal).
+- ☐ Server HTTP tujuan dapat diakses (cek `httpbin.org` dari browser, atau jalankan `python3 http_sink.py` untuk server lokal).
 - ☐ Firmware `h2_node` dan `c6_gateway` berhasil di-build.
 - ☐ Env gateway memakai `board_build.partitions = huge_app.csv`.
 - ☐ Serial Monitor 115200 dibuka untuk masing-masing board.

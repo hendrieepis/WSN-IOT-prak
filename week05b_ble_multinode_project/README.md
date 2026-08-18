@@ -195,6 +195,25 @@ pio run -d week05b_ble_multinode_project -e central -t upload
 Kalau port di komputermu berbeda, jalankan `pio device list` lalu sesuaikan
 `upload_port`/`monitor_port` pada `platformio.ini` (Windows memakai `COMx`).
 
+**Memantau satu per satu dengan picocom**
+
+Kalau lebih suka satu terminal per board, pakai picocom (keluar: `Ctrl-A`
+lalu `Ctrl-X`):
+
+```bash
+picocom /dev/ttyACM4 -b115200 --imap crcrlf,lfcrlf   # central / hub
+picocom /dev/ttyACM0 -b115200                        # nodea — sensor jendela
+picocom /dev/ttyACM2 -b115200                        # nodeb — sensor pintu
+```
+
+`--imap crcrlf,lfcrlf` hanya perlu di central, dan sebabnya ada di kode, bukan
+di kabelnya: hub mencetak lewat `Serial.printf("...\n")` yang mengirim **LF
+saja**, sehingga kursor turun tanpa kembali ke kolom pertama — barisnya
+bertingkat seperti tangga. Kedua node memakai `Serial.println()` yang mengirim
+CR+LF, jadi tampil rapi tanpa opsi tambahan. Menambahkan `--imap` pada node
+juga tidak merusak apa pun, jadi aman dipakai seragam kalau lebih mudah
+diingat.
+
 **Memantau ketiga board sekaligus**
 
 Membuka tiga Serial Monitor terpisah membuat urutan kejadian antar-board sulit

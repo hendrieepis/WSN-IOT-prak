@@ -53,8 +53,8 @@ Tiga hal yang membedakan format ini dari panduan praktikum biasa:
   membongkar satu baris kode yang tampak sepele (mis. mengomentari `subscribe()`
   lalu melihat notify berhenti) — menghubungkan API dengan apa yang sebenarnya
   terjadi di udara.
-- **Teori dibatasi.** Panduan ini menjawab **"gimana"**; pembahasan mendalam
-  ("kenapa") ada di buku teori terpisah. Tiap Bagian 4 menyebut batas itu
+- **Teori dibatasi.** Panduan ini menjawab **"bagaimana"**; pembahasan mendalam
+  ("mengapa") ada di buku teori terpisah. Tiap Bagian 4 menyebut batas itu
   secara eksplisit.
 
 ## Keterkaitan antar-modul
@@ -153,6 +153,8 @@ Setelah menyelesaikan seluruh modul, praktikan mampu:
 
 | Module | Folder | MISSION | Link komunikasi | Board | Level |
 |------|--------|---------|------------|-------|-------|
+| 00A | `week00_blinky` | Verify the Toolchain | — (single node) | ESP32-H2 | Basic |
+| 00B | `week00_btn` | Read the First Input | — (single node) | ESP32-H2 | Basic |
 | 01 | `week01_ble_p2p` | Establish a BLE Link | koneksi H2 ↔ H2 | ESP32-H2 | Basic |
 | 02 | `week02_ble_p2p_data` | Exchange Data | dua arah (notify + write) | ESP32-H2 | Basic |
 | 03 | `week03_ble_client_server` | Build a BLE Service | GATT read/write | ESP32-H2 | Intermediate |
@@ -170,6 +172,11 @@ Setelah menyelesaikan seluruh modul, praktikan mampu:
 | 14 | `week14_mqtt` | Publish to the Cloud | C6 → MQTT broker | ESP32-C6 | Intermediate |
 | 15 | `week15_e2e_iot` | Build an End-to-End IoT System | H2 → Thread → C6 → MQTT | H2 + C6 | Advanced |
 | 16 | `week16_comparative` | Prove Your Protocol | BLE/Zigbee/Thread → MQTT | H2 + C6 | Project |
+
+> **MODUL 00A dan 00B adalah warm-up** yang dikerjakan sebelum M01. Keduanya
+> tidak memuat protokol komunikasi; fungsinya memastikan toolchain, board, dan
+> rantai build–flash–monitor sudah terbukti bekerja, sehingga kegagalan pada
+> modul komunikasi tidak lagi bercampur dengan masalah dasar.
 
 > **MODUL 05B adalah mini project**, bukan modul inti — 16 modul utama tetap
 > 01–16. Isinya menerapkan topologi bintang M05 pada kasus nyata: dua smart

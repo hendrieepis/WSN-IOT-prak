@@ -67,8 +67,8 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 ## 4 · Dasar Teori (secukupnya)
 
 Teori di sini dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(kenapa GATT dirancang berlapis, detail ATT/L2CAP) ada di buku teori terpisah —
-panduan ini fokus pada "gimana".*
+(mengapa GATT dirancang berlapis, detail ATT/L2CAP) ada di buku teori terpisah —
+panduan ini fokus pada "bagaimana".*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -81,7 +81,7 @@ panduan ini fokus pada "gimana".*
 | `onWrite` / `onNotify` | Callback yang dipicu saat data ditulis ke server / notifikasi tiba di client. |
 | Echo | Server mengirim balik isi write lewat notify — dipakai untuk membuktikan jalur pulang. |
 
-**Kenapa dua characteristic, bukan satu?** Satu characteristic hanya bisa
+**Mengapa dua characteristic, bukan satu?** Satu characteristic hanya bisa
 mengalir efisien ke satu arah: `NOTIFY` adalah dorongan server→client,
 `WRITE` adalah kiriman client→server. Memisahkan TX dan RX membuat arah data
 terbaca langsung dari UUID-nya — pola yang sama dipakai profil serial BLE
@@ -141,7 +141,7 @@ client lewat notify.
 **platformio.ini — kunci agar dua board tidak salah flash**
 
 Dengan dua ESP32-H2 tercolok bersamaan, auto-detect port bisa mengirim firmware
-`node1` ke board yang kamu maksud jadi `node2`. Pin port tiap environment:
+`node1` ke board yang dimaksudkan sebagai `node2`. Pin port tiap environment:
 
 ```ini
 [env:node1]
@@ -230,8 +230,8 @@ RX dari Node1: Hello dari Node1 (4047)
 ```
 
 > **CHECKPOINT** — Baris `RX dari Node1` muncul di Node2 dengan jarak ±2 detik
-> dan nilai `millis()` yang sama persis dengan `TX ke Node2` di Node1. Kalau
-> nilainya berbeda, kamu sedang membaca log yang tidak sinkron — hentikan dan
+> dan nilai `millis()` yang sama persis dengan `TX ke Node2` di Node1. Jika
+> nilainya berbeda, log yang sedang dibaca tidak sinkron — hentikan dan
 > periksa dulu, jangan lanjut ke EXP-03.
 
 ### EXP-03 — Uplink + Echo: Client → Server (write)
@@ -271,7 +271,7 @@ RX dari Node1: Halo dari Node2 (6051)
 
 > **CHECKPOINT** — Pada Node2 muncul **dua jenis** baris `RX dari Node1`: yang
 > berisi `Hello ...` (notify periodik) dan yang berisi `Halo ...` (echo dari
-> write kamu sendiri). Kalau hanya satu jenis yang muncul, satu arah belum
+> write yang dikirim sendiri). Jika hanya satu jenis yang muncul, satu arah belum
 > jalan — perbaiki sebelum masuk ke pengukuran.
 
 ### Verifikasi hardware (log referensi)
@@ -332,11 +332,11 @@ kedatangan di Node2.
 
 Jawab berdasarkan tabel Bagian 8, bukan berdasarkan teori saja:
 
-1. Bagaimana pengaruh jarak terhadap nilai RSSI pada pengukuranmu?
+1. Bagaimana pengaruh jarak terhadap nilai RSSI pada data pengukuran yang diperoleh?
 2. Pada RSSI berapa pesan mulai hilang? Bandingkan dengan tabel referensi.
 3. Berapa latency rata-rata satu arah (Node1 → Node2)?
-4. Apakah loss downlink dan uplink mulai naik pada jarak yang sama? Kalau berbeda, apa dugaan penyebabnya (daya pancar, `writeValue(..., true)` yang menunggu response, atau posisi antena)?
-5. Untuk data periodik, mana yang lebih hemat: notify atau client mem-*polling* dengan read berulang? Dukung dengan jumlah transaksi per menit dari datamu.
+4. Apakah loss downlink dan uplink mulai naik pada jarak yang sama? Jika berbeda, apa dugaan penyebabnya (daya pancar, `writeValue(..., true)` yang menunggu response, atau posisi antena)?
+5. Untuk data periodik, mana yang lebih hemat: notify atau client mem-*polling* dengan read berulang? Dukung dengan jumlah transaksi per menit dari data hasil pengukuran.
 
 ## 10 · Concept Check
 
@@ -348,7 +348,7 @@ Jawab berdasarkan tabel Bagian 8, bukan berdasarkan teori saja:
 
 ## 11 · Challenge (tugas modifikasi)
 
-Ubah kode, jangan cuma jelaskan hasil.
+Modifikasi kode, bukan sekadar menjelaskan hasil.
 
 - **CH-1 — Nomor urut (wajib, dipakai modul berikutnya).** Ganti payload notify Node1 menjadi `SEQ=<n>` dengan nomor urut bertambah tiap kirim, interval 500 ms.
 

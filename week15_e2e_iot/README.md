@@ -25,12 +25,12 @@ H2 → Thread → C6 → Wi-Fi → MQTT → Dashboard
 
 ## 2 · Keterkaitan Antar-Modul
 
-Modul ini **tidak memperkenalkan protokol baru**. Semuanya sudah kamu bangun:
+Modul ini **tidak memperkenalkan protokol baru**. Seluruh komponennya sudah dibangun:
 sensor Thread (M11), mesh (M12), gateway dwi-radio (M13), dan klien MQTT (M14).
 Yang baru adalah menyatukannya — dan menghadapi masalah yang hanya muncul saat
 sistem punya banyak hop: **ketika data tidak sampai, hop mana yang salah?**
-Karena tiap hop sudah kamu ukur sendiri di modul sebelumnya, kamu punya
-angka pembanding untuk menjawabnya.
+Karena tiap hop sudah diukur sendiri pada modul sebelumnya, angka pembanding
+untuk menjawabnya sudah tersedia.
 
 | | Cakupan |
 |---|---|
@@ -222,13 +222,13 @@ konek MQTT (client ID `esp32c6-gateway`), lalu membentuk jaringan Thread
 Thread, Wi-Fi, dan MQTT. Bandingkan ukuran firmware `c6_gateway` modul ini
 dengan `c6_gateway` M13 (Thread + Wi-Fi + HTTP) dari ringkasan `pio run`, lalu
 periksa `huge_app.csv` untuk melihat berapa besar partisi app yang tersedia.
-Jawab: berapa persen partisi sudah terpakai, dan apa yang akan terjadi bila kamu
-menambahkan satu stack lagi (mis. BLE seperti di M16)? Ini metrik yang jarang
+Jawab: berapa persen partisi sudah terpakai, dan apa yang akan terjadi bila
+ditambahkan satu stack lagi (mis. BLE seperti di M16)? Ini metrik yang jarang
 diukur orang tetapi menentukan apakah sebuah gateway bisa dikembangkan lagi.
 
 > **CHECKPOINT** — Gateway mencetak **ketiga** tanda kesiapan berurutan:
 > `Wi-Fi OK, IP: ...`, `MQTT terhubung`, dan `Thread attached as: leader`.
-> Kalau salah satu tidak muncul, hentikan di sini — mendiagnosis satu stack
+> Jika salah satu tidak muncul, hentikan di sini — mendiagnosis satu stack
 > jauh lebih mudah daripada mendiagnosis tiga sekaligus.
 
 ### EXP-02 — Thread TX → Forward MQTT
@@ -263,9 +263,9 @@ RX via Thread: suhu:25.2
 Publish MQTT [praktikum/h2/telemetri]: suhu:25.2
 ```
 
-> **CHECKPOINT** — Untuk **satu** nilai suhu yang sama (mis. `25.2`), kamu bisa
-> menunjuk tiga baris log berurutan: `TX via Thread` di H2, `RX via Thread` di
-> C6, dan `Publish MQTT` di C6. Kalau baris kedua ada tetapi ketiga tidak,
+> **CHECKPOINT** — Untuk **satu** nilai suhu yang sama (mis. `25.2`), tiga baris log
+> berurutan harus dapat ditunjuk: `TX via Thread` di H2, `RX via Thread` di
+> C6, dan `Publish MQTT` di C6. Jika baris kedua ada tetapi ketiga tidak,
 > masalahnya di MQTT — bukan di Thread.
 
 ### EXP-03 — Verifikasi End-to-End
@@ -299,7 +299,7 @@ Variasi wajib:
 | Waktu pulih setelah H2 di-reset | |
 
 > **CHECKPOINT** — Nilai suhu yang muncul di `mosquitto_sub` sama persis dengan
-> yang dicetak H2. Kalau berbeda atau tertukar urutannya, ada pihak lain yang
+> yang dicetak H2. Jika berbeda atau tertukar urutannya, ada pihak lain yang
 > mem-publish ke topic yang sama — ganti prefix topic menjadi unik per kelompok.
 
 ### Verifikasi hardware (log referensi)

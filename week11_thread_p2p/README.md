@@ -212,7 +212,7 @@ sesuatu yang jarang terlihat: **jaringan bisa "terbentuk" tetapi tidak
 berfungsi**, dan log status saja tidak cukup untuk menyimpulkan keberhasilan.
 
 > **CHECKPOINT** — Kedua node mencetak `Attached as: ...` **dan** awalan EID
-> keduanya sama (`fdde:ad00:beef:0:`). Kalau awalannya berbeda, jangan lanjut —
+> keduanya sama (`fdde:ad00:beef:0:`). Jika awalannya berbeda, jangan lanjut —
 > tidak akan ada paket yang sampai.
 
 ### EXP-02 — PING Multicast / PONG Unicast
@@ -250,7 +250,7 @@ RX [fdde:ad00:beef:0:xxxx:...]:5050 -> 'PONG'
 ```
 
 > **CHECKPOINT** — Alamat yang tercetak pada baris `RX` di Node2 harus **sama
-> persis** dengan Mesh-Local EID Node1. Kalau tidak cocok, ada node lain di
+> persis** dengan Mesh-Local EID Node1. Jika tidak cocok, ada node lain di
 > ruangan yang ikut membalas — catat, itu temuan menarik untuk analisis.
 
 ### EXP-03 — Jarak, Kehilangan Peer, dan Latency
@@ -269,7 +269,7 @@ RX [fdde:ad00:beef:0:xxxx:...]:5050 -> 'PONG'
 | Latency rata-rata (10 sampel) | |
 
 > **CHECKPOINT** — Setelah Node1 dinyalakan lagi, `RX PONG` kembali muncul di
-> Node2 **tanpa** kamu mereset Node2. Bandingkan dengan M06 (relay BLE) yang
+> Node2 **tanpa** Node2 direset sama sekali. Bandingkan dengan M06 (relay BLE) yang
 > tidak pulih sendiri — perbedaan ini adalah nilai jual Thread.
 
 ### Verifikasi hardware (log referensi)
@@ -328,7 +328,7 @@ Jawab berdasarkan tabel Bagian 8:
 1. Berapa latency rata-rata round-trip PING→PONG pada jarak 1 m dan 10 m?
 2. Bagaimana tren RSSI dan success rate terhadap peningkatan jarak?
 3. Mengapa PING dikirim multicast sedangkan PONG unicast? Apa keuntungannya untuk jaringan berisi banyak node?
-4. Apa perbedaan alamat mesh-local EID (`fd...`) dan link-local (`fe80::`) pada jaringan Thread, dan yang mana yang muncul di lognmu?
+4. Apa perbedaan alamat mesh-local EID (`fd...`) dan link-local (`fe80::`) pada jaringan Thread, dan yang mana yang muncul pada log hasil percobaan?
 5. Apa yang terjadi di Node2 ketika Node1 dimatikan? Mengapa PING tetap terkirim, dan apa artinya bagi desain aplikasi?
 
 ## 10 · Concept Check
@@ -347,7 +347,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-3 — Statistik latency.** Ukur latency 30 sampel, hitung min/max/rata-rata dan simpangannya. Bandingkan dengan latency Zigbee M08 pada jarak yang sama.
 
-- **CH-4 — Prefix salah, sengaja.** Ubah `OT_ML_PREFIX` di **satu** node saja (mis. byte kedua jadi `0xdd`), flash, dan dokumentasikan gejalanya secara lengkap: apa yang tetap normal, apa yang gagal, dan bagaimana kamu mendiagnosisnya dari log. Ini melatih membaca *kegagalan senyap*.
+- **CH-4 — Prefix salah, sengaja.** Ubah `OT_ML_PREFIX` di **satu** node saja (mis. byte kedua jadi `0xdd`), flash, dan dokumentasikan gejalanya secara lengkap: apa yang tetap normal, apa yang gagal, dan bagaimana diagnosisnya ditegakkan dari log. Ini melatih membaca *kegagalan senyap*.
 
 ## 12 · Laporan
 

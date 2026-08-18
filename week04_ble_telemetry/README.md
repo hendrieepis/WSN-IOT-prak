@@ -25,7 +25,7 @@ Modul 03 membuat client **menarik** data berulang-ulang, sebagian besar mubazir.
 Modul ini membalik arah inisiatif: sensor mendorong nilai baru begitu tersedia,
 monitor hanya menunggu. Pola inilah yang dipakai semua telemetri di sisa lab —
 Zigbee attribute report (M09), Thread UDP periodik (M11–13), dan MQTT publish
-(M14). Angka transaksi/menit yang kamu hitung di M03 dipakai lagi di sini
+(M14). Angka transaksi/menit yang dihitung pada M03 dipakai lagi di sini
 sebagai pembanding.
 
 | | Cakupan |
@@ -81,7 +81,7 @@ teori terpisah.*
 | Push vs pull | Push = pengirim menentukan kapan data dikirim; pull = penerima yang meminta (M03). |
 | Sensor simulasi | Nilai suhu dibangkitkan `random()`, mulai 25,0 °C, fluktuasi ±1,0 °C, reset ke 25,0 bila keluar rentang 20–40 °C. |
 
-**Kenapa sensornya disimulasi?** Karena yang diuji modul ini adalah **kanal
+**Mengapa sensornya disimulasi?** Karena yang diuji modul ini adalah **kanal
 telemetri**, bukan akurasi sensor. Nilai simulasi menghilangkan variabel
 kalibrasi sehingga setiap kelainan pada log pasti berasal dari kanal radio.
 Mengganti `readSensor()` dengan sensor asli adalah CH-3.
@@ -250,8 +250,8 @@ Telemetry diterima: suhu = 26.1 C
 | Aliran pulih otomatis? (ya/tidak) | |
 | Alasan berdasarkan kode | |
 
-> **CHECKPOINT** — Kamu bisa menunjukkan baris kode yang menentukan apakah
-> monitor melakukan scan ulang atau tidak. Kalau belum bisa, jangan lanjut ke
+> **CHECKPOINT** — Praktikan dapat menunjukkan baris kode yang menentukan apakah
+> monitor melakukan scan ulang atau tidak. Jika belum bisa, jangan lanjut ke
 > analisis — jawabannya ada di `setup()` monitor.
 
 ### Verifikasi hardware (log referensi)
@@ -302,7 +302,7 @@ Jawab berdasarkan tabel Bagian 8:
 1. Berapa jumlah telemetry yang diterima per menit, dan berapa persen dari nilai yang dikirim sensor?
 2. Bandingkan transaksi radio per menit skema polling dan notify dari tabel pembanding. Berapa persen penghematannya?
 3. Pada jarak berapa interval kedatangan mulai tidak teratur, dan bagaimana bentuk ketidakteraturannya (melar atau melompat)?
-4. Kalau data hanya berubah tiap 10 detik, skema mana yang lebih boros? Tunjukkan dengan angka.
+4. Jika data hanya berubah tiap 10 detik, skema mana yang lebih boros? Tunjukkan dengan angka.
 5. Apa risiko notify dibanding indication untuk data yang tidak boleh hilang (mis. alarm)?
 
 ## 10 · Concept Check

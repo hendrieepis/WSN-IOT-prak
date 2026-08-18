@@ -25,7 +25,7 @@ Modul 05 menambah node sebagai **cabang** — semua tetap bicara langsung ke
 pusat. Modul ini memakai node ketiga sebagai **jembatan**, sehingga jangkauan
 jaringan melampaui jangkauan satu radio. Konsep hop inilah yang membuat Zigbee
 (M10) dan Thread (M12) disebut mesh; bedanya, di sana routing dikerjakan stack,
-sedangkan di sini kamu menuliskannya sendiri di lapisan aplikasi — supaya
+sedangkan di sini routing dituliskan sendiri di lapisan aplikasi — supaya
 mekanismenya terlihat telanjang sebelum disembunyikan protokol.
 
 | | Cakupan |
@@ -84,9 +84,9 @@ mesh) ada di buku teori terpisah.*
 
 **Ini bukan BLE Mesh standar.** ESP-BLE-MESH (spesifikasi Bluetooth SIG)
 memakai flooding, provisioning, dan model publish-subscribe — jalur pesan
-ditentukan protokol. Di sini rantai A→B→C ditentukan **oleh kode kamu**.
+ditentukan protokol. Di sini rantai A→B→C ditentukan **oleh kode aplikasi**.
 Keterbatasannya (tidak ada penemuan rute, tidak ada self-healing, arah tunggal)
-justru yang harus kamu catat, karena itulah yang dibereskan Thread di M12.
+justru yang perlu dicatat, karena itulah yang dibereskan Thread di M12.
 
 **Sekuens protokol yang diamati**
 
@@ -196,10 +196,10 @@ Unggah environment `nodeb` lebih dulu, lalu verifikasi dual-role: server
 **Buka abstraksinya** — di `src/nodeb/main.cpp`, tunjukkan **dua blok kode
 terpisah**: satu yang membuat `NimBLEServer` (untuk C) dan satu yang membuat
 `NimBLEClient` (ke A). Keduanya hidup di board yang sama dengan satu radio.
-Pertanyaan yang harus kamu jawab sebelum lanjut: saat B sedang mengirim notify
+Pertanyaan yang harus dijawab sebelum lanjut: saat B sedang mengirim notify
 ke C, apakah B masih bisa menerima notify dari A pada saat yang sama?
 
-> **CHECKPOINT** — Node B mencetak baris start-nya dan tidak crash. Kalau board
+> **CHECKPOINT** — Node B mencetak baris start-nya dan tidak crash. Jika board
 > reboot berulang (boot loop), kemungkinan besar radio kehabisan resource —
 > periksa jumlah koneksi maksimum di konfigurasi NimBLE.
 
@@ -223,8 +223,8 @@ node dan verifikasi jejak pesan per hop.
 
 > **CHECKPOINT** — Cocokkan **nomor pesan yang sama** di tiga Serial Monitor:
 > `Kirim ke B: A:5` di A, `Teruskan ke C: A:5` di B, dan
-> `Pesan tiba ...: A:5` di C. Kalau nomor di C tertinggal jauh atau melompat,
-> hentikan dan catat — itu loss per hop yang akan kamu ukur di Bagian 8.
+> `Pesan tiba ...: A:5` di C. Jika nomor di C tertinggal jauh atau melompat,
+> hentikan dan catat — itu loss per hop yang akan diukur pada Bagian 8.
 
 ### EXP-03 — Mode Kegagalan Rantai
 
@@ -242,7 +242,7 @@ node dan verifikasi jejak pesan per hop.
 | Perilaku saat Node B dimatikan | |
 | Apakah rantai pulih sendiri setelah B dinyalakan lagi? | |
 
-> **CHECKPOINT** — Kamu bisa menjelaskan mengapa matinya B menghentikan A
+> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa matinya B menghentikan A
 > (bukan sekadar "pesannya tidak sampai"), dengan menunjuk baris kode di
 > `src/nodea/main.cpp`.
 
@@ -285,7 +285,7 @@ Geser jarak hop A–B dan B–C (ukur dari posisi Node B); catat RSSI dan succes
 | B → C | | | |
 | A → C (ujung-ke-ujung) | | | |
 
-Periksa: apakah loss A→C ≈ loss A→B + loss B→C? Jelaskan kalau tidak.
+Periksa: apakah loss A→C ≈ loss A→B + loss B→C? Jelaskan jika tidak.
 
 **Uji jangkauan (wajib)** — jauhkan A dan C sampai **tidak saling terjangkau
 langsung**, buktikan dengan mematikan B (pesan berhenti), lalu nyalakan B lagi
@@ -315,7 +315,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-2 — Loss per hop otomatis.** Beri nomor urut pada payload dan hitung loss di B dan di C secara otomatis. Contoh: B menerima 30 pesan, C hanya 27 → loss hop 2 = (30−27)/30 × 100 % = 10 %. Bandingkan dengan loss kumulatif A→D pada CH-1.
 
-- **CH-3 — Jejak hop.** Ubah relay agar menambahkan penanda pada payload (`A:5|B`) sehingga jalur yang dilalui terbaca di penerima akhir. Diskusikan: apa yang hilang dari sifat *transparent forwarding* saat kamu melakukan ini?
+- **CH-3 — Jejak hop.** Ubah relay agar menambahkan penanda pada payload (`A:5|B`) sehingga jalur yang dilalui terbaca di penerima akhir. Diskusikan: apa yang hilang dari sifat *transparent forwarding* akibat perubahan ini?
 
 - **CH-4 — Self-healing sederhana.** Buat Node C melakukan scan ulang otomatis saat relay hilang, dan Node A menunggu relay kembali tanpa perlu reset. Ukur waktu pemulihan rantai, 5 percobaan.
 

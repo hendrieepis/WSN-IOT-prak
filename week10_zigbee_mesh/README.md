@@ -21,9 +21,9 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-M06 sudah memperkenalkan hop — tetapi jalurnya kamu tulis sendiri di kode.
+M06 sudah memperkenalkan hop — tetapi jalurnya ditulis sendiri di dalam kode.
 Di sini jalur ditentukan **stack**: end device memilih parent terbaik sendiri,
-dan router meneruskan trafik tanpa satu baris kode penerusan pun di sketch-mu.
+dan router meneruskan trafik tanpa satu baris kode penerusan pun di sketch.
 Membandingkan dua pendekatan ini (relay manual M06 vs routing otomatis M10)
 adalah inti analisis modul ini, dan bekalnya dipakai lagi saat Thread
 melakukan hal serupa di atas IPv6 (M12).
@@ -83,8 +83,8 @@ teori terpisah.*
 
 **Router bukan sekadar "node yang juga menyala".** Perbedaan sesungguhnya:
 router **selalu mendengarkan** (tidak tidur) dan menyimpan tabel routing.
-Itulah kenapa ZR memakai firmware ZCZR (lebih besar, partisi berbeda) dan
-kenapa ZR tidak cocok untuk node baterai. Catat konsekuensi daya ini — ia
+Itulah mengapa ZR memakai firmware ZCZR (lebih besar, partisi berbeda) dan
+mengapa ZR tidak cocok untuk node baterai. Catat konsekuensi daya ini — ia
 menjadi salah satu argumen di M16.
 
 **Sekuens protokol yang diamati**
@@ -189,7 +189,7 @@ Nyalakan coordinator, lalu router, lalu end device (semua dalam window
 | Role yang dicetak Router / ZED | |
 
 > **CHECKPOINT** — Router mencetak `role=ROUTER` dan end device mencetak
-> `role=END_DEVICE`. Kalau router mencetak `END_DEVICE`, `build_flags`-nya
+> `role=END_DEVICE`. Jika router mencetak `END_DEVICE`, `build_flags`-nya
 > salah — perbaiki sebelum lanjut, karena tanpa ZR tidak ada hop kedua.
 
 ### EXP-02 — Kontrol Multi-Hop
@@ -232,13 +232,13 @@ EndLight OFF
 ```
 
 **Buka abstraksinya** — cari di `src/router/main.cpp` baris kode yang
-**meneruskan** perintah ke end device. Kamu tidak akan menemukannya: penerusan
+**meneruskan** perintah ke end device. Baris itu tidak akan ditemukan: penerusan
 dikerjakan stack Zigbee, bukan aplikasi. Bandingkan dengan `src/nodeb/main.cpp`
 di Modul 06, tempat penerusan ditulis eksplisit. Tuliskan perbandingan itu —
 ia adalah jawaban pertanyaan analisis nomor 5.
 
 > **CHECKPOINT** — Dua baris `-> 0x....` muncul tiap siklus dan kedua LED
-> berubah. Kalau EndLight tidak ikut berubah padahal ter-bind, dekatkan dulu
+> berubah. Jika EndLight tidak ikut berubah padahal ter-bind, dekatkan dulu
 > semuanya (formasi meja) sebelum mencoba formasi garis.
 
 ### EXP-03 — Varian Topologi (inti modul)
@@ -258,7 +258,7 @@ ia adalah jawaban pertanyaan analisis nomor 5.
 | Perilaku ZED saat ZR dimatikan | |
 | Waktu pemulihan setelah ZR hidup lagi | |
 
-> **CHECKPOINT** — Kamu punya **dua angka latency** dari dua formasi berbeda,
+> **CHECKPOINT** — Tersedia **dua angka latency** dari dua formasi berbeda,
 > bukan satu. Tanpa keduanya, klaim "multi-hop berhasil" tidak bisa dibuktikan.
 
 ### Verifikasi hardware (log referensi)
@@ -324,10 +324,10 @@ itu jalankan EXP-03 formasi garis dan matikan jalur langsung ZC ↔ ZED.
 Jawab berdasarkan tabel Bagian 8:
 
 1. Berapa lama waktu join router dan end device? Apakah urutan penyalaan memengaruhi keberhasilan?
-2. Berdasarkan formasi dekat vs garis, kapan end device memilih router sebagai parent? Bagaimana kamu tahu?
+2. Berdasarkan formasi dekat vs garis, kapan end device memilih router sebagai parent? Bagaimana hal itu dibuktikan dari log?
 3. Bandingkan latency nyala EndLight pada 1 hop vs 2 hop; berapa selisihnya dan apakah sebanding dengan tambahan jangkauan?
 4. Apa yang terjadi pada EndLight ketika router dimatikan? Sebutkan istilah status node tersebut dan berapa lama pemulihannya.
-5. Bandingkan dengan relay manual M06: apa yang kamu **dapat** dari routing otomatis, dan apa yang kamu **kehilangan** (kendali, keterlihatan, ukuran firmware)?
+5. Bandingkan dengan relay manual M06: apa yang **diperoleh** dari routing otomatis, dan apa yang **hilang** (kendali, keterlihatan, ukuran firmware)?
 
 ## 10 · Concept Check
 

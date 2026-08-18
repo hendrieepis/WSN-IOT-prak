@@ -86,14 +86,14 @@ teori terpisah.*
 **Batasan PubSubClient yang wajib diketahui.** Library ini hanya melakukan
 **publish QoS 0**. Argumen ketiga `mqtt.publish(topic, payload, true)` adalah
 flag *retained*, **bukan** QoS. Artinya: setiap klaim tentang QoS 1/2 pada
-laporanmu harus berasal dari library lain (mis. `arduino-mqtt`,
+laporan harus berasal dari library lain (mis. `arduino-mqtt`,
 `AsyncMqttClient`), bukan dari percobaan ini. Menyebut "QoS 1" tanpa mengganti
 library adalah kesalahan yang sering muncul di laporan.
 
-**Kenapa modul ini tanpa Thread?** Supaya kegagalan bisa dilokalisasi. Kalau
+**Mengapa modul ini tanpa Thread?** Supaya kegagalan bisa dilokalisasi. Jika
 MQTT dan Thread dinyalakan bersamaan sejak awal (seperti M15), pesan yang tidak
 sampai bisa berasal dari mana saja. Di sini hanya ada satu hop — sehingga
-angka latency dan loss yang kamu dapat adalah **milik MQTT saja**, dan bisa
+angka latency dan loss yang diperoleh adalah **milik MQTT saja**, dan dapat
 dikurangkan dari angka M15 nanti.
 
 **Sekuens protokol yang diamati**
@@ -129,7 +129,7 @@ dikurangkan dari angka M15 nanti.
 | Broker | layanan publik | `test.mosquitto.org:1883` | routing berbasis topic |
 | Verifikator | PC/laptop | `mosquitto_sub` / `mosquitto_pub` | pembuktian independen dari sisi luar |
 
-**Kenapa ESP32-C6, bukan H2?** ESP32-H2 tidak punya radio Wi-Fi sama sekali,
+**Mengapa ESP32-C6, bukan H2?** ESP32-H2 tidak punya radio Wi-Fi sama sekali,
 jadi ia tidak bisa menjadi klien MQTT. Modul ini hanya memakai kaki Wi-Fi C6 —
 radio 802.15.4-nya menganggur, dan baru dipakai bersamaan di M15.
 
@@ -201,8 +201,8 @@ topic perintah.
 | Waktu boot → `MQTT terhubung` (s) | |
 
 > **CHECKPOINT** — Serial Monitor mencetak `Wi-Fi OK, IP: ...` **lalu**
-> `MQTT terhubung`. Kalau berhenti di titik-titik Wi-Fi, periksa apakah hotspot
-> 2,4 GHz (C6 tidak mendukung 5 GHz). Kalau Wi-Fi OK tetapi MQTT gagal, catat
+> `MQTT terhubung`. Jika berhenti di titik-titik Wi-Fi, periksa apakah hotspot
+> 2,4 GHz (C6 tidak mendukung 5 GHz). Jika Wi-Fi OK tetapi MQTT gagal, catat
 > `rc=` yang tercetak — angka itu jawaban soal analisis.
 
 ### EXP-02 — Publish Berkala
@@ -236,13 +236,13 @@ mosquitto_sub -h test.mosquitto.org -t "praktikum/h2/telemetri" -v
 ```
 
 **Buka abstraksinya** — jalankan subscriber dengan wildcard
-`mosquitto_sub -h test.mosquitto.org -t "praktikum/#" -v`. Kamu mungkin melihat
-data kelompok lain (atau orang asing) di broker publik yang sama. Jelaskan dari
-sini: apa yang broker *tidak* lakukan untukmu, dan mengapa produksi nyata tidak
+`mosquitto_sub -h test.mosquitto.org -t "praktikum/#" -v`. Data kelompok lain — bahkan
+data orang asing — mungkin ikut terlihat pada broker publik yang sama. Jelaskan
+dari sini: apa yang **tidak** dikerjakan broker, dan mengapa produksi nyata tidak
 pernah memakai broker publik tanpa autentikasi.
 
 > **CHECKPOINT** — Baris yang muncul di `mosquitto_sub` **sama persis** dengan
-> baris `TX MQTT` di Serial Monitor, termasuk nilainya. Kalau Serial mencetak
+> baris `TX MQTT` di Serial Monitor, termasuk nilainya. Jika Serial mencetak
 > tetapi subscriber diam, publish gagal di sisi jaringan — bukan di sisi kode.
 
 ### EXP-03 — Perintah Turun & Pemulihan
@@ -276,7 +276,7 @@ Variasi wajib:
 | Apakah subscription bertahan setelah reconnect? | |
 
 > **CHECKPOINT** — Setelah hotspot dinyalakan lagi, perintah baru **tetap**
-> sampai ke perangkat. Kalau tidak, subscription hilang saat reconnect — temuan
+> sampai ke perangkat. Jika tidak, subscription hilang saat reconnect — temuan
 > penting, dan jawabannya ada di apakah `subscribe()` dipanggil ulang di dalam
 > fungsi reconnect.
 

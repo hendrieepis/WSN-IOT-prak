@@ -81,9 +81,9 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 | Sambung ulang otomatis | Hub mencoba menyambung lagi tiap 3 detik ke sensor yang hilang; setelah 3 kali gagal, alamatnya dicari ulang lewat scan. |
 | CCCD | Penanda "aku mau notify" di sisi sensor. Hilang saat koneksi putus (tidak ada bonding), jadi **subscribe wajib diulang** tiap kali menyambung. |
 
-**Kenapa event-driven lebih rawan daripada periodik?** Pada M05, kehilangan
+**Mengapa event-driven lebih rawan daripada periodik?** Pada M05, kehilangan
 satu `A:7` langsung terlihat — nomor urut melompat dan pengiriman berikutnya
-datang 2 detik lagi. Di sini, kalau kejadian `OPEN` hilang, tidak ada
+datang 2 detik lagi. Di sini, jika kejadian `OPEN` hilang, tidak ada
 pengiriman berikutnya sampai seseorang menyentuh jendela lagi. Hub akan terus
 menampilkan "tertutup" padahal jendela terbuka: **kegagalan yang senyap**.
 Itulah alasan nomor urut disertakan di payload.
@@ -178,7 +178,7 @@ Flash **sensor dulu**, hub belakangan, agar saat hub melakukan scan 5 detik
 kedua sensor sudah mengudara.
 
 Port tiap environment sudah di-pin di `platformio.ini`, jadi tidak perlu
-`--upload-port` selama urutan port di komputermu sama:
+`--upload-port` selama urutan port pada komputer yang dipakai sama:
 
 | Environment | Port | Board |
 |---|---|---|
@@ -192,12 +192,12 @@ pio run -d week05b_ble_multinode_project -e nodeb   -t upload
 pio run -d week05b_ble_multinode_project -e central -t upload
 ```
 
-Kalau port di komputermu berbeda, jalankan `pio device list` lalu sesuaikan
+Jika port pada komputer yang dipakai berbeda, jalankan `pio device list` lalu sesuaikan
 `upload_port`/`monitor_port` pada `platformio.ini` (Windows memakai `COMx`).
 
 **Memantau satu per satu dengan picocom**
 
-Kalau lebih suka satu terminal per board, pakai picocom (keluar: `Ctrl-A`
+Jika lebih suka satu terminal per board, pakai picocom (keluar: `Ctrl-A`
 lalu `Ctrl-X`):
 
 ```bash
@@ -211,7 +211,7 @@ di kabelnya: hub mencetak lewat `Serial.printf("...\n")` yang mengirim **LF
 saja**, sehingga kursor turun tanpa kembali ke kolom pertama — barisnya
 bertingkat seperti tangga. Kedua node memakai `Serial.println()` yang mengirim
 CR+LF, jadi tampil rapi tanpa opsi tambahan. Menambahkan `--imap` pada node
-juga tidak merusak apa pun, jadi aman dipakai seragam kalau lebih mudah
+juga tidak merusak apa pun, jadi aman dipakai seragam jika lebih mudah
 diingat.
 
 **Memantau ketiga board sekaligus**
@@ -279,7 +279,7 @@ Sensor aktif tapi hub belum tersambung: JENDELA1:CLOSED:2
 | Apakah nomor event naik satu per perubahan? | |
 
 > **CHECKPOINT** — Satu tekanan harus menghasilkan **tepat satu** baris `OPEN`
-> dan satu pelepasan menghasilkan **tepat satu** `CLOSED`. Kalau muncul
+> dan satu pelepasan menghasilkan **tepat satu** `CLOSED`. Jika muncul
 > berkali-kali, debounce gagal — periksa `DEBOUNCE_MS` di `src/nodea/main.cpp`.
 
 ### EXP-02 — Hub Memantau Dua Sensor
@@ -316,12 +316,12 @@ Semua sensor terpantau — sistem siaga
 
 **Buka abstraksinya** — di `src/central/main.cpp`, `handleEvent()` menerima
 `idx` sebagai argumen pertama. Cari dari mana `idx` itu berasal (petunjuk:
-lihat lambda pada `pChar->subscribe(...)`). Lalu jawab: kalau kedua sensor
+lihat lambda pada `pChar->subscribe(...)`). Lalu jawab: jika kedua sensor
 mengirim payload identik `"OPEN"` tanpa prefiks ID, apakah hub masih bisa
-membedakannya? Kalau ya, kenapa prefiks `JENDELA1:` tetap dipakai?
+membedakannya? Jika ya, mengapa prefiks `JENDELA1:` tetap dipakai?
 
 > **CHECKPOINT** — Tekan tombol di board jendela, pastikan yang muncul
-> `Jendela 1`, bukan `Pintu 1`. Kalau tertukar, kedua node kemungkinan
+> `Jendela 1`, bukan `Pintu 1`. Jika tertukar, kedua node kemungkinan
 > di-flash dengan environment yang sama — cek ulang `-e nodea` / `-e nodeb`.
 
 ### EXP-03 — Keandalan Sistem Alarm
@@ -363,9 +363,9 @@ Semua sensor terpantau — sistem siaga
 
 **Buka abstraksinya #2** — hub menyambung ulang lewat dua jalur berbeda:
 mencoba **alamat lama** (cepat), dan bila gagal 3 kali, **scan ulang** untuk
-mencari alamat baru. Cari keduanya di `maintainLinks()`. Lalu jawab: kenapa
+mencari alamat baru. Cari keduanya di `maintainLinks()`. Lalu jawab: mengapa
 jalur kedua diperlukan padahal alamat BLE board biasanya tidak berubah? Dan
-kenapa `connect()` dibatasi 4 detik, bukan 30 detik bawaan library?
+mengapa `connect()` dibatasi 4 detik, bukan 30 detik bawaan library?
 
 > **CHECKPOINT** — Skenario 2 adalah inti modul ini. Koneksinya memang pulih
 > sendiri (`[PULIH]`), tetapi **kejadian yang terjadi selama sensor mati tetap
@@ -433,23 +433,23 @@ tautan lainnya.
 2. Pada uji beban (B), pada laju tekanan berapa kejadian mulai hilang? Apa penyebabnya — radio, debounce, atau kecepatan `loop()`?
 3. Skenario EXP-03 #2 menghasilkan state hub yang salah tanpa satu pun pesan error. Rancang mekanisme yang membuat kegagalan ini **terdeteksi** (petunjuk: apa yang dilakukan sistem alarm komersial saat sensor diam terlalu lama?).
 4. Sensor ini hanya mengirim saat ada perubahan. Bandingkan konsumsi energi dan keandalannya dengan pendekatan M05 yang mengirim tiap 2 detik. Kapan masing-masing lebih tepat?
-5. Dari tabel D, apa yang paling menentukan lama pemulihan — `RETRY_MS`, `CONNECT_TIMEOUT_MS`, atau lama sensor mati? Kalau kamu ingin pemulihan selalu di bawah 5 detik, nilai mana yang diubah dan apa harganya?
+5. Dari tabel D, apa yang paling menentukan lama pemulihan — `RETRY_MS`, `CONNECT_TIMEOUT_MS`, atau lama sensor mati? Apabila pemulihan dituntut selalu di bawah 5 detik, nilai mana yang diubah dan apa konsekuensinya?
 6. Untuk rumah dengan 12 jendela dan 5 pintu, apakah topologi bintang BLE ini masih layak? Apa batasannya, dan protokol mana (Zigbee/Thread, M08–M12) yang lebih cocok? Berikan alasan teknis.
 
 ## 11 · Concept Check
 
 1. Mengapa tombol BOOT dibaca dengan `INPUT_PULLUP` dan dianggap aktif saat `LOW`?
 2. Apa yang terjadi bila `DEBOUNCE_MS` diset 0? Dan bila diset 2000?
-3. Mengapa LED node dikedipkan dengan `millis()` (non-blocking) dan bukan `delay(300)`? Apa yang hilang kalau memakai `delay()`?
+3. Mengapa LED node dikedipkan dengan `millis()` (non-blocking) dan bukan `delay(300)`? Apa yang hilang jika memakai `delay()`?
 4. Dari mana hub tahu sebuah notify berasal dari sensor jendela — dari isi payload, atau dari sesuatu yang lain?
-5. Nomor event (`seq`) tidak dipakai oleh logika alarm sama sekali. Kenapa tetap dikirim?
+5. Nomor event (`seq`) tidak dipakai oleh logika alarm sama sekali. Mengapa tetap dikirim?
 6. Mengapa `subscribe()` harus dipanggil lagi setiap kali menyambung ulang, padahal objek `NimBLEClient`-nya sama?
 7. Mengapa percobaan `connect()` dijalankan dari `loop()` dan bukan langsung di dalam callback `onDisconnect()`?
-8. Sensor tetap mengedipkan LED walau hub belum tersambung. Menurutmu itu keputusan desain yang benar atau salah untuk sistem keamanan? Jelaskan.
+8. Sensor tetap mengedipkan LED walau hub belum tersambung. Apakah itu keputusan desain yang tepat untuk sebuah sistem keamanan? Jelaskan dengan alasan.
 
 ## 12 · Challenge (tugas modifikasi)
 
-- **CH-1 — Sensor ketiga.** Tambahkan `nodec` sebagai `SENSOR_PINTU2` (pintu belakang). Di hub, cukup tambahkan satu baris pada array `SENSORS[]` — buktikan tidak ada perubahan lain yang diperlukan, lalu jelaskan kenapa desain berbasis array itu penting.
+- **CH-1 — Sensor ketiga.** Tambahkan `nodec` sebagai `SENSOR_PINTU2` (pintu belakang). Di hub, cukup tambahkan satu baris pada array `SENSORS[]` — buktikan tidak ada perubahan lain yang diperlukan, lalu jelaskan mengapa desain berbasis array itu penting.
 
 - **CH-2 — Heartbeat anti-kegagalan senyap.** Sambung ulang otomatis menyelamatkan tautan, tapi tidak menyelamatkan kejadian yang terjadi saat sensor mati. Buat tiap sensor mengirim status terkininya (`JENDELA1:ALIVE:OPEN`) setiap 30 detik, dan buat hub **menimpa** state-nya dengan isi heartbeat itu. Uji dengan skenario EXP-03 #2 dan tunjukkan bahwa state hub kini kembali benar setelah pemulihan.
 

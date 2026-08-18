@@ -21,7 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-Di M07 kamu menyusun frame sendiri: tidak ada identitas jaringan, tidak ada
+Pada M07 frame disusun sendiri: tidak ada identitas jaringan, tidak ada
 keamanan, tidak ada penemuan perangkat. Zigbee menambahkan ketiganya di atas
 radio 802.15.4 yang **sama persis**. Yang menarik justru harga yang harus
 dibayar: firmware jauh lebih besar (butuh tabel partisi khusus), dan perangkat
@@ -87,7 +87,7 @@ terpisah.*
 alamat, punya kunci). Binding membuat satu endpoint **tahu harus mengirim ke
 endpoint mana**. Perangkat bisa sudah join tetapi belum ter-binding — dan
 perintahnya tidak akan sampai ke mana pun. Dua tahap ini muncul sebagai dua
-baris log yang berbeda; pastikan kamu bisa menunjuk keduanya.
+baris log yang berbeda; pastikan keduanya dapat ditunjuk.
 
 **Sekuens protokol yang diamati**
 
@@ -202,7 +202,7 @@ membuka network 180 detik dan menunggu binding.
 `partitions_zczr.csv` dan temukan partisi `zb_storage` dan `zb_fct`. Jawab: apa
 yang disimpan di sana, dan mengapa tabel partisi default Arduino tidak cukup?
 
-> **CHECKPOINT** — Coordinator mencetak titik-titik `.` berulang. Kalau
+> **CHECKPOINT** — Coordinator mencetak titik-titik `.` berulang. Jika
 > langsung muncul `Zigbee gagal start!` lalu board restart, tabel partisi atau
 > `build_flags` tidak cocok — perbaiki sebelum lanjut.
 
@@ -245,7 +245,7 @@ Lampu OFF
 
 > **CHECKPOINT** — Dua hal harus terjadi berurutan: end device mencetak
 > `Berhasil bergabung ke network!` (join), lalu coordinator mencetak
-> `End device ter-binding!` (binding). Kalau join berhasil tetapi binding tidak
+> `End device ter-binding!` (binding). Jika join berhasil tetapi binding tidak
 > pernah terjadi, perintah tidak akan sampai — jangan lanjut, ulangi dengan
 > menghapus NVS kedua board.
 
@@ -266,7 +266,7 @@ Lampu OFF
 | Sinkron status ZC vs ED? | |
 | Jarak mulai ada perintah tertinggal (m) | |
 
-> **CHECKPOINT** — Kamu bisa menjelaskan mengapa end device yang di-reset bisa
+> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa end device yang di-reset bisa
 > kembali **tanpa** window join dibuka lagi (petunjuk: keanggotaan tersimpan di
 > NVS, join hanya diperlukan sekali).
 
@@ -329,7 +329,7 @@ Jawab berdasarkan tabel Bagian 8:
 2. Apakah latency perintah (ZC hingga LED berubah di ED) bertambah pada jarak jauh?
 3. Berapa persen perintah gagal dalam 2 menit pengamatan, dan pola gagalnya bagaimana (acak atau berkelompok)?
 4. Berapa waktu proses join + binding dari tiga percobaan, dan apa yang membuatnya bervariasi?
-5. Apakah Zigbee (join/binding otomatis + enkripsi) lebih cocok untuk WSN dibanding raw 802.15.4 M07? Sebutkan apa yang kamu dapat dan apa yang kamu bayar.
+5. Apakah Zigbee (join/binding otomatis + enkripsi) lebih cocok untuk WSN dibanding raw 802.15.4 M07? Sebutkan apa yang diperoleh dan apa harga yang dibayar.
 
 ## 10 · Concept Check
 

@@ -72,7 +72,7 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
 | Thread mesh | Setiap node Router dapat meneruskan paket node lain; jalur dibentuk otomatis. |
 | Leader | Satu node terpilih mengelola jaringan; lainnya Router/Child (`otGetDeviceRole()`). |
 | Mesh-Local EID (`fd..`) | Alamat IPv6 unik per node dalam domain mesh (`fdde:ad00:beef:0:...`). |
-| Mesh-Local prefix | Prefix `/64` milik jaringan; wajib identik di ketiga node, kalau tidak multicast `ff03::` tidak diteruskan. |
+| Mesh-Local prefix | Prefix `/64` milik jaringan; wajib identik di ketiga node, jika tidak multicast `ff03::` tidak diteruskan. |
 | Link-local (`fe80::`) | Alamat per-interface antar tetangga 1 hop. |
 | Multicast `ff03::abcd` | Realm-local; paket diteruskan ke seluruh mesh, semua anggota grup menerimanya. |
 | UDP port 5050 | Port aplikasi kirim/terima (`OtUdp.beginMulticast(GROUP, PORT)`). |
@@ -203,12 +203,12 @@ Board yang selesai boot lebih dulu umumnya terpilih menjadi Leader.
 
 **Buka abstraksinya** — matikan board yang menjadi Leader, tunggu, lalu amati
 role kedua node sisanya di Serial Monitor. Salah satunya akan **naik menjadi
-Leader** tanpa satu baris kode pun dari kamu. Catat berapa lama peralihan itu.
+Leader** tanpa satu baris kode tambahan. Catat berapa lama peralihan itu.
 Bandingkan dengan M10: di Zigbee, coordinator tidak bisa digantikan — matinya
 ZC berarti matinya jaringan.
 
 > **CHECKPOINT** — Ketiga node mencetak `Attached as: ...` dan awalan EID
-> ketiganya sama. Kalau ada yang berbeda, node itu berada di jaringan lain —
+> ketiganya sama. Jika ada yang berbeda, node itu berada di jaringan lain —
 > hapus NVS-nya dan flash ulang.
 
 ### EXP-02 — Multicast Many-to-Many
@@ -234,7 +234,7 @@ RX [fdde:ad00:beef:0:yyyy:...]: NODE2:2
 ```
 
 > **CHECKPOINT** — Di **setiap** Serial Monitor muncul baris RX dari **dua**
-> sumber berbeda (bukan satu). Kalau hanya satu, node ketiga belum masuk mesh
+> sumber berbeda (bukan satu). Jika hanya satu, node ketiga belum masuk mesh
 > atau prefix-nya berbeda. Cocokkan juga counter: harus berurutan tanpa lompat.
 
 ### EXP-03 — Perubahan Topologi & Kegagalan Node
@@ -254,7 +254,7 @@ RX [fdde:ad00:beef:0:yyyy:...]: NODE2:2
 | Latency 1 hop vs 2 hop | |
 | Role setelah N2 kembali — berubah? | |
 
-> **CHECKPOINT** — Kamu punya bukti kuantitatif untuk dua klaim terpisah:
+> **CHECKPOINT** — Tersedia bukti kuantitatif untuk dua klaim terpisah:
 > (a) pesan N3 mencapai N1 lewat N2, dan (b) mesh pulih sendiri. Klaim (a)
 > hanya sah bila N1 dan N3 memang **tidak** saling terjangkau langsung —
 > buktikan dulu dengan mematikan N2 dan melihat aliran berhenti.

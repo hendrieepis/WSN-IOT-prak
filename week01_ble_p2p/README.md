@@ -23,8 +23,8 @@
 
 BLE adalah stack berlapis. Modul ini adalah lapisan paling bawah: tautan radio
 itu sendiri — belum ada payload aplikasi. Modul-modul berikutnya menumpuk di
-atas tautan yang kamu bangun di sini, jadi kerjakan modul ini sampai
-benar-benar solid sebelum lanjut.
+atas tautan yang dibangun di sini, sehingga modul ini perlu dikerjakan sampai
+benar-benar solid sebelum melangkah lebih jauh.
 
 | | Cakupan |
 |---|---|
@@ -68,8 +68,8 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 ## 4 · Dasar Teori (secukupnya)
 
 Teori di sini dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(kenapa BLE hemat daya, detail lapisan protokol) ada di buku teori terpisah —
-panduan ini fokus pada "gimana".*
+(mengapa BLE hemat daya, detail lapisan protokol) ada di buku teori terpisah —
+panduan ini fokus pada "bagaimana".*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -82,12 +82,12 @@ panduan ini fokus pada "gimana".*
 | GATT / Service | Struktur data di atas koneksi; modul ini membuat service **tanpa** characteristic. |
 | RSSI | Kuat sinyal terima (dBm); makin mendekati 0 makin kuat — −50 lebih kuat dari −90. |
 
-**Kenapa ESP32-H2?** H2 mendukung BLE 5 dan 802.15.4 (Thread/Zigbee), tetapi
+**Mengapa ESP32-H2?** H2 mendukung BLE 5 dan 802.15.4 (Thread/Zigbee), tetapi
 tidak punya Wi-Fi maupun Bluetooth Classic. Jadi seluruh komunikasi di seri lab
 ini murni BLE (dan 802.15.4 di modul lanjutan) — bukan kebetulan, tapi pilihan
 board yang menegaskan fokus lab.
 
-**Kenapa output modul ini sedikit?** Service pada Node1 sengaja dibuat tanpa
+**Mengapa output modul ini sedikit?** Service pada Node1 sengaja dibuat tanpa
 characteristic — tidak ada data aplikasi yang dikirim. Setelah banner boot dan
 pesan koneksi, kedua node hanya mencetak satu baris heartbeat tiap 5 detik.
 Itu bukan tanda program berhenti; itu memang bentuk keberhasilan Modul 01.
@@ -140,7 +140,7 @@ Service UUID kedua node: `4fafc201-1fb5-459e-8fcc-c5c9c331914b`
 **platformio.ini — kunci agar dua board tidak salah flash**
 
 Dengan dua ESP32-H2 tercolok bersamaan, auto-detect port bisa mengirim firmware
-`node1` ke board yang kamu maksud jadi `node2`. Pin port tiap environment, dan
+`node1` ke board yang dimaksudkan sebagai `node2`. Pin port tiap environment, dan
 pakai `build_src_filter` untuk memilih source per node:
 
 ```ini
@@ -262,7 +262,7 @@ perilaku dua arahnya:
 | Pesan saat disconnect pada Node2 | |
 | Interval cetak status (ms) | |
 
-> **CHECKPOINT** — Kamu bisa menjelaskan mengapa reset Node1 dan reset Node2
+> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa reset Node1 dan reset Node2
 > memicu pesan yang berbeda — itu bukti tautan diamati dari dua sisi.
 
 ## 8 · Pengukuran
@@ -309,7 +309,7 @@ Jawab berdasarkan tabel Bagian 8, bukan berdasarkan teori saja:
 2. Pada nilai RSSI berapa koneksi mulai gagal? Bandingkan dengan tabel referensi.
 3. Berapa latency rata-rata dari scan sampai connected (ms)?
 4. Apakah halangan (tembok/tubuh) memengaruhi keberhasilan koneksi?
-5. Apakah BLE P2P cocok untuk aplikasi yang butuh koneksi cepat dan hemat daya? Jelaskan dari datamu.
+5. Apakah BLE P2P cocok untuk aplikasi yang butuh koneksi cepat dan hemat daya? Jelaskan dari data hasil pengukuran.
 
 ## 10 · Concept Check
 
@@ -321,7 +321,7 @@ Jawab berdasarkan tabel Bagian 8, bukan berdasarkan teori saja:
 
 ## 11 · Challenge (tugas modifikasi)
 
-Ubah kode, jangan cuma jelaskan hasil:
+Modifikasi kode, bukan sekadar menjelaskan hasil:
 
 - **CH-1** — Ubah interval heartbeat dari 5000 ms ke 1000 ms; amati dampaknya pada keterbacaan log dan beban.
 

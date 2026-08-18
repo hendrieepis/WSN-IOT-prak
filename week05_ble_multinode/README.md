@@ -81,9 +81,9 @@ buku teori terpisah.*
 | Notify | Peripheral mendorong data ke central setelah di-subscribe. |
 | Time-sharing radio | Satu radio melayani dua koneksi bergantian — sumber utama penurunan laju bila node bertambah banyak. |
 
-**Kenapa interval A dan B sengaja dibedakan?** Kalau keduanya sama, log central
-akan berselang-seling rapi dan kamu tidak bisa membedakan "central melayani dua
-node dengan benar" dari "central hanya mencatat bergantian". Interval 2 s dan
+**Mengapa interval A dan B sengaja dibedakan?** Jika keduanya sama, log central
+akan berselang-seling rapi sehingga "central melayani dua node dengan benar"
+tidak dapat dibedakan dari "central hanya mencatat bergantian". Interval 2 s dan
 3 s menghasilkan pola tak beraturan yang hanya cocok bila kedua aliran memang
 independen.
 
@@ -202,7 +202,7 @@ menunggu central.
 | Interval kirim B (ms) | |
 
 > **CHECKPOINT** — Kedua peripheral mencetak `Menunggu central...` dan belum
-> mencetak `Notify:` sama sekali. Kalau sudah ada `Notify:` padahal central
+> mencetak `Notify:` sama sekali. Jika sudah ada `Notify:` padahal central
 > belum menyala, berarti node mengirim tanpa penerima — periksa syarat
 > `deviceConnected` di kodenya.
 
@@ -248,12 +248,12 @@ Notify: A:2
 **Buka abstraksinya** — di `src/central/main.cpp`, cari **berapa objek
 `NimBLEClient` yang dibuat** dan bagaimana callback notify tahu pesan ini
 datang dari A atau dari B. Jawabannya bukan dari isi payload — payload hanya
-kebetulan diberi prefiks. Telusuri sampai ketemu mekanisme sebenarnya, lalu
-jawab: kalau kedua node mengirim payload identik `"data"`, apakah central masih
+kebetulan diberi prefiks. Telusuri hingga menemukan mekanisme sebenarnya, lalu
+jawab: jika kedua node mengirim payload identik `"data"`, apakah central masih
 bisa membedakannya?
 
 > **CHECKPOINT** — Central mencetak `Koneksi ke kedua node selesai` dan setelah
-> itu muncul baris `[NodeA]` **dan** `[NodeB]` bergantian tak beraturan. Kalau
+> itu muncul baris `[NodeA]` **dan** `[NodeB]` bergantian tak beraturan. Jika
 > hanya satu label yang pernah muncul, koneksi kedua gagal — ulangi scan dengan
 > mereset central (peripheral tetap menyala).
 
@@ -275,7 +275,7 @@ verifikasi pemulihan.
 | Apakah koneksi B pulih otomatis? | |
 
 > **CHECKPOINT** — Saat Node B dimatikan, aliran `[NodeA]` **tidak boleh**
-> ikut berhenti. Kalau ikut berhenti, central kehilangan kedua koneksi — itu
+> ikut berhenti. Jika ikut berhenti, central kehilangan kedua koneksi — itu
 > temuan penting, catat dan jelaskan di analisis.
 
 ### Verifikasi hardware (log referensi)

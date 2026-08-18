@@ -81,7 +81,7 @@ terpisah.*
 | Cluster On/Off | Perintah standar; dipanggil per tujuan lewat `lightOn(ep, addr)`. |
 | Short address | Alamat 16-bit node Zigbee, dicetak coordinator sebagai `0x%04X`. |
 
-**Kenapa endpoint kedua lampu harus berbeda?** Karena binding table
+**Mengapa endpoint kedua lampu harus berbeda?** Karena binding table
 mengidentifikasi tujuan dari pasangan `endpoint + address`. Bila dua lampu
 memakai endpoint yang sama, entri binding menjadi ambigu dan perintah bisa
 menyasar. Endpoint adalah "nomor kamar" — dua kamar tidak boleh bernomor sama
@@ -200,7 +200,7 @@ dalam window ini nyalakan `light1` dan `light2` agar join dan binding.
 | Status LED saat join | |
 | Apakah keduanya masuk dalam satu window? | |
 
-> **CHECKPOINT** — Kedua light mencetak `tergabung ke network!`. Kalau hanya
+> **CHECKPOINT** — Kedua light mencetak `tergabung ke network!`. Jika hanya
 > satu, window join sudah habis untuk yang kedua — reboot coordinator (window
 > terbuka lagi) lalu ulangi. Jangan lanjut dengan satu node saja.
 
@@ -243,11 +243,11 @@ Light1 OFF
 **Buka abstraksinya** — `getBoundDevices()` mengembalikan `std::list` berisi
 `zb_device_params_t`. Cetak **seluruh** field struct itu (bukan hanya endpoint
 dan short address) dan cocokkan dengan alamat IEEE (MAC 64-bit) tiap board yang
-kamu dapat dari `esptool chip_id`. Jawab: entri mana yang benar-benar unik dan
+diperoleh dari `esptool chip_id`. Jawab: entri mana yang benar-benar unik dan
 stabil — short address atau alamat IEEE?
 
 > **CHECKPOINT** — Baris `Total 2 device.` muncul, dan setelah itu ada **dua**
-> baris `-> Light 0x....` untuk tiap siklus ON dan tiap siklus OFF. Kalau hanya
+> baris `-> Light 0x....` untuk tiap siklus ON dan tiap siklus OFF. Jika hanya
 > satu baris per siklus, binding kedua gagal.
 
 ### EXP-03 — Jarak & Kehilangan Node
@@ -265,7 +265,7 @@ stabil — short address atau alamat IEEE?
 | Perilaku coordinator saat Light1 mati | |
 | Light1 kembali otomatis? (ya/tidak) + alasan | |
 
-> **CHECKPOINT** — Kamu bisa menjelaskan mengapa coordinator tetap mengirim
+> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa coordinator tetap mengirim
 > perintah ke node yang sudah mati (petunjuk: binding table adalah daftar
 > statis, bukan daftar node yang sedang hidup). Ini temuan penting untuk desain
 > sistem nyata.
@@ -340,12 +340,12 @@ Jawab berdasarkan tabel Bagian 8:
 2. Apakah kedua light menerima perintah ON/OFF pada siklus yang sama? Buktikan dari urutan baris log coordinator.
 3. Bagaimana pengaruh jarak terhadap success rate perintah ON/OFF, dan apakah node yang dekat ikut terdampak?
 4. Apa yang terjadi di coordinator ketika salah satu light dimatikan? Masihkah perintah dikirim ke node itu, dan apa implikasinya untuk sistem nyata?
-5. Mengapa endpoint light1 dan light2 harus berbeda (10 vs 11)? Apa yang akan terjadi kalau sama?
+5. Mengapa endpoint light1 dan light2 harus berbeda (10 vs 11)? Apa yang akan terjadi jika sama?
 
 ## 10 · Concept Check
 
 1. Apa fungsi `allowMultipleBinding(true)` pada switch coordinator?
-2. Apa yang dimaksud window join 180 detik pada `setRebootOpenNetwork(180)`, dan kenapa tidak dibuka selamanya?
+2. Apa yang dimaksud window join 180 detik pada `setRebootOpenNetwork(180)`, dan mengapa tidak dibuka selamanya?
 3. Jelaskan perbedaan peran ZC dan ZED dalam topologi multi-node ini.
 4. Bagaimana coordinator mengidentifikasi setiap light secara unik (endpoint + short address)?
 5. Apa keuntungan multi-binding dibanding broadcast ke semua node?

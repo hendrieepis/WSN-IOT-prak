@@ -23,9 +23,10 @@
 
 Enam modul pertama berjalan di atas BLE, tempat stack menyembunyikan semua
 detail radio. Modul ini **membuka lantai dasar**: tidak ada Zigbee, tidak ada
-Thread, tidak ada GATT — hanya PHY/MAC 802.15.4 dan array byte yang kamu susun
+Thread, tidak ada GATT — hanya PHY/MAC 802.15.4 dan array byte yang disusun
 sendiri. Setelah modul ini, setiap kali Zigbee (M08–10) atau Thread (M11–13)
-"tinggal jalan", kamu tahu persis apa yang sebenarnya mereka kerjakan.
+tampak "langsung bekerja", praktikan mengetahui persis apa yang sebenarnya
+dikerjakan protokol tersebut.
 
 | | Cakupan |
 |---|---|
@@ -38,13 +39,13 @@ sendiri. Setelah modul ini, setiap kali Zigbee (M08–10) atau Thread (M11–13)
 | Modul | Lapisan yang dikerjakan |
 |---|---|
 | 01–06 | BLE — stack menyembunyikan radio |
-| **07 (ini)** | **802.15.4 telanjang — kamu yang menyusun frame** |
+| **07 (ini)** | **802.15.4 telanjang — frame disusun sendiri** |
 | 08–10 | Zigbee di atas 802.15.4 — stack mengurus join, binding, routing |
 | 11–13 | Thread di atas 802.15.4 — stack mengurus IPv6, mesh, dataset |
 
 **Kontrak data lab ini.** Radio yang dipakai M07–M13 **sama persis**
 (IEEE 802.15.4, channel 15). Yang berbeda hanya lapisan di atasnya. Karena itu
-angka RSSI dan jangkauan yang kamu ukur di modul ini bisa dipakai sebagai
+angka RSSI dan jangkauan yang diukur pada modul ini dapat dipakai sebagai
 garis dasar (*baseline*) saat membandingkan Zigbee dan Thread di M16.
 
 ## 3 · Capaian Pembelajaran
@@ -80,8 +81,8 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
 | ISR | `esp_ieee802154_receive_done()` berjalan di konteks interupsi: salin data, set flag, jangan mencetak. |
 
 **Tiga jebakan API `esp_ieee802154_*`.** Ketiganya nyata dan ditemukan saat
-modul ini diuji di perangkat. Kode yang kamu terima sudah memperhitungkannya —
-tugasmu adalah bisa menjelaskan gejalanya:
+modul ini diuji di perangkat. Kode yang disediakan sudah memperhitungkannya —
+yang dituntut di sini adalah kemampuan menjelaskan gejalanya:
 
 | Aturan | Gejala bila dilanggar |
 |---|---|
@@ -93,7 +94,7 @@ Aturan ketiga paling menipu: `esp_ieee802154_transmit()` bersifat **asinkron**
 dan hanya menyimpan *pointer* ke buffer. Bila buffer dideklarasikan sebagai
 variabel lokal di `loop()`, isinya sudah tertimpa stack frame lain saat radio
 benar-benar mengirim — sebagian frame berangkat berisi sampah, sebagian lain
-kebetulan masih utuh. Itulah kenapa gejalanya *intermiten*, bukan gagal total.
+kebetulan masih utuh. Itulah mengapa gejalanya *intermiten*, bukan gagal total.
 
 **Sekuens protokol yang diamati**
 
@@ -223,13 +224,13 @@ Len=0x14 Seq      0x0002      0x0001                     RSSI
 | `Len` untuk payload 7 karakter | |
 
 **Buka abstraksinya** — hitung sendiri nilai `Len` untuk payload `"PING 38"`
-(7 karakter) dan cocokkan dengan `0x14` pada dump di atas. Lalu jawab: kalau
-FCS dihitung hardware, kenapa panjangnya tetap harus kamu masukkan? Petunjuk:
+(7 karakter) dan cocokkan dengan `0x14` pada dump di atas. Lalu jawab: jika
+FCS dihitung hardware, mengapa panjangnya tetap harus disertakan? Petunjuk:
 `Len` adalah field PHY, dan PHY menghitung **semua** byte yang mengudara.
 
 > **CHECKPOINT** — Kedua node mencetak baris `Channel 15, PAN 0xCAFE, short
-> addr 0x000X` dengan nilai yang berbeda untuk tiap node. Kalau keduanya
-> mencetak alamat yang sama, kamu salah flash — periksa `upload_port`.
+> addr 0x000X` dengan nilai yang berbeda untuk tiap node. Jika keduanya
+> mencetak alamat yang sama, berarti terjadi kesalahan flash — periksa `upload_port`.
 
 ### EXP-02 — Pertukaran PING–PONG
 
@@ -264,8 +265,8 @@ TX balasan ke 0x0001: PONG 1
 ```
 
 > **CHECKPOINT** — Isi payload harus **terbaca sebagai teks**, bukan karakter
-> acak. Kalau muncul sampah seperti `���@��`, itu gejala buffer TX bukan
-> `static` (lihat Bagian 4). Kalau Node2 hanya mencetak baris konfigurasi dan
+> acak. Jika muncul sampah seperti `���@��`, itu gejala buffer TX bukan
+> `static` (lihat Bagian 4). Jika Node2 hanya mencetak baris konfigurasi dan
 > tidak pernah `RX`, `esp_ieee802154_receive()` tidak dipanggil. Perbaiki dulu,
 > jangan lanjut mengukur.
 
@@ -286,7 +287,7 @@ TX balasan ke 0x0001: PONG 1
 | Interval kirim PING (s) | |
 | Pesan per menit yang dibalas | |
 
-> **CHECKPOINT** — Kamu bisa menjelaskan **perbedaan** antara gagal karena
+> **CHECKPOINT** — Praktikan dapat menjelaskan **perbedaan** antara gagal karena
 > channel dan gagal karena PAN ID (petunjuk: yang satu radio tidak mendengar
 > sama sekali, yang satu mendengar tapi menyaring). Ini penting untuk memahami
 > penyaringan Zigbee/Thread di modul berikutnya.
@@ -336,10 +337,10 @@ penyaringan PAN ID sebelumnya bekerja di **hardware**, bukan di kode.
 | 04-d | Channel beda | | | | |
 | 04-e | Broadcast (3 node) | | | | |
 
-> **CHECKPOINT** — Kamu bisa membedakan 04-b dari 04-d tanpa melihat kode,
+> **CHECKPOINT** — Praktikan dapat membedakan 04-b dari 04-d tanpa melihat kode,
 > hanya dari pola log: 04-b ada TX tanpa RX di pasangan; 04-d kedua sisi sunyi.
-> Kalau sebuah kelompok di ruangan sama menyalakan radio 802.15.4 di channel
-> yang sama denganmu, gejala yang muncul mirip 04-b — itu sebabnya tiap
+> Jika sebuah kelompok di ruangan sama menyalakan radio 802.15.4 di channel
+> yang sama, gejala yang muncul mirip 04-b — itu sebabnya tiap
 > kelompok wajib memakai channel berbeda.
 
 ### Verifikasi hardware (log referensi)

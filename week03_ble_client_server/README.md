@@ -81,11 +81,11 @@ teori terpisah.*
 | `readValue()` | Permintaan baca dari client; server menjawab dengan nilai terkini. |
 | Handle / UUID | Alamat characteristic di dalam service; UUID dipakai untuk mencarinya. |
 
-**Kenapa counter, bukan sensor?** Counter naik 1 tiap 1000 ms secara pasti,
+**Mengapa counter, bukan sensor?** Counter naik 1 tiap 1000 ms secara pasti,
 jadi nilai yang hilang atau read yang gagal langsung terlihat sebagai lompatan
 angka. Sensor asli akan menyembunyikan kesalahan di balik fluktuasi nilai.
 
-**Kenapa server hanya menaikkan counter saat ada client?** Agar nilai counter
+**Mengapa server hanya menaikkan counter saat ada client?** Agar nilai counter
 merepresentasikan **lama koneksi**, bukan lama board menyala — periksa
 `src/server/main.cpp` dan tunjukkan baris yang menegakkan aturan ini.
 
@@ -226,8 +226,8 @@ READ counter = 6
 ```
 
 > **CHECKPOINT** — Selisih dua `READ counter` berturut-turut adalah **2**
-> (interval read 2000 ms ÷ interval counter 1000 ms). Kalau selisihnya tidak
-> konsisten, ada read yang gagal — catat kejadiannya, itu data pengukuranmu.
+> (interval read 2000 ms ÷ interval counter 1000 ms). Jika selisihnya tidak
+> konsisten, ada read yang gagal — catat kejadiannya sebagai data pengukuran.
 
 ### EXP-03 — Write: Client Mengirim Perintah
 
@@ -314,7 +314,7 @@ Jawab berdasarkan tabel Bagian 8:
 1. Apa perbedaan peran GATT Server dan GATT Client? Apakah server selalu yang mengirim data?
 2. Mengapa satu service bisa memuat banyak characteristic dengan property berbeda?
 3. Apa yang terjadi bila client melakukan read pada characteristic yang tidak punya property `READ`?
-4. Mengapa server hanya menaikkan counter saat ada client terhubung, dan apa akibatnya kalau aturan itu dihapus?
+4. Mengapa server hanya menaikkan counter saat ada client terhubung, dan apa akibatnya jika aturan itu dihapus?
 5. Dalam sistem nyata, mana yang lebih tepat memegang "state" perangkat: server atau client? Mengapa?
 
 ## 11 · Challenge (tugas modifikasi)

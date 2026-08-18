@@ -19,8 +19,8 @@
 | Level | Project |
 | Instrumen | 2 × Serial Monitor 115200 + `mosquitto_sub` + data Modul 05–15 |
 
-> **Yang dinilai bukan "sistem menyala".** Yang dinilai adalah apakah kamu bisa
-> membuktikan, dengan angka hasil pengukuranmu sendiri, protokol mana yang
+> **Yang dinilai bukan "sistem menyala".** Yang dinilai adalah kemampuan
+> membuktikan, dengan angka hasil pengukuran sendiri, protokol mana yang
 > paling sesuai untuk sebuah kasus — dan mempertahankan rekomendasi itu saat
 > ditanya balik.
 
@@ -38,7 +38,7 @@ yang **sama persis**, sehingga hanya protokol hop pertama yang menjadi variabel.
 | Dibangun di modul ini | Pipeline BLE→MQTT sebagai pembanding pipeline Thread M15, metodologi perbandingan yang adil (variabel kontrol), rekomendasi berbasis data |
 | Menutup | Seluruh seri: dari satu tautan radio (M01) sampai keputusan arsitektur berbasis bukti |
 
-**Peta seluruh seri — dari mana angkamu berasal**
+**Peta seluruh seri — dari mana angka hasil pengukuran berasal**
 
 | Blok | Modul | Angka yang dipanen di sini |
 |---|---|---|
@@ -61,7 +61,7 @@ yang **sama persis**, sehingga hanya protokol hop pertama yang menjadi variabel.
 | **Protokol hop pertama** | **variabel bebas** | BLE (modul ini) vs Thread (M15) vs Zigbee (M08–10) |
 
 Angka yang diukur pada kondisi berbeda **tidak boleh** dimasukkan ke tabel
-pembanding. Kalau data M15 diambil pada interval 3 detik sementara modul ini
+pembanding. Jika data M15 diambil pada interval 3 detik sementara modul ini
 2 detik, ulangi salah satunya — atau nyatakan perbedaan itu secara eksplisit
 sebagai keterbatasan.
 
@@ -249,8 +249,8 @@ Bandingkan ukuran firmware keduanya dari ringkasan `pio run`. Lalu jawab: mana
 yang lebih besar, dan apa artinya untuk perangkat gateway dengan flash terbatas?
 Ini adalah metrik kelima yang jarang diukur orang, tetapi nyata biayanya.
 
-> **CHECKPOINT** — Untuk **satu** nilai suhu yang sama, kamu bisa menunjuk tiga
-> baris: `Notify:` di H2, `RX BLE:` di C6, dan `Publish MQTT` di C6. Persis
+> **CHECKPOINT** — Untuk **satu** nilai suhu yang sama, tiga baris berikut
+> harus dapat ditunjuk: `Notify:` di H2, `RX BLE:` di C6, dan `Publish MQTT` di C6. Persis
 > seperti M15 — struktur pengamatannya sengaja dibuat identik.
 
 ### EXP-03 — Verifikasi End-to-End & Variasi
@@ -274,8 +274,8 @@ Variasi wajib:
 | RSSI BLE (dari `getRssi()` di C6) | |
 | Perilaku saat sensor reset | |
 
-> **CHECKPOINT** — Kamu punya **tiga baris data BLE** (1 m, 5 m, 5 m + dinding)
-> dengan kondisi yang bisa kamu buktikan sama dengan data M15. Tanpa itu, tabel
+> **CHECKPOINT** — Tersedia **tiga baris data BLE** (1 m, 5 m, 5 m + dinding)
+> dengan kondisi yang dapat dibuktikan sama dengan data M15. Tanpa itu, tabel
 > perbandingan di Bagian 8 tidak sah — dan itulah yang paling sering membuat
 > laporan modul ini gugur.
 
@@ -328,7 +328,7 @@ menekan airtime Wi-Fi sampai TCP tidak lewat.
 > **Jangan percaya `publish()` yang mengembalikan `true`.** Pada run M15 di atas,
 > gateway mencetak 7 baris `Publish MQTT [...]` sementara broker hanya menerima
 > 2. Pada QoS 0 itu wajar: `publish()` hanya menulis ke buffer socket. Kolom
-> "Broker menerima" pada tabelmu **wajib** diisi dari log broker/subscriber.
+> "Broker menerima" pada tabel hasil pengukuran **wajib** diisi dari log broker/subscriber.
 
 **Perbaikan kode yang lahir dari uji ini**
 
@@ -381,7 +381,7 @@ Jawab berdasarkan tabel Bagian 8, dan **tunjuk barisnya**:
 2. Bagaimana latency end-to-end BLE→MQTT dibandingkan Thread→MQTT untuk payload yang sama? Berapa selisihnya, dan dari hop mana selisih itu berasal?
 3. Mengapa BLE connection-based lebih sensitif terhadap jarak/penghalang dibanding mesh Thread? Kaitkan dengan data M06 (relay BLE) dan M12 (mesh Thread).
 4. Protokol mana yang paling efisien untuk node baterai dengan interval kirim jarang? Jelaskan dengan data, termasuk konsekuensi peran router (M10).
-5. Untuk kasus (a) rumah pintar 15 node, (b) sensor tunggal dekat gateway, (c) gedung bertingkat — protokol apa yang kamu rekomendasikan? Dasarkan tiap jawaban pada baris tabel tertentu.
+5. Untuk kasus (a) rumah pintar 15 node, (b) sensor tunggal dekat gateway, (c) gedung bertingkat — protokol apa yang direkomendasikan? Dasarkan tiap jawaban pada baris tabel tertentu.
 6. **Apa keterbatasan terbesar dari perbandingan ini?** Sebutkan minimal dua, dan jelaskan apa yang perlu diukur untuk mengatasinya.
 
 ## 10 · Concept Check
@@ -390,17 +390,17 @@ Jawab berdasarkan tabel Bagian 8, dan **tunjuk barisnya**:
 2. Apa itu GATT notify dan mengapa dipakai, bukan indication atau polling read?
 3. Bagaimana gateway menemukan dan memilih sensor yang tepat saat scanning (perhatikan `onResult`)?
 4. Apa peran MQTT dalam proyek ini, dan mengapa perbandingan protokol dilakukan di hop sensor→gateway, bukan di hop MQTT?
-5. Jika throughput naik 10× (interval 200 ms), protokol mana yang paling mungkin bermasalah lebih dulu? Mengapa — dan data modul mana yang mendukung dugaanmu?
+5. Jika throughput naik 10× (interval 200 ms), protokol mana yang paling mungkin bermasalah lebih dulu? Mengapa — dan data modul mana yang mendukung dugaan awal?
 
 ## 11 · Challenge (tugas modifikasi)
 
-- **CH-1 — Rekomendasi berbasis data (wajib).** Tulis mini-laporan 1 halaman yang memilih protokol untuk **satu** kasus nyata, dengan tabel Bagian 8 sebagai justifikasi. Sertakan satu paragraf "kapan rekomendasi ini salah" — kondisi yang akan membalikkan kesimpulanmu.
+- **CH-1 — Rekomendasi berbasis data (wajib).** Tulis mini-laporan 1 halaman yang memilih protokol untuk **satu** kasus nyata, dengan tabel Bagian 8 sebagai justifikasi. Sertakan satu paragraf "kapan rekomendasi ini salah" — kondisi yang akan membalikkan kesimpulan yang diambil.
 
 - **CH-2 — Dua sensor BLE.** Tambahkan sensor BLE kedua (`CMP_SENSOR2`, UUID berbeda) dan buat gateway mem-forward keduanya ke topic berbeda. Ukur apakah latency berubah saat gateway melayani dua koneksi — bandingkan dengan temuan M05.
 
 - **CH-3 — Packet loss (wajib).** Hitung packet loss dengan sequence number pada payload (`suhu:25.3,#21`). Contoh: 60 notify terkirim, 57 sampai di subscriber → loss = (60−57)/60 × 100 % = 5 %. Pisahkan loss hop BLE dan hop MQTT.
 
-- **CH-4 — Pipeline Zigbee.** Lengkapi baris Zigbee pada tabel perbandingan dengan pipeline yang setara (Zigbee → gateway → MQTT), sehingga ketiga protokol diukur end-to-end pada kondisi yang sama. Ini pekerjaan terbesar — dan yang membuat tabelmu benar-benar utuh.
+- **CH-4 — Pipeline Zigbee.** Lengkapi baris Zigbee pada tabel perbandingan dengan pipeline yang setara (Zigbee → gateway → MQTT), sehingga ketiga protokol diukur end-to-end pada kondisi yang sama. Ini pekerjaan terbesar — dan yang membuat tabel hasil pengukuran benar-benar utuh.
 
 ## 12 · Laporan
 

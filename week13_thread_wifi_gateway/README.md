@@ -185,7 +185,7 @@ Output contoh (setiap POST yang sampai):
 
 Catatan: karena hop Wi-Fi/HTTP di gateway dwi-radio ini paling rapuh (koeksistensi
 Thread + Wi-Fi), sebagian besar POST bisa tercetak `HTTP -1` di Serial Monitor
-sedangkan server tidak menerima apa pun. Tugasmu menghitung berapa `RX via Thread`
+sedangkan server tidak menerima apa pun. Tugas pada modul ini menghitung berapa `RX via Thread`
 yang berhasil sampai ke server (lihat Bagian 8).
 
 **platformio.ini — dua board berbeda dalam satu proyek**
@@ -247,7 +247,7 @@ role mencapai Child.
 | Waktu hingga attach (± detik) | |
 
 > **CHECKPOINT** — Kedua board mencetak `Attached as: ...` **dan** awalan EID
-> keduanya sama. Kalau berbeda, gateway tidak akan pernah menerima apa pun
+> keduanya sama. Jika berbeda, gateway tidak akan pernah menerima apa pun
 > meski keduanya tampak "terhubung" — perbaiki dulu.
 
 ### EXP-02 — Telemetri lewat Thread
@@ -293,7 +293,7 @@ gejalanya masing-masing:
 2. Pindahkan blok Wi-Fi ke bawah `OThread.start()` → board hidup, tetapi Wi-Fi
    **tidak pernah** asosiasi (`status=6` terus).
 
-Telusuri sebab (1) sampai ketemu `esp_event_loop_create_default()`: siapa yang
+Telusuri sebab (1) hingga menemukan `esp_event_loop_create_default()`: siapa yang
 membuatnya lebih dulu, dan mengapa satu stack menerima kondisi "sudah ada"
 sedangkan yang lain menganggapnya fatal? Untuk (2), kaitkan dengan *radio
 coexistence*: kedua radio berbagi satu antena 2,4 GHz.
@@ -333,7 +333,7 @@ itu hilang atau tertahan.
 | Paket Thread diterima vs di-POST (2 menit) | |
 | Nasib data saat Wi-Fi putus | |
 
-> **CHECKPOINT** — Kamu punya **tiga** angka untuk periode yang sama: paket
+> **CHECKPOINT** — Tersedia **tiga** angka untuk periode yang sama: paket
 > dikirim H2, paket diterima C6, dan POST berhasil (HTTP 200). Selisih antar
 > ketiganya menunjukkan hop mana yang bermasalah — inilah yang membedakan
 > laporan yang bisa dipertanggungjawabkan dari sekadar "sistem berjalan".

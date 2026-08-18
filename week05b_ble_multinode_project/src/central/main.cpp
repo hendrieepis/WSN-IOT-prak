@@ -81,7 +81,7 @@ public:
     nextTry[_idx] = millis() + RETRY_MS;
     retries[_idx] = 0;
     updateStatusLed();
-    Serial.printf("[WARN ] %s terputus (reason %d) — mencoba sambung ulang\n",
+    Serial.printf("[WARN ] %s terputus (reason %d) - mencoba sambung ulang\n",
                   SENSORS[_idx].label, reason);
   }
 
@@ -222,7 +222,7 @@ static void maintainLinks() {
     } else if (++retries[i] >= RETRIES_BEFORE_RESCAN) {
       // Board sensor mungkin sudah restart dengan alamat lain — buang alamat
       // lama dan cari ulang lewat scan.
-      Serial.printf("%s tidak menjawab %d kali — scan ulang\n", SENSORS[i].label, retries[i]);
+      Serial.printf("%s tidak menjawab %d kali - scan ulang\n", SENSORS[i].label, retries[i]);
       found[i] = false;
       retries[i] = 0;
       ensureScanning();
@@ -256,7 +256,7 @@ void loop() {
   bool allUp = true;
   for (int i = 0; i < SENSOR_COUNT; i++) allUp &= connected[i];
   if (allUp && !announced) {
-    Serial.println("Semua sensor terpantau — sistem siaga");
+    Serial.println("Semua sensor terpantau - sistem siaga");
     announced = true;
   } else if (!allUp) {
     announced = false;  // supaya pesan siaga muncul lagi setelah pulih

@@ -197,7 +197,7 @@ Contoh tampilan — sensor dan hub berdampingan, jadi latency kejadian bisa diba
 [   0.408] HUB     | Mencari smart sensor jendela dan pintu...
 [   0.809] HUB     | Jendela 1 terhubung
 [   1.610] PINTU   | Hub terhubung
-[   2.211] HUB     | Semua sensor terpantau — sistem siaga
+[   2.211] HUB     | Semua sensor terpantau - sistem siaga
 [  12.480] JENDELA | Notify: JENDELA1:OPEN:1
 [  12.495] HUB     | [ALARM] [ 12.480 s] Jendela 1 TERBUKA (event #1)
 ```
@@ -252,7 +252,7 @@ Jendela 1 ditemukan (RSSI -42 dBm)
 Pintu 1 ditemukan (RSSI -49 dBm)
 Jendela 1 terhubung
 Pintu 1 terhubung
-Semua sensor terpantau — sistem siaga
+Semua sensor terpantau - sistem siaga
 [ALARM] [ 12.480 s] Jendela 1 TERBUKA (event #1)
 [INFO ] [ 14.902 s] Jendela 1 tertutup kembali (event #2)
 [ALARM] [ 19.115 s] Pintu 1 TERBUKA (event #1)
@@ -299,15 +299,15 @@ Uji tiga skenario kegagalan dan catat apa yang dilihat "pemilik rumah" (yaitu: a
 **Expected output — hub saat sensor mati lalu hidup lagi**
 
 ```
-[WARN ] Jendela 1 terputus (reason 520) — mencoba sambung ulang
+[WARN ] Jendela 1 terputus (reason 520) - mencoba sambung ulang
 Gagal terhubung ke Jendela 1
 Gagal terhubung ke Jendela 1
 Gagal terhubung ke Jendela 1
-Jendela 1 tidak menjawab 3 kali — scan ulang
+Jendela 1 tidak menjawab 3 kali - scan ulang
 Jendela 1 ditemukan (RSSI -27 dBm)
 Jendela 1 terhubung
 [PULIH] Jendela 1 tersambung lagi setelah 28.3 s
-Semua sensor terpantau — sistem siaga
+Semua sensor terpantau - sistem siaga
 ```
 
 **Buka abstraksinya #2** — hub menyambung ulang lewat dua jalur berbeda: mencoba **alamat lama** (cepat), dan bila gagal 3 kali, **scan ulang** untuk mencari alamat baru. Cari keduanya di `maintainLinks()`. Lalu jawab: mengapa jalur kedua diperlukan padahal alamat BLE board biasanya tidak berubah? Dan mengapa `connect()` dibatasi 4 detik, bukan 30 detik bawaan library?

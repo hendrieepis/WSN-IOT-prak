@@ -53,17 +53,17 @@ Rancangan lalu diubah: alamat seluruh pager disimpan hasil pemindaian, koneksi d
 [  0.32] KASIR| Pager #101 ditemukan (RSSI -16 dBm)
 [  0.32] KASIR| Pager #102 ditemukan (RSSI -26 dBm)
 [  0.40] KASIR| Pager #103 ditemukan (RSSI -32 dBm)
-[  0.40] KASIR| Seluruh 3 pager terdaftar — kasir siap menerima perintah
+[  0.40] KASIR| Seluruh 3 pager terdaftar - kasir siap menerima perintah
 [  0.40] KASIR| Perintah: READY <id> | CANCEL <id> | LIST | HELP  (maksimum 2 panggilan berjalan bersamaan)
 --- kasir mengetik "READY 102" ---
 [ 10.22] P102 | Controller terhubung
 [ 10.30] KASIR| Pager #102 terhubung
-[ 11.18] P102 | [PANGGIL] Pesanan siap — menunggu tombol ACK
+[ 11.18] P102 | [PANGGIL] Pesanan siap - menunggu tombol ACK
 [ 11.22] KASIR| [KIRIM] READY -> pager #102 saja (pager lain tidak menerima apa pun)
 --- pelanggan pager 102 menekan tombol ACK ---
 [ 14.12] P102 | [ACK    ] Pelanggan menekan tombol setelah 2.9 s
-[ 14.16] KASIR| [ACK  ] Pager #102 diambil pelanggan — 2.9 s menurut pager, 3.0 s menurut kasir
-[ 14.16] KASIR| [LEPAS] Koneksi pager #102 ditutup — slot koneksi kembali bebas
+[ 14.16] KASIR| [ACK  ] Pager #102 diambil pelanggan - 2.9 s menurut pager, 3.0 s menurut kasir
+[ 14.16] KASIR| [LEPAS] Koneksi pager #102 ditutup - slot koneksi kembali bebas
 [ 14.28] P102 | Controller terputus, advertise ulang
 ```
 
@@ -73,9 +73,9 @@ Selama seluruh rentang di atas, Serial pager #101 dan #103 **tidak bertambah sat
 
 ```
 [ 17.78] KASIR| Pager #101 terhubung
-[ 18.66] P101 | [PANGGIL] Pesanan siap — menunggu tombol ACK
+[ 18.66] P101 | [PANGGIL] Pesanan siap - menunggu tombol ACK
 [ 23.44] KASIR| Pager #103 terhubung
-[ 24.29] P103 | [PANGGIL] Pesanan siap — menunggu tombol ACK
+[ 24.29] P103 | [PANGGIL] Pesanan siap - menunggu tombol ACK
 [ 24.33] KASIR| --- Status pager (2/2 slot koneksi terpakai) ---
 [ 24.33] KASIR|   #101 : MEMANGGIL      (6 s berjalan)
 [ 24.33] KASIR|   #102 : terdaftar
@@ -83,10 +83,10 @@ Selama seluruh rentang di atas, Serial pager #101 dan #103 **tidak bertambah sat
 --- panggilan ketiga ---
 [ 25.53] KASIR| [GAGAL] Slot koneksi penuh (2/2). Tunggu ACK panggilan berjalan atau CANCEL salah satunya.
 --- kedua pelanggan menekan ACK ---
-[ 28.59] KASIR| [ACK  ] Pager #101 diambil pelanggan — 9.9 s menurut pager, 9.9 s menurut kasir
-[ 28.63] KASIR| [LEPAS] Koneksi pager #101 ditutup — slot koneksi kembali bebas
-[ 31.04] KASIR| [ACK  ] Pager #103 diambil pelanggan — 6.7 s menurut pager, 6.7 s menurut kasir
-[ 31.04] KASIR| [LEPAS] Koneksi pager #103 ditutup — slot koneksi kembali bebas
+[ 28.59] KASIR| [ACK  ] Pager #101 diambil pelanggan - 9.9 s menurut pager, 9.9 s menurut kasir
+[ 28.63] KASIR| [LEPAS] Koneksi pager #101 ditutup - slot koneksi kembali bebas
+[ 31.04] KASIR| [ACK  ] Pager #103 diambil pelanggan - 6.7 s menurut pager, 6.7 s menurut kasir
+[ 31.04] KASIR| [LEPAS] Koneksi pager #103 ditutup - slot koneksi kembali bebas
 [ 34.37] KASIR| --- Status pager (0/2 slot koneksi terpakai) ---
 [ 34.37] KASIR|   #101 : terdaftar
 [ 34.37] KASIR|   #102 : terdaftar
@@ -99,10 +99,10 @@ Perbedaan penting dengan rancangan pertama: batas yang sama tetap ada, tetapi ki
 
 ```
 [ 12.78] KASIR| Pager #102 terhubung
-[ 13.62] P102 | [PANGGIL] Pesanan siap — menunggu tombol ACK
+[ 13.62] P102 | [PANGGIL] Pesanan siap - menunggu tombol ACK
 [ 14.55] P102 | [BATAL  ] Panggilan dibatalkan kasir
 [ 14.59] KASIR| [KIRIM] CANCEL -> pager #102 saja (pager lain tidak menerima apa pun)
-[ 14.59] KASIR| [LEPAS] Koneksi pager #102 ditutup — slot koneksi kembali bebas
+[ 14.59] KASIR| [LEPAS] Koneksi pager #102 ditutup - slot koneksi kembali bebas
 ```
 
 ## Hasil terukur

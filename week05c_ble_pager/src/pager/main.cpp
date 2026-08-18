@@ -61,7 +61,7 @@ public:
       // lewat koneksi mana perintah dikirim.
       memanggil = true;
       mulaiPanggil = millis();
-      Serial.printf("[PANGGIL] Pesanan siap — menunggu tombol ACK\n");
+      Serial.printf("[PANGGIL] Pesanan siap - menunggu tombol ACK\n");
     } else if (cmd == "CANCEL") {
       berhentiMemanggil();
       Serial.println("[BATAL  ] Panggilan dibatalkan kasir");

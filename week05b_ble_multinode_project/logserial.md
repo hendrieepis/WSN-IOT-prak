@@ -28,7 +28,7 @@ Jendela 1 ditemukan (RSSI -30 dBm)
 Pintu 1 ditemukan (RSSI -29 dBm)
 Jendela 1 terhubung
 Pintu 1 terhubung
-Semua sensor terpantau — sistem siaga
+Semua sensor terpantau - sistem siaga
 ```
 
 Jarak antar-board saat pengambilan log ±20 cm (RSSI −29…−30 dBm).
@@ -70,13 +70,13 @@ Selagi hub sibuk mencoba menyambung ulang, tombol pada node **pintu** ditekan
 untuk memastikan alarmnya tetap jalan.
 
 ```
-[   4.41] Semua sensor terpantau — sistem siaga
+[   4.41] Semua sensor terpantau - sistem siaga
 --- node jendela dimatikan ---
-[   9.58] [WARN ] Jendela 1 terputus (reason 520) — mencoba sambung ulang
+[   9.58] [WARN ] Jendela 1 terputus (reason 520) - mencoba sambung ulang
 [  16.65] Gagal terhubung ke Jendela 1
 [  20.76] Gagal terhubung ke Jendela 1
 [  26.07] Gagal terhubung ke Jendela 1
-[  26.07] Jendela 1 tidak menjawab 3 kali — scan ulang
+[  26.07] Jendela 1 tidak menjawab 3 kali - scan ulang
 --- tombol node pintu ditekan selagi hub sibuk retry ---
 [  32.24] [ALARM] [ 31.947 s] Pintu 1 TERBUKA (event #1)
 [  33.70] [INFO ] [ 33.447 s] Pintu 1 tertutup kembali (event #2)
@@ -84,14 +84,14 @@ untuk memastikan alarmnya tetap jalan.
 [  36.96] Jendela 1 ditemukan (RSSI -27 dBm)
 [  37.27] Jendela 1 terhubung
 [  37.87] [PULIH] Jendela 1 tersambung lagi setelah 28.3 s
-[  37.87] Semua sensor terpantau — sistem siaga
+[  37.87] Semua sensor terpantau - sistem siaga
 ```
 
 Percobaan lain dengan sensor hanya mati sebentar (4 detik) pulih lewat jalur
 cepat, tanpa perlu scan ulang:
 
 ```
-[  10.63] [WARN ] Pintu 1 terputus (reason 520) — mencoba sambung ulang
+[  10.63] [WARN ] Pintu 1 terputus (reason 520) - mencoba sambung ulang
 [  14.64] Pintu 1 terhubung
 [  15.24] [PULIH] Pintu 1 tersambung lagi setelah 4.6 s
 ```

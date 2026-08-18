@@ -191,9 +191,9 @@ python3 week05c_ble_pager/monitor_serial.py --log sesi1.txt
 
 ```
 [  10.232] P102    | Controller terhubung
-[  11.235] P102    | [PANGGIL] Pesanan siap — menunggu tombol ACK
+[  11.235] P102    | [PANGGIL] Pesanan siap - menunggu tombol ACK
 [  14.242] P103    | Controller terhubung
-[  15.245] P103    | [PANGGIL] Pesanan siap — menunggu tombol ACK
+[  15.245] P103    | [PANGGIL] Pesanan siap - menunggu tombol ACK
 ```
 
 Pada cuplikan nyata di atas, `READY 102` lalu `READY 103` dikirim dari kasir, dan P101 tidak mencetak satu baris pun sepanjang sesi — persis bukti yang diminta CHECKPOINT EXP-02.
@@ -203,6 +203,7 @@ Pada cuplikan nyata di atas, `READY 102` lalu `READY 103` dikirim dari kasir, da
 Dua opsi di atas bukan hiasan, keduanya memperbaiki gejala yang nyata:
 
 - **`--imap crcrlf,lfcrlf` pada picocom.** Firmware pager mencetak lewat `Serial.printf("...\n")` yang mengirim **LF saja**, sehingga kursor turun tanpa kembali ke kolom pertama dan baris tampil bertingkat seperti tangga. Pemetaan ini memperbaikinya di sisi terminal, tanpa mengubah firmware.
+- **Keluaran serial dijaga ASCII.** Cutecom tidak mendekode UTF-8: satu karakter `—` akan tampil sebagai `<0xe2><0x80><0x94>` dan mengotori hampir setiap baris penting. Karena itu seluruh pesan firmware pada modul ini memakai tanda pisah biasa. Aturan yang sama berlaku bila menambahkan pesan sendiri.
 - **Opsi akhir baris LF pada cutecom.** Perintah kasir baru diproses setelah controller menerima penanda akhir baris. Controller menerima CR maupun LF, sehingga opsi **LF** aman dipakai; yang harus dihindari adalah pengaturan tanpa akhir baris sama sekali — perintah akan terkirim tetapi tidak pernah dieksekusi.
 
 Bila cutecom tidak tersedia, picocom juga bisa dipakai untuk kasir: `picocom /dev/ttyACM0 -b115200 -c --imap crcrlf,lfcrlf`. Perintah diketik langsung lalu diakhiri Enter. Opsi `-c` menyalakan gema lokal — tanpa itu ketikan tidak tampak di layar, karena controller memang tidak menggemakan kembali karakter yang diterimanya.
@@ -216,9 +217,9 @@ Bila cutecom tidak tersedia, picocom juga bisa dipakai untuk kasir: `picocom /de
 | `LIST` | Tampilkan status seluruh pager |
 | `HELP` | Tampilkan daftar perintah |
 
-contoh hasil
+**Contoh sesi pengujian.** Jendela kiri menjalankan `monitor_serial.py` untuk ketiga pager, jendela kanan adalah cutecom pada `/dev/ttyACM0` tempat kasir mengetik `READY 101`, `READY 102`, lalu `READY 103` secara berurutan. Terlihat tiap perintah hanya membangunkan satu pager — baris `[PANGGIL]` muncul bergantian di P101, P102, dan P103, tidak pernah serentak — sedangkan waktu tanggap ketiga pelanggan (6,2 s · 9,3 s · 5,0 s) tercatat sama persis di kedua sisi. Setiap `[LEPAS]` menandai slot koneksi yang kembali bebas, sehingga panggilan berikutnya dapat dilayani. Rangkaian `<0xe2><0x80><0x94>` yang tampak di tangkapan layar berasal dari versi firmware terdahulu yang memakai tanda pisah em; firmware sekarang hanya mencetak ASCII, sehingga baris yang sama tampil rapi.
 
-![image-20260819033350570](./assets/image-20260819033350570.png)
+![Sesi pengujian: monitor tiga pager di jendela kiri, terminal kasir cutecom di jendela kanan](./assets/image-20260819033350570.png)
 
 ## 6 · Percobaan
 
@@ -257,7 +258,7 @@ Mencari pager...
 Pager #101 ditemukan (RSSI -16 dBm)
 Pager #102 ditemukan (RSSI -27 dBm)
 Pager #103 ditemukan (RSSI -32 dBm)
-Seluruh 3 pager terdaftar — kasir siap menerima perintah
+Seluruh 3 pager terdaftar - kasir siap menerima perintah
 Perintah: READY <id> | CANCEL <id> | LIST | HELP  (maksimum 2 panggilan berjalan bersamaan)
 Pager #102 terhubung
 [KIRIM] READY -> pager #102 saja (pager lain tidak menerima apa pun)
@@ -285,12 +286,12 @@ Panggil sebuah pager, biarkan berbunyi beberapa detik, lalu tekan tombol ACK. Ul
 
 ```
 # pager
-[PANGGIL] Pesanan siap — menunggu tombol ACK
+[PANGGIL] Pesanan siap - menunggu tombol ACK
 [ACK    ] Pelanggan menekan tombol setelah 2.9 s
 
 # kasir
-[ACK  ] Pager #102 diambil pelanggan — 2.9 s menurut pager, 3.0 s menurut kasir
-[LEPAS] Koneksi pager #102 ditutup — slot koneksi kembali bebas
+[ACK  ] Pager #102 diambil pelanggan - 2.9 s menurut pager, 3.0 s menurut kasir
+[LEPAS] Koneksi pager #102 ditutup - slot koneksi kembali bebas
 ```
 
 **Data capture**
@@ -325,13 +326,13 @@ Uji jalur kesalahan yang pasti terjadi di pemakaian nyata.
 Dijalankan pada 4 × ESP32-H2 (1 controller + pager 101, 102, 103). Log lengkap ada di `logserial.md`.
 
 ```
-[  0.40] KASIR| Seluruh 3 pager terdaftar — kasir siap menerima perintah
+[  0.40] KASIR| Seluruh 3 pager terdaftar - kasir siap menerima perintah
 [ 10.30] KASIR| Pager #102 terhubung
-[ 11.18] P102 | [PANGGIL] Pesanan siap — menunggu tombol ACK
+[ 11.18] P102 | [PANGGIL] Pesanan siap - menunggu tombol ACK
 [ 11.22] KASIR| [KIRIM] READY -> pager #102 saja (pager lain tidak menerima apa pun)
 [ 14.12] P102 | [ACK    ] Pelanggan menekan tombol setelah 2.9 s
-[ 14.16] KASIR| [ACK  ] Pager #102 diambil pelanggan — 2.9 s menurut pager, 3.0 s menurut kasir
-[ 14.16] KASIR| [LEPAS] Koneksi pager #102 ditutup — slot koneksi kembali bebas
+[ 14.16] KASIR| [ACK  ] Pager #102 diambil pelanggan - 2.9 s menurut pager, 3.0 s menurut kasir
+[ 14.16] KASIR| [LEPAS] Koneksi pager #102 ditutup - slot koneksi kembali bebas
 --- dua panggilan berjalan bersamaan, panggilan ketiga ditolak ---
 [ 24.33] KASIR| --- Status pager (2/2 slot koneksi terpakai) ---
 [ 24.33] KASIR|   #101 : MEMANGGIL      (6 s berjalan)

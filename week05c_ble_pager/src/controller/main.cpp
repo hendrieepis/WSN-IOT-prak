@@ -121,7 +121,7 @@ static void tanganiStatus(int idx, const char *data, size_t len) {
   // dalam callback notify berarti membongkar koneksi dari stack NimBLE sendiri.
   putuskanSetelahAck[idx] = true;
 
-  Serial.printf("[ACK  ] Pager #%d diambil pelanggan — %.1f s menurut pager, "
+  Serial.printf("[ACK  ] Pager #%d diambil pelanggan - %.1f s menurut pager, "
                 "%.1f s menurut kasir\n",
                 PAGER_ID[idx], tanggapPager, tanggapKasir);
 }
@@ -181,7 +181,7 @@ static void lepaskanSlot() {
     putuskanSetelahAck[i] = false;
     if (klien[i] && klien[i]->isConnected()) {
       klien[i]->disconnect();
-      Serial.printf("[LEPAS] Koneksi pager #%d ditutup — slot koneksi kembali bebas\n",
+      Serial.printf("[LEPAS] Koneksi pager #%d ditutup - slot koneksi kembali bebas\n",
                     PAGER_ID[i]);
     }
   }
@@ -250,7 +250,7 @@ static void olahPerintah(String baris) {
   }
   if (kata == "READY") {
     if (!ditemukan[idx]) {
-      Serial.printf("[GAGAL] Pager #%d belum pernah terlihat — pastikan pager menyala\n", id);
+      Serial.printf("[GAGAL] Pager #%d belum pernah terlihat - pastikan pager menyala\n", id);
       return;
     }
     if (!tersambung[idx] && jumlahTersambung() >= MAX_KONEKSI) {
@@ -307,7 +307,7 @@ void loop() {
   if (!semuaTerlihat) pastikanScan();
 
   if (semuaTerlihat && !siapDiumumkan) {
-    Serial.printf("Seluruh %d pager terdaftar — kasir siap menerima perintah\n", JUMLAH_PAGER);
+    Serial.printf("Seluruh %d pager terdaftar - kasir siap menerima perintah\n", JUMLAH_PAGER);
     bantuan();
     siapDiumumkan = true;
   }

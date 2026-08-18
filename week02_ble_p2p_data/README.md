@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 02 |
-| Misi | Memindahkan payload aplikasi ke dua arah di atas tautan BLE dan mengukur apa yang selamat sampai tujuan |
-| Platform | ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino |
-| Durasi | 3 × 50 menit |
-| Mode | P2P — Server (notify + write) ↔ Client |
-| Level | Basic |
-| Instrumen | Serial Monitor 115200 baud (2 terminal) |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 02 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat dasar. Misinya memindahkan payload aplikasi ke dua arah di atas tautan BLE, lalu mengukur apa yang benar-benar selamat sampai tujuan. Percobaan berjalan dalam mode P2P antara server yang menyediakan notify dan write dengan sebuah client, diamati melalui dua terminal Serial Monitor pada 115200 baud.
 
 Modul 01 hanya membuktikan **tautan** terbentuk — belum ada satu byte aplikasi pun yang lewat. Modul ini memakai tautan itu untuk membawa data, dan memperkenalkan dua mekanisme yang akan dipakai terus sampai Modul 16: **notify** (server mendorong) dan **write** (client mengirim).
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M01 — tautan BLE P2P terbentuk, Serial Monitor terbaca sebagai instrumen |
-| Dibangun di modul ini | Dua characteristic (TX/NOTIFY dan RX/WRITE), subscribe, callback `onWrite`/`onNotify`, echo, pengukuran loss dua arah |
-| Dipakai lagi di | M03 (characteristic jadi data terstruktur) → M04 (notify jadi telemetry berkala) → M05 (banyak node) → M16 (loss & latency jadi metrik pembanding protokol) |
+Prasyaratnya adalah M01: tautan BLE P2P sudah terbentuk dan Serial Monitor sudah terbaca sebagai instrumen. Yang dibangun di sini adalah dua characteristic dengan peran berbeda (TX/NOTIFY dan RX/WRITE), mekanisme subscribe, callback `onWrite` dan `onNotify`, pola echo, serta pengukuran loss dua arah. Semuanya dipakai lagi pada M03 ketika characteristic menjadi data terstruktur, M04 ketika notify berkembang menjadi telemetry berkala, M05 saat jumlah node bertambah, dan M16 ketika loss serta latency menjadi metrik pembanding antarprotokol.
 
 **Peta modul blok BLE**
 
@@ -42,7 +28,7 @@ Modul 01 hanya membuktikan **tautan** terbentuk — belum ada satu byte aplikasi
 
 **Kontrak data lab ini.** Mulai modul ini setiap payload membawa penanda yang bisa dihitung — di sini `millis()`, mulai CH-1 berupa nomor urut `SEQ=<n>`. Nomor urut itulah yang membuat *packet loss* bisa dihitung, dan format yang sama akan muncul lagi di Zigbee (M09), Thread (M12), dan MQTT (M14).
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -58,7 +44,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Tabel jarak–RSSI–loss terisi dari pengukuran sendiri, minimal 4 jarak.
 - ☐ CH-1 selesai: payload memakai `SEQ=<n>` sehingga loss terhitung dari lompatan nomor.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori di sini dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (mengapa GATT dirancang berlapis, detail ATT/L2CAP) ada di buku teori terpisah — panduan ini fokus pada "bagaimana".*
 
@@ -84,7 +70,7 @@ Node1 (Server)                              Node2 (Client)
   onWrite() ─── echo lewat CHAR_TX ────────────►  onNotify()
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
    BOARD #1                          BOARD #2
@@ -112,7 +98,9 @@ Kedua peran berjalan di **ESP32-H2** dengan radio Bluetooth LE — modul ini tid
 | CHAR_TX (NOTIFY) | `beb5483e-36e1-4688-b7f5-ea07361b26a8` |
 | CHAR_RX (WRITE) | `beb5483e-36e1-4688-b7f5-ea07361b26a9` |
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino.
 
 **Alat & bahan**
 
@@ -136,9 +124,11 @@ monitor_port = /dev/ttyACM0
 
 [env:node2]
 build_src_filter = +<node2/*.cpp>
-upload_port  = /dev/ttyACM1     ; Windows: COM4  -- board Node2
-monitor_port = /dev/ttyACM1
+upload_port  = /dev/ttyACM2     ; Windows: COM4  -- board Node2
+monitor_port = /dev/ttyACM2
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Setiap board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Proses flash pada lab ini memakai **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Dengan demikian satu board memakai `/dev/ttyACM0`, dua board memakai `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board memakai `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
@@ -155,7 +145,7 @@ pio run -d week02_ble_p2p_data -e node1 -t upload
 pio run -d week02_ble_p2p_data -e node2 -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Connect & Subscribe
 
@@ -265,7 +255,7 @@ Modul ini sudah dijalankan pada 2 × **ESP32-H2 DevKitM-1** (jarak ±20 cm, capt
 | Write Node2 diterima Node1 | 8 / 8 (0 % loss) |
 | Echo kembali ke Node2 | ya, payload utuh |
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 Pindahkan Node1 menjauh; hitung jumlah pesan yang diterima Node2 per interval pengamatan. **Hitung tiap arah terpisah** — inti modul ini adalah dua arah tidak selalu gagal bersamaan.
 
@@ -293,9 +283,9 @@ Serial.printf("RSSI: %d dBm\n", pClient->getRssi());
 
 Latency diestimasi dari selisih nilai `millis()` pada payload terhadap waktu kedatangan di Node2.
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8, bukan berdasarkan teori saja:
+Jawab berdasarkan tabel bagian Pengukuran, bukan berdasarkan teori saja:
 
 1. Bagaimana pengaruh jarak terhadap nilai RSSI pada data pengukuran yang diperoleh?
 2. Pada RSSI berapa pesan mulai hilang? Bandingkan dengan tabel referensi.
@@ -303,7 +293,7 @@ Jawab berdasarkan tabel Bagian 8, bukan berdasarkan teori saja:
 4. Apakah loss downlink dan uplink mulai naik pada jarak yang sama? Jika berbeda, apa dugaan penyebabnya (daya pancar, `writeValue(..., true)` yang menunggu response, atau posisi antena)?
 5. Untuk data periodik, mana yang lebih hemat: notify atau client mem-*polling* dengan read berulang? Dukung dengan jumlah transaksi per menit dari data hasil pengukuran.
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa perbedaan property READ, WRITE, dan NOTIFY pada characteristic?
 2. Mengapa client harus subscribe sebelum bisa menerima notify?
@@ -311,7 +301,7 @@ Jawab berdasarkan tabel Bagian 8, bukan berdasarkan teori saja:
 4. Bagaimana arsitektur GATT menentukan arah aliran data?
 5. `writeValue(..., true)` menunggu response dari server, `false` tidak. Kapan masing-masing lebih tepat dipakai?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 Modifikasi kode, bukan sekadar menjelaskan hasil.
 
@@ -338,7 +328,7 @@ Modifikasi kode, bukan sekadar menjelaskan hasil.
 
 - **CH-4 — Backpressure.** Turunkan interval notify Node1 ke 50 ms. Amati apakah Node2 masih menerima semua nomor urut. Pada interval berapa mulai ada yang hilang, dan mengapa (petunjuk: connection interval BLE)?
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 
@@ -346,7 +336,7 @@ Modifikasi kode, bukan sekadar menjelaskan hasil.
 2. Dasar teori ringkas (GATT, property, subscribe, echo)
 3. Konfigurasi — `platformio.ini`, environment, UUID TX/RX
 4. Hasil eksperimen — log Serial Monitor kedua arah (EXP-01…03 + checkpoint)
-5. Data pengukuran — tabel Bagian 8, loss dua arah terpisah
+5. Data pengukuran — tabel bagian Pengukuran, loss dua arah terpisah
 6. Analisis + concept check
 7. Challenge — minimal CH-1 dan CH-2, sertakan potongan kode yang diubah
 8. Kesimpulan — ditulis sendiri berdasarkan hasil pengujian

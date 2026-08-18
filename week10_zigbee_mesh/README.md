@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 10 |
-| Misi | Membuktikan router benar-benar mengangkut trafik milik node lain — dan mengukur harga hop keduanya |
-| Platform | ESP32-H2 (Arduino core 3.x) + library `Zigbee` bawaan |
-| Durasi | 3 × 50 menit |
-| Mode | Mesh multi-hop — ZC ↔ ZR ↔ ZED |
-| Level | Advanced |
-| Instrumen | Serial Monitor 115200 baud (3 terminal) + LED RGB bawaan |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 10 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat lanjut. Misinya membuktikan router benar-benar mengangkut trafik milik node lain, sekaligus mengukur harga hop keduanya. Percobaan berjalan sebagai mesh multi-hop dari coordinator ke router lalu ke end device, diamati melalui tiga terminal Serial Monitor pada 115200 baud dengan LED RGB bawaan sebagai penanda visual.
 
 M06 sudah memperkenalkan hop — tetapi jalurnya ditulis sendiri di dalam kode. Di sini jalur ditentukan **stack**: end device memilih parent terbaik sendiri, dan router meneruskan trafik tanpa satu baris kode penerusan pun di sketch. Membandingkan dua pendekatan ini (relay manual M06 vs routing otomatis M10) adalah inti analisis modul ini, dan bekalnya dipakai lagi saat Thread melakukan hal serupa di atas IPv6 (M12).
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M09 — binding table, multi-node, penghapusan NVS; M06 — konsep hop dan loss per hop |
-| Dibangun di modul ini | Peran Router (ZR), pemilihan parent otomatis, routing multi-hop, perbandingan latency 1 hop vs 2 hop, status orphan |
-| Dipakai lagi di | M12 (mesh Thread + role election) → M13 (gateway sebagai tepi jaringan) → M16 (jangkauan mesh jadi kriteria pemilihan protokol) |
+Prasyaratnya ada dua: M09 untuk binding table, multi-node, dan penghapusan NVS; serta M06 untuk konsep hop dan loss per hop. Yang dibangun di sini adalah peran Router (ZR), pemilihan parent secara otomatis, routing multi-hop, perbandingan latency satu hop dengan dua hop, dan pengenalan status orphan. Semuanya dipakai lagi pada M12 ketika mesh Thread menambahkan role election, M13 ketika gateway berperan sebagai tepi jaringan, dan M16 ketika jangkauan mesh menjadi kriteria pemilihan protokol.
 
 **Peta modul blok Zigbee (penutup blok)**
 
@@ -41,7 +27,7 @@ M06 sudah memperkenalkan hop — tetapi jalurnya ditulis sendiri di dalam kode. 
 
 **Kontrak data lab ini.** Ukur **latency 1 hop dan 2 hop** pada modul ini. Angka itu adalah pembanding langsung untuk latency relay manual M06 dan untuk mesh Thread M12 — tiga cara berbeda menyelesaikan masalah yang sama, di radio yang sama.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -57,7 +43,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Selisih latency 1 hop vs 2 hop terukur dan tercatat.
 - ☐ Skenario router dimatikan diuji, perilaku ZED tercatat.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (algoritma routing AODV Zigbee, tabel routing, many-to-one routing) ada di buku teori terpisah.*
 
@@ -81,7 +67,7 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (algorit
                  └── relay ──► ZED (EP11: nyala)
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
      BOARD #1                  BOARD #2                   BOARD #3
@@ -105,7 +91,9 @@ Ketiganya **ESP32-H2 DevKitM-1**. Router memakai firmware ZCZR (`partitions_zczr
 
 **Rencana penempatan:** ZC — jarak — ZR — jarak — ZED, dalam satu garis. Formasi meja (semua < 1 m) hanya untuk pemanasan; ia **tidak** membuktikan multi-hop.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + library `Zigbee` bawaan.
 
 **Alat & bahan**
 
@@ -150,7 +138,7 @@ pio run -d week10_zigbee_mesh -e router      -t upload    # dalam 180 s
 pio run -d week10_zigbee_mesh -e enddevice   -t upload    # dalam 180 s
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Join Bertingkat
 
@@ -260,7 +248,7 @@ Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu; ketiga b
 
 Formasi meja (semua node < 1 m) **belum membuktikan** routing multi-hop — untuk itu jalankan EXP-03 formasi garis dan matikan jalur langsung ZC ↔ ZED.
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 **Tabel jarak ZC ↔ ZED** (dengan ZR di tengah):
 
@@ -286,9 +274,9 @@ Formasi meja (semua node < 1 m) **belum membuktikan** routing multi-hop — untu
 | Relay manual (BLE) | M06 | | kode aplikasi |
 | Routing otomatis (Zigbee) | M10 | | stack Zigbee |
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Berapa lama waktu join router dan end device? Apakah urutan penyalaan memengaruhi keberhasilan?
 2. Berdasarkan formasi dekat vs garis, kapan end device memilih router sebagai parent? Bagaimana hal itu dibuktikan dari log?
@@ -296,7 +284,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa yang terjadi pada EndLight ketika router dimatikan? Sebutkan istilah status node tersebut dan berapa lama pemulihannya.
 5. Bandingkan dengan relay manual M06: apa yang **diperoleh** dari routing otomatis, dan apa yang **hilang** (kendali, keterlihatan, ukuran firmware)?
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa perbedaan utama mode build ZCZR vs ED (lihat `build_flags` di `platformio.ini`)?
 2. Mengapa router memakai `partitions_zczr.csv` sedangkan end device `partitions_ed.csv`?
@@ -304,7 +292,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Jelaskan hubungan endpoint 5/10/11 dengan binding pada percobaan ini.
 5. Apa konsekuensi daya dari node yang berperan sebagai router dibanding end device, dan apa artinya untuk node bertenaga baterai?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Rantai dua router.** Tambahkan **router2** (salin `src/router`, tetap `ZigbeeLight(10)` tetapi ubah model string) dan susun rantai ZC → ZR1 → ZR2 → ZED. Amati berapa hop maksimum yang masih berfungsi dan berapa tambahan latency per hop.
 
@@ -314,7 +302,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Uji self-healing.** Pada formasi garis, matikan ZR lalu ukur berapa lama ZED butuh untuk kembali (baik lewat ZC langsung maupun setelah ZR hidup lagi). Bandingkan dengan perilaku relay manual M06 yang tidak pulih sendiri.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 

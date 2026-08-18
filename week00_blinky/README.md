@@ -7,29 +7,15 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 00A (warm-up, sebelum M01) |
-| Misi | Memastikan toolchain PlatformIO, board, dan jalur flash bekerja sebelum modul komunikasi dimulai |
-| Platform | Waveshare ESP32-H2-DEV-KIT-N4 (ESP32-H2-MINI-1, Arduino core 3.x) + PlatformIO |
-| Durasi | 1 × 50 menit |
-| Mode | Single node — LED RGB onboard berkedip |
-| Level | Basic |
-| Instrumen | Serial Monitor 115200 baud |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 00A adalah modul pemanasan yang dikerjakan sebelum M01, dirancang untuk satu pertemuan (1 × 50 menit) pada tingkat dasar. Misinya tunggal dan sempit: memastikan toolchain PlatformIO, board, dan jalur flash benar-benar bekerja sebelum modul komunikasi dimulai. Percobaan berjalan pada satu node dengan LED RGB onboard yang berkedip sebagai penanda keberhasilan, dan Serial Monitor pada 115200 baud sebagai satu-satunya instrumen pengamatan.
 
 Modul ini tidak mengajarkan protokol apa pun. Fungsinya menutup satu sumber kebingungan yang berulang di laboratorium: ketika sebuah modul komunikasi gagal, penyebabnya bisa berada di protokol, di firmware, atau di rantai kerja paling dasar — toolchain, board, kabel, dan port. Dengan menuntaskan modul ini lebih dahulu, kemungkinan terakhir dapat dicoret sejak awal.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | Dasar bahasa C dan pemasangan PlatformIO Core/IDE |
-| Dibangun di modul ini | Struktur proyek PlatformIO, proses build–flash–monitor, kendali LED RGB WS2812 |
-| Dipakai lagi di | M00B (input digital), M01–M16 (setiap modul memakai rantai build–flash–monitor yang sama) |
+Bekal yang diperlukan hanya dasar bahasa C dan PlatformIO Core/IDE yang sudah terpasang; tidak ada modul yang mendahuluinya. Yang dibangun di sini ada tiga, dan ketiganya dipakai terus-menerus sesudahnya: struktur proyek PlatformIO, alur kerja build–flash–monitor, serta kendali LED RGB WS2812. Ketiganya langsung dipakai kembali pada M00B ketika jalur masukan ditambahkan, sedangkan rantai build–flash–monitor yang sama menjadi dasar kerja seluruh modul M01 hingga M16.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, praktikan mampu:
 
@@ -45,7 +31,7 @@ Setelah menyelesaikan modul ini, praktikan mampu:
 - ☐ Serial Monitor menampilkan pesan startup tepat satu kali setelah reset.
 - ☐ Warna LED berhasil diubah melalui `strip.Color(r, g, b)`.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan.
 
@@ -57,7 +43,9 @@ Teori dibatasi pada apa yang dipakai di percobaan.
 | Urutan byte warna | Urutan pengiriman komponen warna. WS2812 umumnya GRB; pada board ini pengamatan empiris menunjukkan urutan **RGB**, sehingga dipakai `NEO_RGB`. |
 | Environment PlatformIO | Konfigurasi build bernama pada `platformio.ini`; dipilih dengan opsi `-e`. |
 
-## 5 · Perangkat & Pin
+## 4 · Alat yang Digunakan
+
+Seluruh percobaan dijalankan pada Waveshare ESP32-H2-DEV-KIT-N4 (modul ESP32-H2-MINI-1) dengan Arduino core 3.x di atas PlatformIO.
 
 | No | Peralatan | Spesifikasi | Jumlah |
 |---|---|---|---|
@@ -78,20 +66,22 @@ week00_blinky/
     └── main.cpp
 ```
 
-## 6 · Build & Flash
+## 5 · Build & Flash
 
 ```bash
-pio run -d week00_blinky -e node -t upload
-pio device monitor -e node
+pio run -d week00_blinky -e node -t upload --upload-port /dev/ttyACM0
+pio device monitor -p /dev/ttyACM0 -b 115200
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Flash dilakukan lewat **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Satu board memakai `/dev/ttyACM0`, dua board `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
-- ☐ `pio device list` dijalankan dan port board tercatat.
+- ☐ `pio device list` dijalankan dan port jembatan UART (`1A86:55D3`) tercatat.
 - ☐ Kabel yang dipakai dipastikan kabel data.
 - ☐ Environment `node` dikenali PlatformIO.
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Build dan Flash Pertama
 
@@ -127,26 +117,26 @@ Ubah argumen `strip.Color(r, g, b)`, unggah ulang, dan amati perubahannya. Perco
 
 > **CHECKPOINT** — Warna yang teramati sesuai dengan urutan RGB. Apabila `(255, 0, 0)` justru menghasilkan hijau, urutan byte board berbeda dan konstanta `NEO_RGB` perlu diganti `NEO_GRB`.
 
-## 8 · Analisis
+## 7 · Analisis
 
 1. Mengapa nilai `strip.setBrightness(50)` memengaruhi seluruh warna secara proporsional, sedangkan `strip.Color()` menentukan komposisinya?
 2. Apa yang terjadi apabila `strip.show()` tidak dipanggil setelah `setPixelColor()`? Jelaskan berdasarkan cara kerja WS2812.
 3. Berdasarkan ringkasan build, berapa persen Flash yang sudah terpakai oleh program sesederhana ini? Apa penyebabnya?
 
-## 9 · Concept Check
+## 8 · Concept Check
 
 1. Apa perbedaan LED digital biasa dan LED beralamat seperti WS2812?
 2. Mengapa proyek ini memerlukan fork pioarduino, bukan platform espressif32 resmi?
 3. Apa fungsi `build_src_filter` dan `default_envs` pada `platformio.ini`?
 4. Serial Monitor menampilkan pesan startup hanya sekali. Apa arti pengamatan itu terhadap alur `setup()` dan `loop()`?
 
-## 10 · Challenge (tugas modifikasi)
+## 9 · Challenge (tugas modifikasi)
 
 - **CH-1 — Pola napas.** Ubah kedipan menjadi transisi terang–redup bertahap (*breathing*) menggunakan `setBrightness()` di dalam `loop()`.
 - **CH-2 — Non-blocking.** Ganti `delay()` dengan penjadwalan berbasis `millis()`, lalu jelaskan mengapa pola ini wajib pada modul komunikasi berikutnya.
 - **CH-3 — Indikator status.** Rancang tiga warna sebagai kode status (mis. hijau = siap, kuning = menunggu, merah = galat) dan terapkan pada urutan `setup()`.
 
-## 11 · Laporan
+## 10 · Laporan
 
 **Deliverable**
 

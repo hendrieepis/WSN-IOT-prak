@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 11 |
-| Misi | Memberi tiap node alamat IPv6 sungguhan dan mengirim datagram UDP di antara keduanya |
-| Platform | ESP32-H2 (Arduino core 3.x) + OpenThread (`OThread`, `OThreadUDP`) |
-| Durasi | 3 × 50 menit |
-| Mode | P2P-IPv6 — PING multicast / PONG unicast |
-| Level | Intermediate |
-| Instrumen | Serial Monitor 115200 baud (2 terminal) |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 11 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat menengah. Misinya memberi tiap node alamat IPv6 sungguhan dan mengirim datagram UDP di antara keduanya. Percobaan berjalan sebagai pertukaran P2P berbasis IPv6, dengan PING dikirim secara multicast dan PONG dibalas secara unicast, diamati melalui dua terminal Serial Monitor pada 115200 baud.
 
 Zigbee memakai alamat 16-bit milik jaringannya sendiri; untuk keluar ke Internet ia butuh penerjemah. Thread memakai **IPv6** — alamat yang bentuknya sama dengan alamat Internet — di atas radio 802.15.4 yang sama persis dengan M07–M10. Inilah alasan Thread bisa disambungkan ke Wi-Fi di M13 hampir tanpa penerjemahan: paketnya sudah IP sejak dari node sensor.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M07 — channel, PAN ID, radio 802.15.4; M08–10 — pengalaman jaringan yang mengelola dirinya sendiri |
-| Dibangun di modul ini | Active Dataset Thread, mesh-local prefix & EID, role attach otomatis, socket UDP IPv6, multicast realm-local vs unicast |
-| Dipakai lagi di | M12 (mesh many-to-many) → M13 (dataset yang sama dipakai gateway C6) → M15 (payload UDP ini berakhir di MQTT) → M16 (Thread jadi pembanding BLE/Zigbee) |
+Prasyaratnya ada dua: M07 untuk channel, PAN ID, dan radio 802.15.4; serta M08–M10 untuk pengalaman menghadapi jaringan yang mengelola dirinya sendiri. Yang dibangun di sini adalah Active Dataset Thread, mesh-local prefix beserta EID, proses attach role secara otomatis, socket UDP IPv6, dan perbedaan multicast realm-local dengan unicast. Semuanya dipakai lagi pada M12 untuk mesh many-to-many, M13 ketika dataset yang sama dipakai gateway C6, M15 ketika payload UDP ini berakhir di MQTT, dan M16 ketika Thread dibandingkan dengan BLE dan Zigbee.
 
 **Peta modul blok Thread**
 
@@ -41,7 +27,7 @@ Zigbee memakai alamat 16-bit milik jaringannya sendiri; untuk keluar ke Internet
 
 **Kontrak data lab ini.** Grup multicast `ff03::abcd` dan port **5050** dipakai sama persis di M11, M12, M13, dan M15. Karena itu firmware penerima modul mana pun bisa dijadikan alat bantu diagnosis untuk modul lainnya — teknik yang benar-benar dipakai saat menguji M13 tanpa board C6.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -57,7 +43,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Latency PING→PONG rata-rata dihitung dari ≥ 10 sampel.
 - ☐ Tabel jarak–RSSI–latency–loss terisi dari pengukuran sendiri.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (MLE, Router ID assignment, MPL forwarding, keamanan DTLS/commissioning) ada di buku teori terpisah.*
 
@@ -90,7 +76,7 @@ Tanpa langkah itu tiap board memakai prefix acak sendiri. Gejalanya menyesatkan:
    │ ◄─── PONG unicast ke mesh-local EID ───── │
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
        BOARD #1                                        BOARD #2
@@ -113,7 +99,9 @@ Keduanya **ESP32-H2 DevKitM-1** (radio 802.15.4). ESP32-C6 baru masuk di Modul 1
 
 > **Role Thread tidak ditentukan oleh nama environment.** Leader dipilih otomatis oleh stack — biasanya board yang selesai boot lebih dulu. Pada uji referensi, `node2` justru menjadi Leader dan `node1` menjadi Child, dan PING/PONG tetap berjalan normal. Yang harus sama di kedua board adalah **dataset**, bukan role.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + OpenThread (`OThread`, `OThreadUDP`).
 
 **Alat & bahan**
 
@@ -156,7 +144,7 @@ pio run -d week11_thread_p2p -e node1 -t upload
 pio run -d week11_thread_p2p -e node2 -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Pembentukan Jaringan & Attach
 
@@ -258,7 +246,7 @@ Dijalankan pada 2 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu), capture
 
 > Baris `E OT_STATE: handle_ot_role_change(105): Failed to get the active dataset` muncul sekali saat boot dan tidak berbahaya: role sempat berubah sebelum dataset selesai dibaca netif. Jaringan tetap terbentuk normal sesudahnya.
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 | Jarak | RSSI | Latency (ms) | Success |
 |---|---|---|---|
@@ -278,9 +266,9 @@ Success = jumlah PONG diterima dari 10 PING; latency = waktu PING→PONG (ms).
 | Zigbee | M08 | | |
 | Thread (IPv6/UDP) | M11 | | header IPv6 + UDP |
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Berapa latency rata-rata round-trip PING→PONG pada jarak 1 m dan 10 m?
 2. Bagaimana tren RSSI dan success rate terhadap peningkatan jarak?
@@ -288,7 +276,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa perbedaan alamat mesh-local EID (`fd...`) dan link-local (`fe80::`) pada jaringan Thread, dan yang mana yang muncul pada log hasil percobaan?
 5. Apa yang terjadi di Node2 ketika Node1 dimatikan? Mengapa PING tetap terkirim, dan apa artinya bagi desain aplikasi?
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa itu Active Dataset dan parameter apa saja yang di-set sebelum `OThread.start()`?
 2. Bagaimana sebuah node menjadi Leader pada jaringan Thread?
@@ -296,7 +284,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Mengapa komunikasi Thread memakai IPv6 dibanding alamat 16-bit seperti Zigbee? Apa untungnya untuk Modul 13?
 5. Apa fungsi `OtUdp.begin(PORT)` pada Node2 dibanding `beginMulticast()` pada Node1?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Node ketiga.** Tambah `node3` (salin `src/node2`, tambahkan env di `platformio.ini`). Amati bahwa PONG dari Node1 tetap hanya dikirim ke pengirim aslinya, dan bandingkan EID ketiga node — awalannya harus sama, sisanya berbeda.
 
@@ -306,7 +294,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Prefix salah, sengaja.** Ubah `OT_ML_PREFIX` di **satu** node saja (mis. byte kedua jadi `0xdd`), flash, dan dokumentasikan gejalanya secara lengkap: apa yang tetap normal, apa yang gagal, dan bagaimana diagnosisnya ditegakkan dari log. Ini melatih membaca *kegagalan senyap*.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 
@@ -314,7 +302,7 @@ Jawab berdasarkan tabel Bagian 8:
 2. Dasar teori ringkas (Thread, Leader/Child, Active Dataset, mesh-local prefix & EID, multicast realm-local)
 3. Konfigurasi — env `node1`/`node2`, dataset lengkap, port 5050, grup `ff03::abcd`, interval 3 s
 4. Hasil eksperimen — log attach, EID kedua node, sesi PING–PONG, hasil percobaan "buka abstraksinya"
-5. Data pengukuran — tabel Bagian 8 + tabel pembanding M07/M08/M11
+5. Data pengukuran — tabel bagian Pengukuran + tabel pembanding M07/M08/M11
 6. Analisis + concept check
 7. Challenge — minimal CH-2 dan CH-4
 8. Kesimpulan — ditulis sendiri berdasarkan hasil pengujian

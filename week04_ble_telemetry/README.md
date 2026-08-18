@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 04 |
-| Misi | Mengubah pola tarik (polling) menjadi pola dorong (notify) dan membuktikan penghematannya dengan angka |
-| Platform | ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino |
-| Durasi | 3 × 50 menit |
-| Mode | Telemetry — Sensor (server, notify) → Monitor (client) |
-| Level | Intermediate |
-| Instrumen | Serial Monitor 115200 baud (2 terminal) |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 04 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat menengah. Misinya mengubah pola tarik (polling) menjadi pola dorong (notify), lalu membuktikan penghematannya dengan angka. Percobaan berjalan sebagai telemetry satu arah dari sensor yang berperan sebagai server menuju monitor yang berperan sebagai client, diamati melalui dua terminal Serial Monitor pada 115200 baud.
 
 Modul 03 membuat client **menarik** data berulang-ulang, sebagian besar mubazir. Modul ini membalik arah inisiatif: sensor mendorong nilai baru begitu tersedia, monitor hanya menunggu. Pola inilah yang dipakai semua telemetri di sisa lab — Zigbee attribute report (M09), Thread UDP periodik (M11–13), dan MQTT publish (M14). Angka transaksi/menit yang dihitung pada M03 dipakai lagi di sini sebagai pembanding.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M03 — service GATT, hitungan transaksi radio pada skema polling |
-| Dibangun di modul ini | Notify sebagai telemetry berkala, subscribe dari client, kontinuitas aliran data, perilaku saat pengirim mati/hidup lagi |
-| Dipakai lagi di | M05 (satu central menerima notify dari banyak sensor) → M06 (notify diteruskan hop demi hop) → M14/M15 (telemetri yang sama berakhir di broker MQTT) |
+Prasyaratnya adalah M03: service GATT dan hitungan transaksi radio pada skema polling. Yang dibangun di sini adalah notify sebagai telemetry berkala, mekanisme subscribe dari sisi client, pengamatan kontinuitas aliran data, dan perilaku sistem saat pengirim mati lalu hidup kembali. Keempatnya dipakai lagi pada M05 ketika satu central menerima notify dari banyak sensor, M06 ketika notify diteruskan hop demi hop, serta M14 dan M15 ketika telemetri yang sama berakhir di broker MQTT.
 
 **Peta modul blok BLE**
 
@@ -42,7 +28,7 @@ Modul 03 membuat client **menarik** data berulang-ulang, sebagian besar mubazir.
 
 **Kontrak data lab ini.** Payload telemetri di lab ini selalu berupa **nilai terukur dalam bentuk string ringkas** (`"26.3"`, nanti `"suhu:26.3"`). Format itu dipertahankan agar hop terakhir — publish MQTT di M14/M15 — tidak perlu mengubah isinya sama sekali (*transparent forwarding*).
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -58,7 +44,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Uji gangguan (sensor di-reset) dilakukan dan perilaku kedua node tercatat.
 - ☐ Tabel perbandingan polling (M03) vs notify (M04) terisi dari angka sendiri.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (siklus connection event BLE, hubungan interval notify dengan konsumsi arus) ada di buku teori terpisah.*
 
@@ -85,7 +71,7 @@ Sensor (Server)                          Monitor (Client)
   (tidak ada permintaan baca sama sekali dari monitor)
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
       BOARD #1                            BOARD #2
@@ -112,7 +98,9 @@ Keduanya **ESP32-H2** (radio Bluetooth LE). Tidak ada ESP32-C6 pada modul ini.
 | Service | `4fafc201-1fb5-459e-8fcc-c5c9c331914b` |
 | CHAR telemetry (NOTIFY) | `beb5483e-36e1-4688-b7f5-ea07361b26b2` |
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino.
 
 **Alat & bahan**
 
@@ -136,9 +124,11 @@ monitor_port = /dev/ttyACM0
 
 [env:monitor]
 build_src_filter = +<monitor/*.cpp>
-upload_port  = /dev/ttyACM1     ; Windows: COM4  -- board Monitor
-monitor_port = /dev/ttyACM1
+upload_port  = /dev/ttyACM2     ; Windows: COM4  -- board Monitor
+monitor_port = /dev/ttyACM2
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Setiap board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Proses flash pada lab ini memakai **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Dengan demikian satu board memakai `/dev/ttyACM0`, dua board memakai `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board memakai `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
@@ -156,7 +146,7 @@ pio run -d week04_ble_telemetry -e sensor  -t upload
 pio run -d week04_ble_telemetry -e monitor -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Subscribe & Stream Start
 
@@ -249,7 +239,7 @@ Dijalankan pada 2 × **ESP32-H2 DevKitM-1**, capture 25 detik.
 | Rentang suhu teramati | 21,3 – 24,3 °C |
 | Selisih waktu sensor → monitor | 1–2 ms |
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 | Jarak | RSSI (dBm) | Telemetry diterima /60 s (harapan 60) | Loss (%) | Interval terbesar (ms) |
 |---|---|---|---|---|
@@ -271,9 +261,9 @@ Isi kolom kiri dari data Modul 03 dan kolom kanan dari modul ini:
 | Siapa yang menentukan waktu kirim | client | sensor |
 | Konsekuensi bila data jarang berubah | | |
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Berapa jumlah telemetry yang diterima per menit, dan berapa persen dari nilai yang dikirim sensor?
 2. Bandingkan transaksi radio per menit skema polling dan notify dari tabel pembanding. Berapa persen penghematannya?
@@ -281,7 +271,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Jika data hanya berubah tiap 10 detik, skema mana yang lebih boros? Tunjukkan dengan angka.
 5. Apa risiko notify dibanding indication untuk data yang tidak boleh hilang (mis. alarm)?
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa beda notify dan indication, dan kapan masing-masing dipakai?
 2. Mengapa `notify()` tidak berefek apa pun sebelum client subscribe?
@@ -289,7 +279,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Mengapa sensor sebaiknya berhenti mengirim saat tidak ada client terhubung?
 5. Bagaimana pola push ini nanti diterjemahkan ke MQTT pada Modul 14?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Telemetri berpenanda (wajib).** Ubah payload menjadi `suhu:26.3,#<seq>` dengan nomor urut naik. Monitor menghitung loss dari lompatan nomor. Format ini dipakai lagi di M13–M16.
 
@@ -306,7 +296,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Self-healing.** Buat monitor melakukan scan ulang otomatis pada `onDisconnect` sehingga aliran pulih tanpa reset manual. Ukur waktu pemulihannya, 5 percobaan, hitung rata-rata.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 
@@ -314,7 +304,7 @@ Jawab berdasarkan tabel Bagian 8:
 2. Dasar teori ringkas (telemetry, notify vs indication, push vs pull)
 3. Konfigurasi — `platformio.ini`, environment, UUID characteristic telemetri
 4. Hasil eksperimen — log kedua node (EXP-01…03 + checkpoint), termasuk hasil uji subscribe dikomentari
-5. Data pengukuran — tabel Bagian 8 **dan** tabel pembanding polling vs notify
+5. Data pengukuran — tabel bagian Pengukuran **dan** tabel pembanding polling vs notify
 6. Analisis + concept check
 7. Challenge — minimal CH-1 dan CH-2, sertakan angka penghematan transaksi
 8. Kesimpulan — ditulis sendiri berdasarkan hasil pengujian

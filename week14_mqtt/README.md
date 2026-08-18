@@ -7,27 +7,14 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 14 |
-| Misi | Menempatkan perangkat pada broker dan membuatnya bicara dua arah tanpa tahu alamat lawan bicaranya |
-| Platform | ESP32-C6 (Arduino core 3.x) + Wi-Fi + PubSubClient |
-| Durasi | 3 × 50 menit |
-| Mode | Client–Broker (publish/subscribe) |
-| Level | Intermediate |
-| Instrumen | Serial Monitor 115200 baud + `mosquitto_sub` / `mosquitto_pub` di PC |
 
-## 2 · Keterkaitan Antar-Modul
+Modul 14 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat menengah. Misinya menempatkan perangkat pada sebuah broker dan membuatnya bicara dua arah tanpa perlu tahu alamat lawan bicaranya. Percobaan berjalan dalam model client–broker dengan pola publish/subscribe, diamati melalui Serial Monitor 115200 baud serta perintah `mosquitto_sub` dan `mosquitto_pub` di sisi PC.
 
 M13 mengeluarkan data ke jaringan IP lewat HTTP POST — satu arah, satu tujuan tetap, satu koneksi per pesan. MQTT membalik modelnya: perangkat menempel pada **broker**, telemetri naik dan perintah turun lewat koneksi yang sama, dan tidak ada pihak yang perlu tahu alamat pihak lain. Modul ini sengaja **tanpa Thread** supaya sisi IP bisa dipelajari terpisah; keduanya baru disatukan di M15.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M13 — Wi-Fi STA di ESP32-C6, konsep gateway, transparent forwarding |
-| Dibangun di modul ini | Koneksi broker, topic hierarkis, publish berkala, subscribe + callback, QoS, retained, perilaku reconnect |
-| Dipakai lagi di | M15 (HTTP POST M13 diganti publish MQTT ini) → M16 (semua protokol bermuara ke topic yang sama agar perbandingannya adil) |
+Prasyaratnya adalah M13: Wi-Fi STA pada ESP32-C6, konsep gateway, dan transparent forwarding. Yang dibangun di sini adalah koneksi ke broker, penyusunan topic hierarkis, publish berkala, subscribe beserta callback-nya, tingkat QoS, pesan retained, dan perilaku saat koneksi tersambung ulang. Semuanya dipakai lagi pada M15 ketika HTTP POST milik M13 diganti publish MQTT ini, serta M16 ketika seluruh protokol bermuara ke topic yang sama agar perbandingannya adil.
 
 **Peta modul blok integrasi**
 
@@ -40,7 +27,7 @@ M13 mengeluarkan data ke jaringan IP lewat HTTP POST — satu arah, satu tujuan 
 
 **Kontrak data lab ini.** Topic dibagi dua: **`praktikum/h2/telemetri`** untuk data naik dan **`praktikum/h2/perintah`** untuk perintah turun. Pemisahan ini adalah kelanjutan langsung dari pola M03 (characteristic data vs characteristic perintah) dan M08 (cluster On/Off vs laporan status). Topic telemetri yang sama dipakai lagi di M15 dan M16 — itulah yang membuat data ketiga modul bisa dibandingkan.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -56,7 +43,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Perilaku reconnect Wi-Fi/MQTT terverifikasi dan tercatat, termasuk return code kegagalan.
 - ☐ Tabel latency dan success rate terisi dari pengukuran sendiri.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (paket kontrol MQTT, session state, last will & testament, MQTT 5) ada di buku teori terpisah.*
 
@@ -83,7 +70,7 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (paket k
         callback onMessage()          route by topic
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
         BOARD #1                                  INTERNET
@@ -110,7 +97,9 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (paket k
 
 **Mengapa ESP32-C6, bukan H2?** ESP32-H2 tidak punya radio Wi-Fi sama sekali, jadi ia tidak bisa menjadi klien MQTT. Modul ini hanya memakai kaki Wi-Fi C6 — radio 802.15.4-nya menganggur, dan baru dipakai bersamaan di M15.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-C6 (Arduino core 3.x) + Wi-Fi + PubSubClient.
 
 **Alat & bahan**
 
@@ -141,7 +130,7 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (paket k
 - ☐ Broker dapat dijangkau dari PC: `mosquitto_sub -h test.mosquitto.org -t "praktikum/#" -v`.
 - ☐ Firmware environment `node` berhasil di-build (`pio run -e node`).
 - ☐ Serial Monitor 115200 baud dibuka.
-- ☐ **Ganti prefix topic** menjadi unik per kelompok bila memakai broker publik (lihat catatan keamanan di Bagian 10).
+- ☐ **Ganti prefix topic** menjadi unik per kelompok bila memakai broker publik (lihat catatan keamanan di bagian Concept Check).
 
 **Deploy**
 
@@ -153,7 +142,7 @@ mosquitto_sub -h test.mosquitto.org -t "praktikum/h2/telemetri" -v
 pio run -d week14_mqtt -e node -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Koneksi Wi-Fi & Broker
 
@@ -277,7 +266,7 @@ Dijalankan pada **ESP32-C6 DevKitC-1** asli dengan broker lokal (`tools/mqtt_bro
 | `while (WiFi.status() != WL_CONNECTED)` menggantung selamanya bila SSID/password salah | penantian dibatasi `WIFI_TIMEOUT_MS`, lalu lanjut dan dicoba ulang di `loop()` |
 | `reconnectMQTT()` memblokir `loop()` tanpa batas saat broker tak terjangkau — board tampak hang | dibatasi `MQTT_TIMEOUT_MS` dan langsung keluar bila Wi-Fi belum siap |
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 | Skenario | Publish interval (s) | QoS dipakai | Latency publish→terima (ms) | Success / 20 pesan |
 |---|---|---|---|---|
@@ -298,9 +287,9 @@ Latency diukur dengan cap waktu log publish C6 versus kemunculan pesan pada `mos
 | Latency rata-rata | | |
 | Perilaku saat jaringan putus | | |
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Mengapa model publish/subscribe lebih cocok untuk telemetri IoT dibanding HTTP request/response? Dukung dengan tabel pembanding transport.
 2. Apa fungsi broker dalam sistem ini dan apa yang terjadi jika broker tidak dapat dijangkau?
@@ -308,7 +297,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa perbedaan QoS 0, 1, dan 2 — dan QoS berapa yang **sebenarnya** dipakai kode ini? Jelaskan batasan PubSubClient.
 5. Mengapa topic telemetri dan perintah dipisah, bukan digabung satu topic? Kaitkan dengan pola yang sama di M03 dan M08.
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Jelaskan perbedaan pesan MQTT dan pesan HTTP dari sisi overhead dan arah komunikasi.
 2. Apa yang dimaksud topic hierarkis, dan bagaimana wildcard `#` dan `+` bekerja?
@@ -316,7 +305,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa yang terjadi pada subscription bila koneksi MQTT terputus lalu reconnect?
 5. Mengapa praktikum ini menggunakan broker publik, dan apa risikonya? Sebutkan minimal dua, beserta cara menguranginya.
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Retained message.** Aktifkan flag *retained* (`mqtt.publish(topic, payload, true)`), lalu jalankan subscriber **setelah** publish berjalan dan amati apakah pesan terakhir langsung diterima. Catatan: argumen ketiga adalah `retained`, **bukan** QoS. Untuk menguji QoS 1 diperlukan library lain (mis. `arduino-mqtt` / `AsyncMqttClient`); jelaskan konsekuensinya di laporan.
 
@@ -326,7 +315,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Topic per perangkat.** Ubah topic menjadi `praktikum/<client_id>/telemetri` dan subscribe dengan wildcard `praktikum/+/telemetri` di PC. Diskusikan bagaimana skema ini menskalakan ke 50 perangkat.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 
@@ -334,7 +323,7 @@ Jawab berdasarkan tabel Bagian 8:
 2. Dasar teori ringkas (MQTT, broker, publish/subscribe, topic, QoS, retained, batasan PubSubClient)
 3. Konfigurasi — SSID, broker, client ID, topic, library PubSubClient
 4. Hasil eksperimen — log Serial Monitor **dan** log `mosquitto_sub`/`mosquitto_pub` (EXP-01…03 + checkpoint)
-5. Data pengukuran — tabel Bagian 8 **dan** tabel pembanding HTTP vs MQTT
+5. Data pengukuran — tabel bagian Pengukuran **dan** tabel pembanding HTTP vs MQTT
 6. Analisis + concept check
 7. Challenge — minimal CH-2 dan CH-3
 8. Kesimpulan — ditulis sendiri berdasarkan hasil pengujian

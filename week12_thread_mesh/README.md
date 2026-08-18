@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 12 |
-| Misi | Membangun mesh IPv6 yang mengatur dirinya sendiri, lalu merusaknya dengan sengaja untuk melihat apakah ia pulih |
-| Platform | ESP32-H2 (Arduino core 3.x) + OpenThread (`OThread`, `OThreadUDP`) |
-| Durasi | 3 × 50 menit |
-| Mode | Mesh IPv6 — 3 node, many-to-many multicast |
-| Level | Advanced |
-| Instrumen | Serial Monitor 115200 baud (3 terminal) |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 12 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat lanjut. Misinya membangun mesh IPv6 yang mengatur dirinya sendiri, lalu merusaknya dengan sengaja untuk melihat apakah ia pulih. Percobaan berjalan sebagai mesh IPv6 tiga node dengan komunikasi many-to-many melalui multicast, diamati melalui tiga terminal Serial Monitor pada 115200 baud.
 
 M11 membuktikan dua node Thread bisa saling kirim datagram. Di sini jumlahnya tiga, dan **tidak ada peran yang ditentukan manusia** — firmware ketiga node identik kecuali `NODE_ID`. Bandingkan dengan Zigbee M10, tempat peran ZC/ZR/ZED dipilih saat kompilasi: perbedaan ini adalah salah satu argumen terkuat Thread, dan angka pemulihannya menjadi bahan M16.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M11 — Active Dataset, mesh-local prefix, socket UDP IPv6; M10 — konsep routing multi-hop |
-| Dibangun di modul ini | Role election otomatis, komunikasi many-to-many via multicast, deteksi loss berbasis counter, uji kegagalan relayer & self-healing |
-| Dipakai lagi di | M13 (mesh ini disambungkan ke Wi-Fi lewat gateway) → M15 (pipeline end-to-end) → M16 (keandalan mesh jadi kriteria pemilihan protokol) |
+Prasyaratnya ada dua: M11 untuk Active Dataset, mesh-local prefix, dan socket UDP IPv6; serta M10 untuk konsep routing multi-hop. Yang dibangun di sini adalah role election otomatis, komunikasi many-to-many melalui multicast, deteksi loss berbasis counter, serta uji kegagalan node perantara beserta pemulihannya. Semuanya dipakai lagi pada M13 ketika mesh ini disambungkan ke Wi-Fi lewat gateway, M15 pada pipeline end-to-end, dan M16 ketika keandalan mesh menjadi kriteria pemilihan protokol.
 
 **Peta modul blok Thread**
 
@@ -39,7 +25,7 @@ M11 membuktikan dua node Thread bisa saling kirim datagram. Di sini jumlahnya ti
 
 **Kontrak data lab ini.** Payload `NODE<n>:<counter>` membawa **identitas sumber + nomor urut** sekaligus. Format ini yang membuat loss bisa dihitung tanpa alat bantu apa pun — cukup mencari lompatan angka di log. Pola yang sama dipakai di M13/M15 sebagai `suhu:XX.X,#<seq>`.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -55,7 +41,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Perilaku mesh saat relayer mati terdokumentasi dengan counter, bukan dengan kesan.
 - ☐ Awalan Mesh-Local EID ketiga node sama.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (MLE, Router ID assignment, partition merge, MPL) ada di buku teori terpisah.*
 
@@ -88,7 +74,7 @@ Bila dilewatkan, node tetap attach dan `Attached as: ...` tetap tercetak, tetapi
  Node3 ──TX "NODE3:1" (multicast)──► Node1, Node2
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
                     BOARD #1
@@ -121,7 +107,9 @@ Ketiganya **ESP32-H2 DevKitM-1** dengan firmware yang sama kecuali `NODE_ID`. Ro
 
 **Formasi awal:** segitiga dengan jarak antar node ± 3 m. Formasi garis (untuk membuktikan multi-hop) dipakai di EXP-03.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + OpenThread (`OThread`, `OThreadUDP`).
 
 **Alat & bahan**
 
@@ -162,7 +150,7 @@ pio run -d week12_thread_mesh -e node2 -t upload
 pio run -d week12_thread_mesh -e node3 -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Pembentukan Mesh & Pemilihan Role
 
@@ -251,7 +239,7 @@ Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu, formasi 
 
 Karena semua node saling terjangkau langsung, hasil ini **belum** membuktikan routing multi-hop — itu tugas EXP-03 formasi garis.
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 **Tabel jarak** (amati RX pada node terjauh, 10 pesan sumber):
 
@@ -279,9 +267,9 @@ Karena semua node saling terjangkau langsung, hasil ini **belum** membuktikan ro
 | Routing Zigbee | M10 | stack Zigbee | | |
 | Mesh Thread | M12 | stack Thread | | |
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Role apa yang dipegang tiap node setelah attach? Apakah berubah setelah node dimatikan/dinyalakan?
 2. Pada formasi garis, berapa hop yang ditempuh pesan NODE3 ke NODE1, dan apa buktinya dari latency/loss?
@@ -289,7 +277,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa yang terjadi pada komunikasi N1↔N3 ketika N2 (relayer) dimatikan? Jelaskan dari counter yang berhenti/berlanjut.
 5. Bandingkan keandalan mesh ini dengan multi-node Zigbee M09/M10 dan relay manual M06, memakai tabel pembanding self-healing.
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Bagaimana Thread memilih Leader dan apa tugas Leader dalam mesh?
 2. Mengapa pesan multicast `ff03::abcd` dapat diterima semua node tanpa alamat tujuan per node?
@@ -297,7 +285,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa yang membuat node Router dapat meneruskan paket sedangkan Child tidak?
 5. Bagaimana format pesan `NODEn:counter` membantu deteksi paket hilang — dan apa yang tidak bisa ia deteksi?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Node keempat.** Tambah `node4`: salin `src/node3`, ubah `NODE_ID` menjadi 4, tambahkan env `node4` di `platformio.ini`. Amati total pesan RX per menit di tiap node dan periksa apakah loss naik.
 
@@ -307,7 +295,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Ukur self-healing secara kuantitatif.** Matikan Leader (bukan relayer), catat berapa detik sampai ada node lain mengambil alih dan aliran pesan kembali normal. Ulangi 5 kali, laporkan rata-rata dan sebarannya.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 

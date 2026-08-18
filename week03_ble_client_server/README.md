@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 03 |
-| Misi | Merancang service GATT sendiri: satu characteristic sebagai data, satu sebagai kanal perintah |
-| Platform | ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino |
-| Durasi | 3 × 50 menit |
-| Mode | Client-Server — GATT read + write |
-| Level | Intermediate |
-| Instrumen | Serial Monitor 115200 baud (2 terminal), nRF Connect (opsional) |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 03 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat menengah. Misinya merancang service GATT sendiri, dengan satu characteristic berperan sebagai data dan satu lagi sebagai kanal perintah. Percobaan berjalan dalam mode client-server memakai operasi GATT read dan write, diamati melalui dua terminal Serial Monitor pada 115200 baud, dengan nRF Connect sebagai pembanding opsional.
 
 Modul 02 memindahkan *string bebas* lewat dua characteristic. Modul ini menaikkan satu tingkat abstraksi: characteristic tidak lagi sekadar pipa, tetapi **mewakili keadaan perangkat** — `CHAR_COUNTER` adalah nilai yang bisa dibaca kapan saja, `CHAR_CMD` adalah kanal perintah. Inilah pola *sensor + aktuator* yang nanti muncul lagi sebagai atribut Zigbee (M08) dan topic MQTT (M14).
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M02 — service, characteristic, property, dan pola callback sudah dikenali |
-| Dibangun di modul ini | Rancangan service dengan dua characteristic beda peran, akses `READ` on-demand oleh client, kanal perintah `WRITE`, perbandingan biaya polling vs push |
-| Dipakai lagi di | M04 (characteristic yang sama diubah jadi push/notify) → M08 (perintah ON/OFF versi Zigbee) → M14 (topic data vs topic perintah pada MQTT) |
+Prasyaratnya adalah M02: service, characteristic, property, dan pola callback sudah dikenali. Yang dibangun di sini adalah rancangan service dengan dua characteristic berbeda peran, akses `READ` on-demand oleh client, kanal perintah `WRITE`, serta perbandingan biaya antara polling dan push. Rancangan itu dipakai lagi pada M04 ketika characteristic yang sama diubah menjadi push/notify, M08 pada perintah ON/OFF versi Zigbee, dan M14 ketika topic data dipisahkan dari topic perintah pada MQTT.
 
 **Peta modul blok BLE**
 
@@ -42,7 +28,7 @@ Modul 02 memindahkan *string bebas* lewat dua characteristic. Modul ini menaikka
 
 **Kontrak data lab ini.** Pemisahan **kanal data** (`CHAR_COUNTER`) dan **kanal perintah** (`CHAR_CMD`) adalah pola yang dipertahankan sampai modul terakhir: Zigbee memisahkannya jadi cluster/endpoint, MQTT memisahkannya jadi `praktikum/h2/telemetri` dan `praktikum/h2/perintah`.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -58,7 +44,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Server mencetak `Perintah dari client: ON` tiap 5 detik.
 - ☐ Tabel jarak–RSSI–keberhasilan read terisi dari pengukuran sendiri.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (model atribut GATT, ATT MTU, hubungan dengan Bluetooth SIG profile) ada di buku teori terpisah.*
 
@@ -87,7 +73,7 @@ Server                                        Client
  onWrite() → "Perintah dari client: ON"
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
       BOARD #1                            BOARD #2
@@ -116,7 +102,9 @@ Kedua peran berjalan di **ESP32-H2** memakai radio Bluetooth LE; ESP32-C6 baru d
 | CHAR_COUNTER (READ) | `beb5483e-36e1-4688-b7f5-ea07361b26b0` |
 | CHAR_CMD (WRITE) | `beb5483e-36e1-4688-b7f5-ea07361b26b1` |
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino.
 
 **Alat & bahan**
 
@@ -138,9 +126,11 @@ monitor_port = /dev/ttyACM0
 
 [env:client]
 build_src_filter = +<client/*.cpp>
-upload_port  = /dev/ttyACM1     ; Windows: COM4  -- board Client
-monitor_port = /dev/ttyACM1
+upload_port  = /dev/ttyACM2     ; Windows: COM4  -- board Client
+monitor_port = /dev/ttyACM2
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Setiap board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Proses flash pada lab ini memakai **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Dengan demikian satu board memakai `/dev/ttyACM0`, dua board memakai `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board memakai `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
@@ -157,7 +147,7 @@ pio run -d week03_ble_client_server -e server -t upload
 pio run -d week03_ble_client_server -e client -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Service Discovery
 
@@ -248,7 +238,7 @@ Dijalankan pada 2 × **ESP32-H2 DevKitM-1**, capture 25 detik.
 | WRITE `ON` sampai ke server | 4 / 4 |
 | Transaksi radio per menit | 30 read + 12 write = 42 |
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 RSSI dibaca dari log client sendiri (`pClient->getRssi()`).
 
@@ -269,9 +259,9 @@ RSSI dibaca dari log client sendiri (`pClient->getRssi()`).
 
 **Metrik turunan yang wajib dihitung:** jumlah transaksi radio per menit pada skema polling ini. Angka ini akan dibandingkan langsung dengan skema notify Modul 04.
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Bagaimana pengaruh jarak terhadap RSSI dan terhadap keberhasilan read?
 2. Apakah read dan write mulai gagal pada jarak yang sama? Jika tidak, apa dugaan penyebabnya?
@@ -279,7 +269,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Jika interval read dipercepat jadi 200 ms, berapa transaksi per menit dan apa dampaknya pada konsumsi daya client?
 5. Untuk data yang jarang berubah, mana yang lebih efisien: polling atau notify? Dukung dengan angka dari poin 3.
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa perbedaan peran GATT Server dan GATT Client? Apakah server selalu yang mengirim data?
 2. Mengapa satu service bisa memuat banyak characteristic dengan property berbeda?
@@ -287,7 +277,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Mengapa server hanya menaikkan counter saat ada client terhubung, dan apa akibatnya jika aturan itu dihapus?
 5. Dalam sistem nyata, mana yang lebih tepat memegang "state" perangkat: server atau client? Mengapa?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Perintah nyata.** Ubah `CHAR_CMD` agar menerima `"ON"`/`"OFF"` dan menyalakan/mematikan LED bawaan server. Client mengirim keduanya bergantian.
 
@@ -297,7 +287,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Validasi perintah.** Tolak perintah selain `ON`/`OFF` di `onWrite` dan cetak `Perintah tidak dikenal: <isi>`. Uji dengan mengirim string acak dari client.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 
@@ -305,7 +295,7 @@ Jawab berdasarkan tabel Bagian 8:
 2. Dasar teori ringkas (GATT server/client, property READ/WRITE, polling)
 3. Konfigurasi — `platformio.ini`, environment, UUID service & characteristic
 4. Hasil eksperimen — log kedua node (EXP-01…03 + checkpoint)
-5. Data pengukuran — tabel Bagian 8 + hitungan transaksi/menit
+5. Data pengukuran — tabel bagian Pengukuran + hitungan transaksi/menit
 6. Analisis + concept check
 7. Challenge — minimal CH-1 dan CH-3, sertakan tabel biaya polling
 8. Kesimpulan — ditulis sendiri berdasarkan hasil pengujian

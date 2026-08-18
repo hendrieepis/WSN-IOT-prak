@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 07 |
-| Misi | Menyusun sendiri frame MAC 802.15.4 byte demi byte dan membuatnya terbang tanpa bantuan stack apa pun |
-| Platform | ESP32-H2 (Arduino core 3.x) + API ESP-IDF `esp_ieee802154.h` |
-| Durasi | 3 × 50 menit |
-| Mode | P2P raw frame — PING / PONG |
-| Level | Intermediate |
-| Instrumen | Serial Monitor 115200 baud (2 terminal) |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 07 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat menengah. Misinya menyusun sendiri frame MAC 802.15.4 byte demi byte dan membuatnya terbang tanpa bantuan stack apa pun. Percobaan berjalan sebagai pertukaran raw frame PING/PONG antara dua node, diamati melalui dua terminal Serial Monitor pada 115200 baud.
 
 Enam modul pertama berjalan di atas BLE, tempat stack menyembunyikan semua detail radio. Modul ini **membuka lantai dasar**: tidak ada Zigbee, tidak ada Thread, tidak ada GATT — hanya PHY/MAC 802.15.4 dan array byte yang disusun sendiri. Setelah modul ini, setiap kali Zigbee (M08–10) atau Thread (M11–13) tampak "langsung bekerja", praktikan mengetahui persis apa yang sebenarnya dikerjakan protokol tersebut.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M01–06 — alur build, pembacaan Serial Monitor sebagai instrumen, pengukuran loss |
-| Dibangun di modul ini | Struktur MHR 802.15.4, channel & PAN ID, short address, penyusunan frame manual, callback penerimaan di konteks ISR |
-| Dipakai lagi di | M08–10 (Zigbee memakai PHY/MAC yang sama) → M11–13 (Thread juga) → M16 (perbandingan overhead antar-protokol di atas radio yang identik) |
+Prasyaratnya adalah M01–M06: alur build, pembacaan Serial Monitor sebagai instrumen, dan pengukuran loss. Yang dibangun di sini adalah pemahaman struktur MHR 802.15.4, pengaturan channel dan PAN ID, short address, penyusunan frame secara manual, serta penanganan callback penerimaan di konteks ISR. Semuanya dipakai lagi pada M08–M10 karena Zigbee memakai PHY/MAC yang sama, M11–M13 karena Thread pun demikian, dan M16 saat overhead antarprotokol dibandingkan di atas radio yang identik.
 
 **Peta modul — titik balik seri ini**
 
@@ -40,7 +26,7 @@ Enam modul pertama berjalan di atas BLE, tempat stack menyembunyikan semua detai
 
 **Kontrak data lab ini.** Radio yang dipakai M07–M13 **sama persis** (IEEE 802.15.4, channel 15). Yang berbeda hanya lapisan di atasnya. Karena itu angka RSSI dan jangkauan yang diukur pada modul ini dapat dipakai sebagai garis dasar (*baseline*) saat membandingkan Zigbee dan Thread di M16.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -56,7 +42,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Loss tiap arah terukur terpisah (PING hilang vs PONG hilang).
 - ☐ Dump frame heksadesimal dianalisis dan tiap field ditunjuk.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (modulasi O-QPSK, CSMA-CA, superframe, beacon) ada di buku teori terpisah.*
 
@@ -93,7 +79,7 @@ Aturan ketiga paling menipu: `esp_ieee802154_transmit()` bersifat **asinkron** d
                               flag hasRx ──► loop(): cetak "RX dari ..."
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
         BOARD #1                              BOARD #2
@@ -114,7 +100,9 @@ Aturan ketiga paling menipu: `esp_ieee802154_transmit()` bersifat **asinkron** d
 
 Radio 802.15.4 dipakai **telanjang** (tanpa Zigbee/Thread) di dua **ESP32-H2 DevKitM-1**. ESP32-C6 juga punya radio 802.15.4 dan bisa dipakai, tetapi lab ini menyimpannya untuk peran gateway Wi-Fi di Modul 13.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + API ESP-IDF `esp_ieee802154.h`.
 
 **Alat & bahan**
 
@@ -146,13 +134,15 @@ monitor_port = /dev/ttyACM0
 
 [env:node2]
 build_src_filter = +<node2/*.cpp>
-upload_port  = /dev/ttyACM1
-monitor_port = /dev/ttyACM1
+upload_port  = /dev/ttyACM2
+monitor_port = /dev/ttyACM2
 
 [env:node3]
 build_src_filter = +<node3/*.cpp>
 ; port diisi sesuai board ketiga (opsional, untuk EXP-04-e broadcast)
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Setiap board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Proses flash pada lab ini memakai **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Dengan demikian satu board memakai `/dev/ttyACM0`, dua board memakai `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board memakai `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
@@ -170,7 +160,7 @@ pio run -d week07_802154_p2p -e node1 -t upload
 pio run -d week07_802154_p2p -e node2 -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Konfigurasi Radio & Anatomi Frame
 
@@ -237,7 +227,7 @@ RX dari 0x0001: PING 1
 TX balasan ke 0x0001: PONG 1
 ```
 
-> **CHECKPOINT** — Isi payload harus **terbaca sebagai teks**, bukan karakter acak. Jika muncul sampah seperti `���@��`, itu gejala buffer TX bukan `static` (lihat Bagian 4). Jika Node2 hanya mencetak baris konfigurasi dan tidak pernah `RX`, `esp_ieee802154_receive()` tidak dipanggil. Perbaiki dulu, jangan lanjut mengukur.
+> **CHECKPOINT** — Isi payload harus **terbaca sebagai teks**, bukan karakter acak. Jika muncul sampah seperti `���@��`, itu gejala buffer TX bukan `static` (lihat bagian Dasar Teori). Jika Node2 hanya mencetak baris konfigurasi dan tidak pernah `RX`, `esp_ieee802154_receive()` tidak dipanggil. Perbaiki dulu, jangan lanjut mengukur.
 
 ### EXP-03 — Isolasi Channel & RTT
 
@@ -309,7 +299,7 @@ Dijalankan pada 2 × **ESP32-H2 DevKitM-1**, capture 25 detik.
 | PONG dikirim / diterima Node1 | 12 / 12 |
 | Round-trip PING→PONG | < 1 ms (di bawah resolusi cetak Serial) |
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 | Jarak | RSSI (dBm) | Latency RTT (kasar) | Success PONG (%) |
 |---|---|---|---|
@@ -330,9 +320,9 @@ RSSI dapat dibaca dari `frame_info->rssi` di dalam `receive_done` (salin ke vari
 
 **Baseline untuk M16.** Catat jarak maksimum yang masih 100 % berhasil pada modul ini. Angka itu adalah jangkauan radio 802.15.4 **tanpa** bantuan mesh — pembanding langsung untuk Zigbee (M10) dan Thread (M12).
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Bagaimana pengaruh jarak terhadap RSSI dan persentase PING yang dibalas PONG?
 2. Pada jarak berapa komunikasi mulai gagal, dan apa indikasinya di Serial Monitor?
@@ -340,7 +330,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Berapa packet loss tiap arah (PING hilang vs PONG hilang)? Adakah asimetri, dan apa dugaan penyebabnya?
 5. Mengapa channel dan PAN ID harus sama, dan apa hubungan 802.15.4 dengan Zigbee pada modul berikutnya?
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa fungsi field Frame Control dan sequence number pada frame 802.15.4?
 2. Apa perbedaan short address dan extended address, dan kapan masing-masing dipakai?
@@ -348,7 +338,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Mengapa callback penerimaan tidak boleh mencetak langsung ke Serial (konteks ISR)?
 5. Apa yang terjadi bila dua node memakai PAN ID berbeda — di lapisan mana penyaringan itu terjadi?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Sequence number nyata (wajib).** Field `frame[3]` saat ini selalu `0`. Isi dengan nomor urut yang naik tiap kirim, lalu hitung packet loss dari sisi penerima:
 
@@ -361,11 +351,11 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-2 — Pengaruh ukuran payload.** Perbesar payload menjadi 40 byte teks dan bandingkan success rate terhadap payload pendek pada jarak yang sama. Jelaskan hasilnya dari sisi peluang bit error per frame.
 
-- **CH-3 — RSSI dari frame sendiri.** Salin `frame_info->rssi` dan `frame_info->lqi` di ISR, cetak di `loop()`, lalu isi kolom RSSI Bagian 8 dari data node sendiri (bukan aplikasi luar).
+- **CH-3 — RSSI dari frame sendiri.** Salin `frame_info->rssi` dan `frame_info->lqi` di ISR, cetak di `loop()`, lalu isi kolom RSSI bagian Pengukuran dari data node sendiri (bukan aplikasi luar).
 
 - **CH-4 — Broadcast.** Ubah `DestAddr` menjadi `0xFFFF` (broadcast) dan tambahkan node ketiga. Amati apakah kedua penerima menerima frame yang sama, dan diskusikan apa yang hilang (tidak ada ACK, tidak ada penyaringan alamat).
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 

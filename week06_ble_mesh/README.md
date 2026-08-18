@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 06 |
-| Misi | Memperluas jangkauan lewat hop: pesan dari A sampai ke C yang tak terjangkau langsung |
-| Platform | ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino |
-| Durasi | 3 × 50 menit |
-| Mode | Relay 2 hop — A (sumber) → B (relay) → C (penerima) |
-| Level | Intermediate |
-| Instrumen | Serial Monitor 115200 baud (3 terminal) |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 06 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat menengah. Misinya memperluas jangkauan lewat hop, sehingga pesan dari A sampai ke C yang tidak terjangkau langsung. Percobaan berjalan sebagai relay dua hop dengan A sebagai sumber, B sebagai relay, dan C sebagai penerima, diamati melalui tiga terminal Serial Monitor pada 115200 baud.
 
 Modul 05 menambah node sebagai **cabang** — semua tetap bicara langsung ke pusat. Modul ini memakai node ketiga sebagai **jembatan**, sehingga jangkauan jaringan melampaui jangkauan satu radio. Konsep hop inilah yang membuat Zigbee (M10) dan Thread (M12) disebut mesh; bedanya, di sana routing dikerjakan stack, sedangkan di sini routing dituliskan sendiri di lapisan aplikasi — supaya mekanismenya terlihat telanjang sebelum disembunyikan protokol.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M05 — banyak koneksi, penanda sumber, pengukuran loss per node |
-| Dibangun di modul ini | Node dual-role (server + client sekaligus), penerusan pesan antar-hop, pengukuran loss per hop, mode kegagalan rantai |
-| Dipakai lagi di | M10 (router Zigbee melakukan hal yang sama, tapi otomatis) → M12 (mesh Thread self-healing) → M13 (gateway = hop antar-protokol) → M16 (jangkauan multi-hop jadi kriteria pemilihan protokol) |
+Prasyaratnya adalah M05: banyak koneksi, penanda sumber, dan pengukuran loss per node. Yang dibangun di sini adalah node dual-role yang menjadi server dan client sekaligus, penerusan pesan antar-hop, pengukuran loss per hop, serta pemetaan mode kegagalan rantai. Keempatnya dipakai lagi pada M10 ketika router Zigbee melakukan hal serupa secara otomatis, M12 pada mesh Thread yang self-healing, M13 ketika gateway berperan sebagai hop antar-protokol, dan M16 ketika jangkauan multi-hop menjadi kriteria pemilihan protokol.
 
 **Peta modul blok BLE (penutup blok)**
 
@@ -43,7 +29,7 @@ Modul 05 menambah node sebagai **cabang** — semua tetap bicara langsung ke pus
 
 **Kontrak data lab ini.** Payload `A:n` **tidak diubah** saat melewati relay — inilah *transparent forwarding*. Prinsip yang sama dipakai gateway di M13 dan M15: gateway meneruskan isi apa adanya, tidak mem-parsing ulang, sehingga hop tambahan tidak merusak data.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -59,7 +45,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Tabel loss per hop terisi dari pengukuran sendiri.
 - ☐ Kedua mode kegagalan (C mati, B mati) diuji dan hasilnya dicatat.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (BLE Mesh standar/ESP-BLE-MESH, flooding vs routing, model publish-subscribe mesh) ada di buku teori terpisah.*
 
@@ -82,7 +68,7 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (BLE Mes
                       notify ke C ──────────────────────────────────►  cetak
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
   BOARD #1                 BOARD #2                 BOARD #3
@@ -106,7 +92,9 @@ Ketiganya **ESP32-H2 DevKitM-1**. Relay di sini dibuat di lapisan aplikasi di at
 
 Susun posisi **A — B — C dalam satu garis**; A dan C tidak perlu (dan sebaiknya tidak) saling terjangkau.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino.
 
 **Alat & bahan**
 
@@ -129,14 +117,16 @@ monitor_port = /dev/ttyACM0
 
 [env:nodeb]
 build_src_filter = +<nodeb/*.cpp>
-upload_port  = /dev/ttyACM1
-monitor_port = /dev/ttyACM1
+upload_port  = /dev/ttyACM2
+monitor_port = /dev/ttyACM2
 
 [env:nodec]
 build_src_filter = +<nodec/*.cpp>
-upload_port  = /dev/ttyACM2
-monitor_port = /dev/ttyACM2
+upload_port  = /dev/ttyACM4
+monitor_port = /dev/ttyACM4
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Setiap board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Proses flash pada lab ini memakai **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Dengan demikian satu board memakai `/dev/ttyACM0`, dua board memakai `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board memakai `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
@@ -154,7 +144,7 @@ pio run -d week06_ble_mesh -e nodea -t upload
 pio run -d week06_ble_mesh -e nodec -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Menyalakan Relay (Node B)
 
@@ -196,7 +186,7 @@ Unggah `nodea` (server, kirim `A:n` tiap 4 s saat relay terhubung) dan `nodec` (
 - **Node B** — `Node B (relay) starting...`, `Node A ditemukan`, `Terhubung ke Node A`, `Koneksi ke A berhasil`, `Node C terhubung`, `Terima dari A: A:1 (diteruskan)`, `Teruskan ke C: A:1`, …
 - **Node C** — `Node C (penerima akhir) starting...`, `Scanning Node B...`, `Node B ditemukan`, `Terhubung ke Node B`, `Koneksi ke B berhasil`, `Pesan tiba (via A -> B -> C): A:1`, …
 
-> **CHECKPOINT** — Cocokkan **nomor pesan yang sama** di tiga Serial Monitor: `Kirim ke B: A:5` di A, `Teruskan ke C: A:5` di B, dan `Pesan tiba ...: A:5` di C. Jika nomor di C tertinggal jauh atau melompat, hentikan dan catat — itu loss per hop yang akan diukur pada Bagian 8.
+> **CHECKPOINT** — Cocokkan **nomor pesan yang sama** di tiga Serial Monitor: `Kirim ke B: A:5` di A, `Teruskan ke C: A:5` di B, dan `Pesan tiba ...: A:5` di C. Jika nomor di C tertinggal jauh atau melompat, hentikan dan catat — itu loss per hop yang akan diukur pada bagian Pengukuran.
 
 ### EXP-03 — Mode Kegagalan Rantai
 
@@ -235,7 +225,7 @@ Dijalankan pada 3 × **ESP32-H2 DevKitM-1** dalam satu garis, capture 40 detik.
 | Pesan tiba di C | 9 (0 % loss ujung-ke-ujung) |
 | Latency relay (B terima → C cetak) | < 200 ms |
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 Geser jarak hop A–B dan B–C (ukur dari posisi Node B); catat RSSI dan success rate.
 
@@ -259,9 +249,9 @@ Periksa: apakah loss A→C ≈ loss A→B + loss B→C? Jelaskan jika tidak.
 
 **Uji jangkauan (wajib)** — jauhkan A dan C sampai **tidak saling terjangkau langsung**, buktikan dengan mematikan B (pesan berhenti), lalu nyalakan B lagi (pesan kembali). Inilah bukti hop benar-benar menambah jangkauan.
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Apakah setiap pesan `A:n` yang dikirim Node A juga tiba di Node C? Hitung persentase kedatangan.
 2. Bagaimana pengaruh jarak tiap hop terhadap RSSI dan keberhasilan relay?
@@ -269,7 +259,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Pada hop mana loss lebih besar, dan apa penyebab yang mungkin?
 5. Bandingkan relay multi-hop dengan topologi bintang M05: kapan relay lebih menguntungkan, dan apa harganya?
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa yang dimaksud relay pada jaringan mesh?
 2. Mengapa Node B harus menjalankan peran server dan client sekaligus?
@@ -277,7 +267,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa keterbatasan simulasi mesh ini dibanding BLE Mesh (ESP-BLE-MESH) sebenarnya? Sebut minimal tiga.
 5. Apa yang terjadi pada aliran pesan bila relay mati — dan apa yang **seharusnya** terjadi pada mesh sungguhan?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Tiga hop.** Tambahkan Node D setelah C (A → B → C → D): ubah C menjadi dual-role seperti B. Amati apakah pesan tetap utuh sampai D dan berapa tambahan latency per hop.
 
@@ -287,7 +277,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Self-healing sederhana.** Buat Node C melakukan scan ulang otomatis saat relay hilang, dan Node A menunggu relay kembali tanpa perlu reset. Ukur waktu pemulihan rantai, 5 percobaan.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 

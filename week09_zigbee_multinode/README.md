@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 09 |
-| Misi | Menskalakan satu coordinator ke banyak end device tanpa satu perintah pun hilang |
-| Platform | ESP32-H2 (Arduino core 3.x) + library `Zigbee` bawaan |
-| Durasi | 3 × 50 menit |
-| Mode | Multi-node Zigbee — 1 ZC + 2 ZED |
-| Level | Intermediate |
-| Instrumen | Serial Monitor 115200 baud (3 terminal) + LED RGB bawaan |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 09 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat menengah. Misinya menskalakan satu coordinator ke banyak end device tanpa satu perintah pun hilang. Percobaan berjalan sebagai jaringan Zigbee multi-node dengan satu coordinator dan dua end device, diamati melalui tiga terminal Serial Monitor pada 115200 baud dengan LED RGB bawaan sebagai penanda visual.
 
 M08 mengikat **satu** lampu ke satu switch. Di sini `allowMultipleBinding(true)` dinyalakan, dan coordinator harus menyimpan **daftar** tujuan — inilah binding table. Masalah yang muncul identik dengan M05 di dunia BLE (satu pusat, banyak sumber), tetapi jawabannya berbeda: BLE memakai objek koneksi per node, Zigbee memakai `endpoint + short address`. Perbandingan dua cara ini adalah bahan analisis modul ini.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M08 — join, binding, endpoint, penghapusan NVS sebelum flash |
-| Dibangun di modul ini | `allowMultipleBinding(true)`, iterasi binding table (`getBoundDevices()`), pengalamatan per endpoint, loss per node, perilaku saat satu node hilang |
-| Dipakai lagi di | M10 (anggota jaringan bertambah jenisnya: router) → M12 (many-to-many pada Thread) → M16 (skalabilitas jadi kriteria pemilihan protokol) |
+Prasyaratnya adalah M08: join, binding, endpoint, dan penghapusan NVS sebelum flash. Yang dibangun di sini adalah pemakaian `allowMultipleBinding(true)`, iterasi binding table melalui `getBoundDevices()`, pengalamatan per endpoint, perhitungan loss per node, serta pengamatan perilaku sistem saat satu node hilang. Semuanya dipakai lagi pada M10 ketika jenis anggota jaringan bertambah dengan hadirnya router, M12 pada komunikasi many-to-many di Thread, dan M16 ketika skalabilitas menjadi kriteria pemilihan protokol.
 
 **Peta modul blok Zigbee**
 
@@ -38,9 +24,9 @@ M08 mengikat **satu** lampu ke satu switch. Di sini `allowMultipleBinding(true)`
 | **09 (ini)** | **Satu coordinator melayani banyak end device (binding table)** |
 | 10 | Router menambah hop — routing multi-hop otomatis |
 
-**Kontrak data lab ini.** Identitas node di Zigbee adalah pasangan **`endpoint` + `short address`** — bukan prefiks di dalam payload seperti M05 (`A:`, `B:`). Catat perbedaannya: identitas di sini dikelola **jaringan**, bukan aplikasi. Konsekuensinya muncul langsung di modul ini (lihat catatan `0xFFFF` di Bagian 7).
+**Kontrak data lab ini.** Identitas node di Zigbee adalah pasangan **`endpoint` + `short address`** — bukan prefiks di dalam payload seperti M05 (`A:`, `B:`). Catat perbedaannya: identitas di sini dikelola **jaringan**, bukan aplikasi. Konsekuensinya muncul langsung di modul ini (lihat catatan `0xFFFF` di bagian Percobaan).
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -56,7 +42,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Loss per node terukur terpisah (EP 10 vs EP 11).
 - ☐ Skenario satu node dimatikan diuji dan perilakunya tercatat.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (tabel routing Zigbee, addressing mode APS, group addressing) ada di buku teori terpisah.*
 
@@ -83,7 +69,7 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (tabel r
      │  ── lightOn/lightOff (tiap 5 s) ──► │  (dikirim per entri binding)
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
                        BOARD #1
@@ -112,7 +98,9 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (tabel r
 
 Ketiganya **ESP32-H2 DevKitM-1** dengan radio 802.15.4; peran ditentukan oleh `build_flags` dan tabel partisi, bukan oleh jenis board.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + library `Zigbee` bawaan.
 
 **Alat & bahan**
 
@@ -137,14 +125,16 @@ upload_port = /dev/ttyACM0
 build_src_filter = +<light1/*.cpp>
 build_flags = -DZIGBEE_MODE_ED -lesp_zb_api.ed -lzboss_stack.ed -lzboss_port.native
 board_build.partitions = partitions_ed.csv
-upload_port = /dev/ttyACM1
+upload_port = /dev/ttyACM2
 
 [env:light2]
 build_src_filter = +<light2/*.cpp>
 build_flags = -DZIGBEE_MODE_ED -lesp_zb_api.ed -lzboss_stack.ed -lzboss_port.native
 board_build.partitions = partitions_ed.csv
-upload_port = /dev/ttyACM2
+upload_port = /dev/ttyACM4
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Setiap board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Proses flash pada lab ini memakai **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Dengan demikian satu board memakai `/dev/ttyACM0`, dua board memakai `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board memakai `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
@@ -164,7 +154,7 @@ pio run -d week09_zigbee_multinode -e light1 -t upload      # dalam 180 s
 pio run -d week09_zigbee_multinode -e light2 -t upload      # dalam 180 s
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Pembentukan Jaringan & Join Ganda
 
@@ -268,7 +258,7 @@ Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu), capture
 
 > **Short addr `0xFFFF` itu normal.** Entri binding yang dibuat lewat alamat IEEE (bukan alamat pendek) disimpan library dengan `short_addr = 0xFFFF`. `lightOn(ep, 0xFFFF)` tetap sampai ke node yang benar — buktinya Light1 tetap menyala. Yang perlu dicatat pada laporan adalah jumlah device ter-bind dan keberhasilan aksinya, bukan nilai alamatnya.
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 **Tabel jarak** (geser Light2, Light1 tetap di 1 m; amati LED + Serial Monitor):
 
@@ -296,9 +286,9 @@ Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu), capture
 | Perilaku saat satu node mati | | |
 | Batas jumlah node (perkiraan + alasan) | | |
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Berapa waktu rata-rata proses join dari menyala hingga pesan `tergabung ke network`?
 2. Apakah kedua light menerima perintah ON/OFF pada siklus yang sama? Buktikan dari urutan baris log coordinator.
@@ -306,7 +296,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa yang terjadi di coordinator ketika salah satu light dimatikan? Masihkah perintah dikirim ke node itu, dan apa implikasinya untuk sistem nyata?
 5. Mengapa endpoint light1 dan light2 harus berbeda (10 vs 11)? Apa yang akan terjadi jika sama?
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa fungsi `allowMultipleBinding(true)` pada switch coordinator?
 2. Apa yang dimaksud window join 180 detik pada `setRebootOpenNetwork(180)`, dan mengapa tidak dibuka selamanya?
@@ -314,7 +304,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Bagaimana coordinator mengidentifikasi setiap light secara unik (endpoint + short address)?
 5. Apa keuntungan multi-binding dibanding broadcast ke semua node?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Node ketiga.** Tambahkan **light3** (endpoint 12): salin `src/light2`, ubah `ZigbeeLight(11)` → `ZigbeeLight(12)` dan teks `Light2` → `Light3`, tambahkan env `light3` di `platformio.ini`. Amati `Total 3 device.` pada coordinator dan periksa apakah interval siklus bergeser.
 
@@ -324,7 +314,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Deteksi node hilang.** Tambahkan mekanisme di coordinator untuk menandai node yang tidak merespons (mis. hitung berapa siklus berturut-turut tanpa laporan balik dari CH-2 M08). Cetak `Node 0xXXXX tidak merespons` setelah 3 siklus.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 

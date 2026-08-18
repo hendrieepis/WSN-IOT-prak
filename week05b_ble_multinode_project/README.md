@@ -7,27 +7,14 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 05B (mini project, lanjutan `week05_ble_multinode`) |
-| Misi | Mengubah topologi bintang M05 dari pengirim counter menjadi **sistem keamanan sederhana**: dua smart sensor bukaan melapor ke satu hub |
-| Platform | ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino + Adafruit NeoPixel |
-| Durasi | 3 × 50 menit |
-| Mode | Multi-node (bintang) — 1 hub, 2 sensor |
-| Level | Intermediate |
-| Instrumen | Serial Monitor 115200 baud (3 terminal) + LED RGB onboard |
 
-## 2 · Keterkaitan Antar-Modul
+Modul 05B adalah mini project lanjutan dari `week05_ble_multinode`, dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat menengah. Misinya mengubah topologi bintang M05 dari sekadar pengirim counter menjadi **sistem keamanan sederhana**: dua smart sensor bukaan yang melapor ke satu hub. Percobaan berjalan dalam topologi bintang dengan satu hub dan dua sensor, diamati melalui tiga terminal Serial Monitor pada 115200 baud dengan LED RGB onboard sebagai penanda visual.
 
 M05 membuktikan satu central sanggup memegang dua koneksi, tetapi datanya masih counter (`A:1`, `B:1`) yang tidak berarti apa-apa. Modul ini mengganti counter itu dengan **kejadian nyata dari sensor**, dan di situlah karakter lalu lintas berubah total: dari periodik menjadi *event-driven*.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M05 — dua koneksi simultan, pemisahan aliran per sumber |
-| Dibangun di modul ini | Input digital sebagai sumber data, transmisi berbasis kejadian, payload berstruktur (`ID:STATE:seq`), state ruangan di hub, indikator lokal & terpusat |
-| Dipakai lagi di | M09 (end device melaporkan state, bukan counter) → M14/M15 (payload sensor naik ke MQTT) → M16 (perbandingan protokol memakai beban event-driven) |
+Prasyaratnya adalah M05: dua koneksi simultan dan pemisahan aliran per sumber. Yang dibangun di sini adalah pemakaian input digital sebagai sumber data, transmisi berbasis kejadian, payload berstruktur `ID:STATE:seq`, penyimpanan state ruangan di hub, serta indikator lokal dan terpusat. Semuanya dipakai lagi pada M09 ketika end device melaporkan state alih-alih counter, M14 dan M15 ketika payload sensor naik ke MQTT, dan M16 ketika perbandingan protokol memakai beban event-driven.
 
 **Yang berubah dari M05**
 
@@ -42,7 +29,7 @@ M05 membuktikan satu central sanggup memegang dua koneksi, tetapi datanya masih 
 
 **Kontrak data lab ini.** Payload berbentuk `<ID>:<STATE>:<nomor_event>`: identitas sensor, statusnya, dan nomor urut kejadian. Nomor urut inilah yang membuat *kejadian yang hilang* bisa dideteksi — pada trafik event-driven, pesan yang hilang tidak terlihat sebagai jeda seperti pada trafik periodik.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -62,7 +49,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Sensor yang dimatikan lalu dihidupkan kembali tersambung **otomatis** (`[PULIH]`), tanpa reset hub.
 - ☐ Waktu pemulihan tercatat, minimal 3 percobaan.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -94,7 +81,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
                                 LED hub tetap MERAH (pintu masih terbuka)
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
                         BOARD #1
@@ -125,7 +112,9 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 | Sensor jendela | `nodea` | `SENSOR_JENDELA1` | Peripheral | `JENDELA1:OPEN:n` / `JENDELA1:CLOSED:n` |
 | Sensor pintu | `nodeb` | `SENSOR_PINTU1` | Peripheral | `PINTU1:OPEN:n` / `PINTU1:CLOSED:n` |
 
-## 6 · Perangkat & Pin
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino + Adafruit NeoPixel.
 
 | No | Peralatan | Spesifikasi | Jumlah |
 |---|---|---|---|
@@ -158,7 +147,7 @@ week05b_ble_multinode_project/
     └── nodeb/main.cpp       ← sensor pintu
 ```
 
-## 7 · Build & Flash
+## 6 · Build & Flash
 
 Flash **sensor dulu**, hub belakangan, agar saat hub melakukan scan 5 detik kedua sensor sudah mengudara.
 
@@ -175,6 +164,8 @@ pio run -d week05b_ble_multinode_project -e nodea   -t upload
 pio run -d week05b_ble_multinode_project -e nodeb   -t upload
 pio run -d week05b_ble_multinode_project -e central -t upload
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Flash dilakukan lewat **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Satu board memakai `/dev/ttyACM0`, dua board `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 Jika port pada komputer yang dipakai berbeda, jalankan `pio device list` lalu sesuaikan `upload_port`/`monitor_port` pada `platformio.ini` (Windows memakai `COMx`).
 
@@ -197,7 +188,7 @@ Membuka tiga Serial Monitor terpisah membuat urutan kejadian antar-board sulit d
 ```bash
 python3 week05b_ble_multinode_project/monitor_serial.py
 python3 week05b_ble_multinode_project/monitor_serial.py --log sesi1.txt
-python3 week05b_ble_multinode_project/monitor_serial.py --port JENDELA=/dev/ttyACM1
+python3 week05b_ble_multinode_project/monitor_serial.py --port JENDELA=/dev/ttyACM6
 ```
 
 Contoh tampilan — sensor dan hub berdampingan, jadi latency kejadian bisa dibaca langsung dari selisih timestamp (log hasil uji nyata ada di `logserial.md`):
@@ -222,7 +213,7 @@ Ctrl-C menghentikannya dan mencetak ringkasan jumlah baris per board.
 - ☐ Serial Monitor 115200 baud siap (3 terminal).
 - ☐ Label fisik ditempel di board: **JENDELA** dan **PINTU** — supaya tidak tertukar saat pengujian.
 
-## 8 · Percobaan
+## 7 · Percobaan
 
 ### EXP-01 — Sensor Bekerja Sendiri (tanpa hub)
 
@@ -332,7 +323,7 @@ nodea          SUCCESS   00:00:02.581     Flash 54.1%  RAM 6.8%
 nodeb          SUCCESS   00:00:02.651     Flash 54.1%  RAM 6.8%
 ```
 
-## 9 · Pengukuran
+## 8 · Pengukuran
 
 **A. Latency kejadian** — dari LED node berkedip sampai baris muncul di hub. Ukur dengan merekam video kedua layar, atau bandingkan timestamp Serial node dan hub (perhatikan: tiap board punya `millis()` sendiri, jadi yang dibandingkan adalah **selisih antar-kejadian**, bukan nilai absolutnya).
 
@@ -368,7 +359,7 @@ nodeb          SUCCESS   00:00:02.651     Flash 54.1%  RAM 6.8%
 
 Selama sensor itu mati, tekan tombol pada sensor **yang lain** dan pastikan alarmnya tetap tampil di hub — pemulihan satu tautan tidak boleh membekukan tautan lainnya.
 
-## 10 · Analisis
+## 9 · Analisis
 
 1. Berapa latency dari tombol ditekan hingga alarm tampil di hub? Apakah cukup cepat untuk sistem keamanan? Bandingkan dengan waktu respons manusia.
 2. Pada uji beban (B), pada laju tekanan berapa kejadian mulai hilang? Apa penyebabnya — radio, debounce, atau kecepatan `loop()`?
@@ -377,7 +368,7 @@ Selama sensor itu mati, tekan tombol pada sensor **yang lain** dan pastikan alar
 5. Dari tabel D, apa yang paling menentukan lama pemulihan — `RETRY_MS`, `CONNECT_TIMEOUT_MS`, atau lama sensor mati? Apabila pemulihan dituntut selalu di bawah 5 detik, nilai mana yang diubah dan apa konsekuensinya?
 6. Untuk rumah dengan 12 jendela dan 5 pintu, apakah topologi bintang BLE ini masih layak? Apa batasannya, dan protokol mana (Zigbee/Thread, M08–M12) yang lebih cocok? Berikan alasan teknis.
 
-## 11 · Concept Check
+## 10 · Concept Check
 
 1. Mengapa tombol BOOT dibaca dengan `INPUT_PULLUP` dan dianggap aktif saat `LOW`?
 2. Apa yang terjadi bila `DEBOUNCE_MS` diset 0? Dan bila diset 2000?
@@ -388,7 +379,7 @@ Selama sensor itu mati, tekan tombol pada sensor **yang lain** dan pastikan alar
 7. Mengapa percobaan `connect()` dijalankan dari `loop()` dan bukan langsung di dalam callback `onDisconnect()`?
 8. Sensor tetap mengedipkan LED walau hub belum tersambung. Apakah itu keputusan desain yang tepat untuk sebuah sistem keamanan? Jelaskan dengan alasan.
 
-## 12 · Challenge (tugas modifikasi)
+## 11 · Challenge (tugas modifikasi)
 
 - **CH-1 — Sensor ketiga.** Tambahkan `nodec` sebagai `SENSOR_PINTU2` (pintu belakang). Di hub, cukup tambahkan satu baris pada array `SENSORS[]` — buktikan tidak ada perubahan lain yang diperlukan, lalu jelaskan mengapa desain berbasis array itu penting.
 
@@ -400,7 +391,7 @@ Selama sensor itu mati, tekan tombol pada sensor **yang lain** dan pastikan alar
 
 - **CH-5 — Perintah balik.** Tambahkan characteristic `WRITE` pada node agar hub bisa mengirim perintah `MUTE` yang mematikan kedip LED sensor. Ini mengubah sistem dari satu arah menjadi dua arah — kaitkan dengan M03.
 
-## 13 · Laporan
+## 12 · Laporan
 
 **Deliverable**
 
@@ -408,7 +399,7 @@ Selama sensor itu mati, tekan tombol pada sensor **yang lain** dan pastikan alar
 2. Dasar teori ringkas (event-driven vs periodik, active low, debounce, state di hub)
 3. Konfigurasi — environment `central`/`nodea`/`nodeb`, UUID, pin GPIO8/GPIO9, format payload
 4. Hasil eksperimen — log serial tiga perangkat (EXP-01…03 + checkpoint), foto/video LED
-5. Data pengukuran — tabel A, B, dan C pada Bagian 9
+5. Data pengukuran — tabel A, B, dan C pada bagian Pengukuran
 6. Analisis + concept check
 7. Challenge — minimal CH-1 dan CH-2
 8. Kesimpulan — ditulis sendiri, khususnya soal keandalan sistem alarm event-driven

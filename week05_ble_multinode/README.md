@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 05 |
-| Misi | Menahan dua koneksi sekaligus dari satu central dan membuktikan kedua aliran data tetap utuh |
-| Platform | ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino |
-| Durasi | 3 × 50 menit |
-| Mode | Multi-node (bintang) — 1 central, 2 peripheral |
-| Level | Intermediate |
-| Instrumen | Serial Monitor 115200 baud (3 terminal) |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 05 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat menengah. Misinya menahan dua koneksi sekaligus dari satu central dan membuktikan kedua aliran data tetap utuh. Percobaan berjalan dalam topologi bintang dengan satu central dan dua peripheral, diamati melalui tiga terminal Serial Monitor pada 115200 baud.
 
 Empat modul pertama hanya pernah menangani **satu** lawan bicara. Di sini jumlah node menjadi variabel — dan bersamanya muncul pertanyaan khas WSN: apakah pusat jaringan sanggup melayani semua node, dan bagaimana cara membedakan sumber tiap pesan. Jawaban modul ini (satu objek client per node, laju per node dihitung terpisah) adalah versi sederhana dari binding table Zigbee (M09) dan mesh Thread (M12).
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M04 — notify sebagai telemetry, subscribe, pengukuran loss |
-| Dibangun di modul ini | Dua objek `NimBLEClient` hidup bersamaan, pemisahan aliran per sumber, laju per node, ketahanan saat satu node hilang |
-| Dipakai lagi di | M06 (node ketiga jadi hop, bukan cabang) → M09 (satu coordinator, banyak end device) → M12 (many-to-many) → M16 (batas skala jadi bahan pembanding protokol) |
+Prasyaratnya adalah M04: notify sebagai telemetry, mekanisme subscribe, dan pengukuran loss. Yang dibangun di sini adalah dua objek `NimBLEClient` yang hidup bersamaan, pemisahan aliran data per sumber, perhitungan laju tiap node secara terpisah, serta pengamatan ketahanan sistem saat salah satu node hilang. Semuanya dipakai lagi pada M06 ketika node ketiga berperan sebagai hop alih-alih cabang, M09 pada satu coordinator dengan banyak end device, M12 pada komunikasi many-to-many, dan M16 ketika batas skala menjadi bahan pembanding antarprotokol.
 
 **Peta modul blok BLE**
 
@@ -42,7 +28,7 @@ Empat modul pertama hanya pernah menangani **satu** lawan bicara. Di sini jumlah
 
 **Kontrak data lab ini.** Setiap peripheral memberi **prefiks identitas** pada payloadnya (`A:n`, `B:n`). Tanpa penanda sumber, pesan dari banyak node tidak bisa dipisahkan di pusat — masalah yang persis sama muncul lagi di M09 (`short addr`), M12 (`NODE_ID`), dan M15 (`node2` pada payload MQTT).
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -58,7 +44,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Loss per node terukur terpisah dan tercatat di tabel.
 - ☐ Uji ketahanan (Node B dimatikan lalu dinyalakan) dilakukan dan hasilnya dicatat.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (penjadwalan connection event multi-link, batas jumlah koneksi NimBLE) ada di buku teori terpisah.*
 
@@ -83,7 +69,7 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (penjadw
  "A:1","A:2"… ────notify───►        ◄───notify──── "B:1","B:2"…
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
                         BOARD #1
@@ -112,7 +98,9 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (penjadw
 
 Ketiga peran memakai board yang sama, **ESP32-H2 DevKitM-1**, dengan radio Bluetooth LE. ESP32-C6 tidak dipakai pada modul ini.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino.
 
 **Alat & bahan**
 
@@ -136,14 +124,16 @@ monitor_port = /dev/ttyACM0
 
 [env:nodea]
 build_src_filter = +<nodea/*.cpp>
-upload_port  = /dev/ttyACM1     ; Windows: COM4
-monitor_port = /dev/ttyACM1
+upload_port  = /dev/ttyACM2     ; Windows: COM4
+monitor_port = /dev/ttyACM2
 
 [env:nodeb]
 build_src_filter = +<nodeb/*.cpp>
-upload_port  = /dev/ttyACM2     ; Windows: COM5
-monitor_port = /dev/ttyACM2
+upload_port  = /dev/ttyACM4     ; Windows: COM5
+monitor_port = /dev/ttyACM4
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Setiap board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Proses flash pada lab ini memakai **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Dengan demikian satu board memakai `/dev/ttyACM0`, dua board memakai `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board memakai `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
@@ -161,7 +151,7 @@ pio run -d week05_ble_multinode -e nodeb   -t upload
 pio run -d week05_ble_multinode -e central -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Menyalakan Dua Peripheral
 
@@ -270,7 +260,7 @@ Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (jarak ±20 cm), capture 30 detik.
 
 Dua koneksi simultan tidak menggeser interval kedua node — pada beban ringan ini central masih mampu melayani keduanya tanpa kehilangan pesan.
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 Ukur **per node**, jangan digabung. Ini inti modul: dua node pada satu central tidak selalu terdegradasi bersamaan.
 
@@ -287,9 +277,9 @@ Ukur **per node**, jangan digabung. Ini inti modul: dua node pada satu central t
 |---|---|---|---|---|
 | 1 m | 10 m | | | |
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Bagaimana hubungan jarak terhadap RSSI dan keberhasilan penerimaan dari kedua node?
 2. Apakah jumlah pesan per menit sesuai perhitungan dari interval tiap node? Jelaskan bila ada selisih.
@@ -297,7 +287,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Pada skenario asimetris, apakah node yang jauh menurunkan kualitas node yang dekat? Apa artinya bagi desain WSN?
 5. Apakah topologi bintang BLE cocok untuk WSN banyak node? Bandingkan dengan koneksi P2P modul sebelumnya, dan perkirakan apa yang terjadi pada 10 node.
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa perbedaan peran central dan peripheral dalam BLE?
 2. Mengapa central perlu subscribe pada tiap characteristic notify secara terpisah?
@@ -305,7 +295,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa yang terjadi pada peripheral saat koneksi terputus, dan bagaimana pemulihannya?
 5. Apa yang membatasi jumlah koneksi pada topologi bintang BLE (dari sisi stack dan dari sisi radio)?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Node ketiga.** Tambahkan Node C (peripheral ketiga, interval 5 s, pesan `C:n`). Hitung persentase pesan tiap node terhadap total di central dan periksa apakah laju A dan B berubah setelah C bergabung.
 
@@ -325,7 +315,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Reconnect otomatis.** Buat central melakukan scan ulang dan menyambung kembali node yang hilang tanpa perlu reset. Ukur waktu pemulihannya, 5 percobaan.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 

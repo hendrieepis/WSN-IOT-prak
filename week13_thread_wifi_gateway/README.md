@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 13 |
-| Misi | Menjembatani dua radio dalam satu perangkat dan membawa data sensor keluar ke jaringan IP |
-| Platform | ESP32-H2 (node Thread) + ESP32-C6 (gateway Thread + Wi-Fi) |
-| Durasi | 3 × 50 menit |
-| Mode | Gateway dwi-radio |
-| Level | Advanced |
-| Instrumen | Serial Monitor 115200 baud (2 terminal) + kode respons HTTP |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 13 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat lanjut. Misinya menjembatani dua radio dalam satu perangkat dan membawa data sensor keluar ke jaringan IP. Percobaan berjalan dalam mode gateway dwi-radio, diamati melalui dua terminal Serial Monitor pada 115200 baud beserta kode respons HTTP sebagai bukti data benar-benar sampai.
 
 Sampai M12 data tidak pernah keluar dari jaringan 802.15.4. Modul ini adalah **titik keluar**: ESP32-C6 menjalankan dua stack sekaligus dan meneruskan payload apa adanya ke server HTTP. Ini juga modul pertama yang benar-benar membutuhkan **dua jenis board** — sebuah batasan perangkat keras, bukan firmware.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M11–12 — Active Dataset, mesh-local prefix, UDP multicast; M04/M06 — konsep transparent forwarding |
-| Dibangun di modul ini | Gateway dwi-radio (Thread + Wi-Fi bersamaan), penerusan UDP → HTTP POST, partisi `huge_app.csv`, penanganan Wi-Fi putus |
-| Dipakai lagi di | M14 (sisi IP diganti MQTT, tanpa Thread) → M15 (kedua sisi digabung jadi pipeline penuh) → M16 (arsitektur gateway dipakai untuk membandingkan protokol) |
+Prasyaratnya ada dua: M11–M12 untuk Active Dataset, mesh-local prefix, dan UDP multicast; serta M04 dan M06 untuk konsep transparent forwarding. Yang dibangun di sini adalah gateway dwi-radio yang menjalankan Thread dan Wi-Fi bersamaan, penerusan UDP menjadi HTTP POST, pemakaian tabel partisi `huge_app.csv`, dan penanganan saat Wi-Fi terputus. Semuanya dipakai lagi pada M14 ketika sisi IP diganti MQTT tanpa Thread, M15 ketika kedua sisi digabung menjadi pipeline penuh, dan M16 ketika arsitektur gateway dipakai untuk membandingkan protokol.
 
 **Peta modul blok integrasi**
 
@@ -40,7 +26,7 @@ Sampai M12 data tidak pernah keluar dari jaringan 802.15.4. Modul ini adalah **t
 
 **Kontrak data lab ini.** Payload `suhu:XX.X` diteruskan **tanpa diubah** dari Thread ke HTTP; gateway hanya membungkusnya dalam JSON. Prinsip ini (*transparent forwarding*, sama seperti relay M06) membuat M15 bisa mengganti HTTP dengan MQTT tanpa menyentuh firmware node sensor sama sekali.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -56,7 +42,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Packet loss Thread → gateway terhitung terpisah dari loss Wi-Fi → server.
 - ☐ Perilaku saat Wi-Fi diputus diuji dan tercatat.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (Thread Border Router penuh, SRP/DNS-SD, NAT64, koeksistensi radio) ada di buku teori terpisah.*
 
@@ -87,7 +73,7 @@ Tanpa itu H2 dan C6 tetap attach dan Serial Monitor keduanya tampak sehat, tetap
    "suhu:25.3"     multicast        forwardToWifi()   http.POST()
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
     BOARD #1 (H2)                        BOARD #2 (C6)
@@ -109,7 +95,9 @@ Tanpa itu H2 dan C6 tetap attach dan Serial Monitor keduanya tampak sehat, tetap
 
 **Inilah modul pertama yang benar-benar butuh dua jenis board.** ESP32-H2 punya radio 802.15.4 tetapi **tidak punya Wi-Fi**; ESP32-C6 punya keduanya, sehingga hanya C6 yang bisa memegang kaki Thread dan kaki Wi-Fi sekaligus. Menukar peran (H2 sebagai gateway) tidak mungkin — bukan soal firmware, tetapi soal radio yang tersedia di chip. Karena itu `platformio.ini` modul ini memakai `board` berbeda per environment (`esp32-h2-devkitm-1` vs `esp32-c6-devkitc-1`), tidak seperti Modul 01–12 yang seragam ESP32-H2.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (node Thread) + ESP32-C6 (gateway Thread + Wi-Fi).
 
 **Alat & bahan**
 
@@ -157,7 +145,7 @@ Output contoh (setiap POST yang sampai):
 [ 480.308] #1    POST /post from 192.168.1.39  ->  {"sensor":"h2","data":"suhu:23.1"}
 ```
 
-Catatan: karena hop Wi-Fi/HTTP di gateway dwi-radio ini paling rapuh (koeksistensi Thread + Wi-Fi), sebagian besar POST bisa tercetak `HTTP -1` di Serial Monitor sedangkan server tidak menerima apa pun. Tugas pada modul ini menghitung berapa `RX via Thread` yang berhasil sampai ke server (lihat Bagian 8).
+Catatan: karena hop Wi-Fi/HTTP di gateway dwi-radio ini paling rapuh (koeksistensi Thread + Wi-Fi), sebagian besar POST bisa tercetak `HTTP -1` di Serial Monitor sedangkan server tidak menerima apa pun. Tugas pada modul ini menghitung berapa `RX via Thread` yang berhasil sampai ke server (lihat bagian Pengukuran).
 
 **platformio.ini — dua board berbeda dalam satu proyek**
 
@@ -171,8 +159,10 @@ upload_port  = /dev/ttyACM0
 board = esp32-c6-devkitc-1
 board_build.partitions = huge_app.csv    ; firmware Thread+Wi-Fi+HTTP > 1,25 MB
 build_src_filter = +<c6_gateway/*.cpp>
-upload_port  = /dev/ttyACM1
+upload_port  = /dev/ttyACM2
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Setiap board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Proses flash pada lab ini memakai **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Dengan demikian satu board memakai `/dev/ttyACM0`, dua board memakai `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board memakai `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
@@ -191,7 +181,7 @@ pio run -d week13_thread_wifi_gateway -e c6_gateway -t upload -t monitor
 pio run -d week13_thread_wifi_gateway -e h2_node    -t upload
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Menyalakan Jaringan Thread
 
@@ -338,7 +328,7 @@ Setelah keduanya diterapkan, POST benar-benar sampai di server (`{"sensor":"h2",
 | `-1` | koneksi TCP gagal terbentuk | periksa server terjangkau; bila server lokal, pastikan satu subnet |
 | `-11` | request terkirim, **balasan** timeout | perbesar `http.setTimeout()`; cek apakah data sudah masuk di sisi server |
 
-**Yang harus dilakukan praktikan:** catat RSSI Wi-Fi gateway, dan isi tabel loss per hop di Bagian 8 dengan membandingkan `RX via Thread`, kode HTTP, dan log di sisi server. Bila `RX via Thread` normal tetapi POST bocor, itu bukan kegagalan praktikum — itu justru data yang diminta Bagian 9 nomor 1.
+**Yang harus dilakukan praktikan:** catat RSSI Wi-Fi gateway, dan isi tabel loss per hop di bagian Pengukuran dengan membandingkan `RX via Thread`, kode HTTP, dan log di sisi server. Bila `RX via Thread` normal tetapi POST bocor, itu bukan kegagalan praktikum — itu justru data yang diminta bagian Analisis nomor 1.
 
 **Delapan perbaikan kode yang lahir dari uji ini**
 
@@ -364,7 +354,7 @@ Setelah keduanya diterapkan, POST benar-benar sampai di server (`{"sensor":"h2",
 
 Membalik langkah 1 dan 3 membuat board **panic**; menaruh langkah 3 setelah langkah 4 membuat Wi-Fi **tidak pernah** asosiasi.
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 | Skenario / Jarak H2–C6 | RSSI Wi-Fi (C6) | Latency end-to-end (TX→HTTP, ms) | Success (paket / 40) |
 |---|---|---|---|
@@ -382,9 +372,9 @@ Latency diukur manual: cap waktu baris `TX via Thread` pada H2 vs `Forward via W
 | C6 → server (Wi-Fi/HTTP) | | | |
 | H2 → server (ujung-ke-ujung) | | | |
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Mengapa ESP32-C6 dapat menjadi Thread Leader dan Wi-Fi STA secara bersamaan, dan apa konsekuensinya (ukuran firmware, pembagian waktu radio)?
 2. Bagaimana pengaruh jarak/penghalang terhadap jumlah paket Thread yang diterima gateway?
@@ -392,7 +382,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa yang terjadi pada baris `Wi-Fi terputus, skip forward` — dan apakah data Thread tersebut hilang? Bagaimana cara memperbaikinya?
 5. Kapan arsitektur Thread→Wi-Fi gateway lebih tepat dipakai dibanding node sensor Wi-Fi langsung? Jawab dari sisi daya, jangkauan, dan jumlah node.
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa perbedaan gateway dan border router dalam konteks jaringan Thread?
 2. Mengapa komunikasi Thread pada praktikum ini memakai UDP multicast, bukan unicast?
@@ -400,7 +390,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Bagaimana gateway mengetahui alamat sumber pesan Thread (perhatikan output `remoteIP`)?
 5. Apa kelemahan forwarding via HTTP POST dibanding MQTT untuk telemetri periodik? (Jawaban ini adalah jembatan ke Modul 14.)
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Dua sensor.** Tambahkan node Thread H2 kedua dengan payload berbeda (mis. `hum:XX`) dan pastikan gateway mem-forward keduanya. Bagaimana server membedakan sumbernya?
 
@@ -410,7 +400,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Buffer saat Wi-Fi putus.** Ubah gateway agar menyimpan pesan Thread yang datang saat Wi-Fi mati (mis. antrean 20 pesan) dan mengirimkannya setelah koneksi pulih. Ukur berapa pesan yang berhasil diselamatkan.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 
@@ -418,7 +408,7 @@ Jawab berdasarkan tabel Bagian 8:
 2. Dasar teori ringkas (gateway, border router, Thread, Wi-Fi STA, UDP multicast, mesh-local prefix)
 3. Konfigurasi — dataset Thread, SSID, URL server, port, `huge_app.csv`
 4. Hasil eksperimen — log kedua board (EXP-01…03 + checkpoint), termasuk uji Wi-Fi diputus
-5. Data pengukuran — tabel Bagian 8 **dan** tabel loss per hop
+5. Data pengukuran — tabel bagian Pengukuran **dan** tabel loss per hop
 6. Analisis + concept check
 7. Challenge — minimal CH-3
 8. Kesimpulan — ditulis sendiri berdasarkan hasil pengujian

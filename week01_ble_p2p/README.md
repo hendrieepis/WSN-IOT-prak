@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 01 |
-| Misi | Membangun tautan BLE point-to-point yang stabil dan terverifikasi lewat instrumen |
-| Platform | ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino |
-| Durasi | 3 × 50 menit |
-| Mode | P2P — Peripheral ↔ Central |
-| Level | Basic |
-| Instrumen | Serial Monitor 115200 baud (nRF Connect opsional) |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 01 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat dasar. Misinya membangun tautan BLE point-to-point yang stabil dan terverifikasi lewat instrumen, bukan sekadar tersambung sekali lalu dianggap selesai. Percobaan berjalan dalam mode P2P antara satu peripheral dan satu central, dengan Serial Monitor 115200 baud sebagai instrumen utama dan aplikasi nRF Connect sebagai pembanding opsional.
 
 BLE adalah stack berlapis. Modul ini adalah lapisan paling bawah: tautan radio itu sendiri — belum ada payload aplikasi. Modul-modul berikutnya menumpuk di atas tautan yang dibangun di sini, sehingga modul ini perlu dikerjakan sampai benar-benar solid sebelum melangkah lebih jauh.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | Dasar C dan alur build PlatformIO (modul pembuka — tidak ada modul BLE sebelumnya) |
-| Dibangun di modul ini | Advertising, active scanning, pembentukan koneksi P2P, dan pengukuran RSSI terhadap jarak |
-| Dipakai lagi di | M02 (payload di atas tautan ini) → M03 (GATT read/write) → M04 (telemetry notify) → M05 (> 2 node) |
+Bekal yang diperlukan hanya dasar bahasa C dan pemahaman alur build PlatformIO; sebagai modul pembuka, tidak ada modul BLE yang mendahuluinya. Yang dibangun di sini adalah advertising, active scanning, pembentukan koneksi P2P, dan pengukuran RSSI terhadap jarak. Keempatnya dipakai lagi secara berurutan pada M02 (payload di atas tautan ini), M03 (GATT read/write), M04 (telemetry via notify), hingga M05 ketika jumlah node melampaui dua.
 
 **Peta modul blok BLE**
 
@@ -42,7 +28,7 @@ BLE adalah stack berlapis. Modul ini adalah lapisan paling bawah: tautan radio i
 
 **Kontrak data lab ini.** Modul ini belum mengirim payload, tetapi sudah menetapkan dua hal yang dipakai seterusnya: **Service UUID** `4fafc201-1fb5-459e-8fcc-c5c9c331914b` (dipakai ulang M02–M06 dan M16) dan **Serial Monitor sebagai instrumen ukur**, bukan sekadar tempat log.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -59,7 +45,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Uji disconnect (EXP-03) membuktikan tautan dua arah — bukan sekadar heartbeat lokal.
 - ☐ Tabel jarak–RSSI–keberhasilan terisi lengkap dari pengukuran sendiri.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori di sini dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (mengapa BLE hemat daya, detail lapisan protokol) ada di buku teori terpisah — panduan ini fokus pada "bagaimana".*
 
@@ -87,7 +73,7 @@ Advertiser (Node1)                Scanner (Node2)
       │ ════ Connection (P2P) ════►   │
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
    BOARD #1                        BOARD #2
@@ -108,7 +94,9 @@ Advertiser (Node1)                Scanner (Node2)
 
 Service UUID kedua node: `4fafc201-1fb5-459e-8fcc-c5c9c331914b`
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + PlatformIO + NimBLE-Arduino.
 
 **Alat & bahan**
 
@@ -140,9 +128,11 @@ monitor_port = /dev/ttyACM0
 
 [env:node2]
 build_src_filter = +<node2/*.cpp>   ; memilih src/node2/main.cpp
-upload_port  = /dev/ttyACM1         ; Windows: COM4 -- board Node2
-monitor_port = /dev/ttyACM1
+upload_port  = /dev/ttyACM2         ; Windows: COM4 -- board Node2
+monitor_port = /dev/ttyACM2
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Setiap board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Proses flash pada lab ini memakai **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Dengan demikian satu board memakai `/dev/ttyACM0`, dua board memakai `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board memakai `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
@@ -159,7 +149,7 @@ pio run -d week01_ble_p2p -e node1 -t upload
 pio run -d week01_ble_p2p -e node2 -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Advertising & Scanning
 
@@ -236,7 +226,7 @@ Modul ini belum mempertukarkan payload aplikasi. Uji ketahanan tautan dan amati 
 
 > **CHECKPOINT** — Praktikan dapat menjelaskan mengapa reset Node1 dan reset Node2 memicu pesan yang berbeda — itu bukti tautan diamati dari dua sisi.
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 RSSI dibaca dari log Node2 sendiri, bukan aplikasi luar. Tambahkan cetak RSSI koneksi pada heartbeat Node2:
 
@@ -269,9 +259,9 @@ Ukur pada beberapa jarak (isi dari Serial Monitor Node2):
 
 Metrik turunan: latency rata-rata scan→connected, dan ambang RSSI saat koneksi mulai gagal.
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8, bukan berdasarkan teori saja:
+Jawab berdasarkan tabel bagian Pengukuran, bukan berdasarkan teori saja:
 
 1. Bagaimana pengaruh jarak terhadap nilai RSSI?
 2. Pada nilai RSSI berapa koneksi mulai gagal? Bandingkan dengan tabel referensi.
@@ -279,7 +269,7 @@ Jawab berdasarkan tabel Bagian 8, bukan berdasarkan teori saja:
 4. Apakah halangan (tembok/tubuh) memengaruhi keberhasilan koneksi?
 5. Apakah BLE P2P cocok untuk aplikasi yang butuh koneksi cepat dan hemat daya? Jelaskan dari data hasil pengukuran.
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa perbedaan Peripheral dan Central pada BLE?
 2. Apa saja yang dimuat dalam paket advertising?
@@ -287,7 +277,7 @@ Jawab berdasarkan tabel Bagian 8, bukan berdasarkan teori saja:
 4. Mengapa Node1 harus advertise ulang setelah Node2 disconnect?
 5. Apa fungsi Service UUID dalam koneksi BLE?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 Modifikasi kode, bukan sekadar menjelaskan hasil:
 
@@ -307,7 +297,7 @@ Modifikasi kode, bukan sekadar menjelaskan hasil:
   }
   ```
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 
@@ -315,7 +305,7 @@ Modifikasi kode, bukan sekadar menjelaskan hasil:
 2. Dasar teori (ringkas)
 3. Konfigurasi — `platformio.ini`, environment, UUID
 4. Hasil eksperimen — log Serial Monitor kedua node (EXP-01…03 + checkpoint)
-5. Data pengukuran — tabel Bagian 8
+5. Data pengukuran — tabel bagian Pengukuran
 6. Analisis + concept check
 7. Challenge — termasuk CH-4
 8. Kesimpulan — ditulis sendiri berdasarkan hasil pengujian

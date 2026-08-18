@@ -7,27 +7,13 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 08 |
-| Misi | Membentuk jaringan Zigbee, memasukkan satu end device ke dalamnya, dan mengendalikannya lewat binding |
-| Platform | ESP32-H2 (Arduino core 3.x) + library `Zigbee` bawaan |
-| Durasi | 3 × 50 menit |
-| Mode | P2P Zigbee — Coordinator (switch) ↔ End Device (light) |
-| Level | Advanced |
-| Instrumen | Serial Monitor 115200 baud (2 terminal) + LED RGB bawaan |
-
-## 2 · Keterkaitan Antar-Modul
+Modul 08 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat lanjut. Misinya membentuk jaringan Zigbee, memasukkan satu end device ke dalamnya, dan mengendalikannya lewat binding. Percobaan berjalan sebagai Zigbee P2P antara coordinator yang berperan sebagai switch dan end device yang berperan sebagai lampu, diamati melalui dua terminal Serial Monitor pada 115200 baud dengan LED RGB bawaan sebagai penanda visual.
 
 Pada M07 frame disusun sendiri: tidak ada identitas jaringan, tidak ada keamanan, tidak ada penemuan perangkat. Zigbee menambahkan ketiganya di atas radio 802.15.4 yang **sama persis**. Yang menarik justru harga yang harus dibayar: firmware jauh lebih besar (butuh tabel partisi khusus), dan perangkat menyimpan keanggotaan jaringan di NVS — sesuatu yang tidak pernah jadi masalah di modul-modul BLE.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M07 — channel, PAN ID, dan pemahaman bahwa Zigbee berjalan di radio 802.15.4 yang sama |
-| Dibangun di modul ini | Pembentukan PAN, window join, find-and-bind, cluster ON/OFF, mode build ZCZR vs ED, tabel partisi Zigbee, NVS jaringan |
-| Dipakai lagi di | M09 (satu coordinator, banyak end device — binding table) → M10 (router menambah hop) → M16 (Zigbee jadi salah satu protokol yang dibandingkan) |
+Prasyaratnya adalah M07: channel, PAN ID, dan pemahaman bahwa Zigbee berjalan di radio 802.15.4 yang sama. Yang dibangun di sini adalah pembentukan PAN, window join, prosedur find-and-bind, cluster ON/OFF, perbedaan mode build ZCZR dan ED, tabel partisi khusus Zigbee, serta penyimpanan keanggotaan jaringan di NVS. Semuanya dipakai lagi pada M09 ketika satu coordinator melayani banyak end device melalui binding table, M10 ketika router menambah hop, dan M16 ketika Zigbee menjadi salah satu protokol yang dibandingkan.
 
 **Peta modul blok Zigbee**
 
@@ -40,7 +26,7 @@ Pada M07 frame disusun sendiri: tidak ada identitas jaringan, tidak ada keamanan
 
 **Kontrak data lab ini.** Zigbee tidak mengirim "string", melainkan **perintah cluster standar** (`On/Off`). Perbedaan ini penting untuk M16: BLE dan Thread di lab ini mengirim payload bebas, Zigbee mengirim perintah baku. Catat konsekuensinya pada interoperabilitas — perangkat Zigbee merek berbeda bisa saling mengerti, payload BLE buatan sendiri tidak.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -56,7 +42,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Waktu join + binding tercatat, minimal 3 percobaan.
 - ☐ Tabel jarak–latency–success terisi dari pengukuran sendiri.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (ZDO, APS layer, key management, Zigbee Cluster Library lengkap) ada di buku teori terpisah.*
 
@@ -82,7 +68,7 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (ZDO, AP
     ──► loop 5 s: lightOn() / lightOff() ──► ED: setLED ON/OFF
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
           BOARD #1                              BOARD #2
@@ -102,7 +88,9 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (ZDO, AP
 
 Kedua peran memakai **ESP32-H2 DevKitM-1**. Perbedaannya hanya pada `build_flags` (`-DZIGBEE_MODE_ZCZR` vs `-DZIGBEE_MODE_ED`) dan tabel partisi — board-nya identik, jadi board mana pun bisa diberi peran mana pun.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (Arduino core 3.x) + library `Zigbee` bawaan.
 
 **Alat & bahan**
 
@@ -136,9 +124,11 @@ build_flags =
     -lzboss_stack.ed
     -lzboss_port.native
 board_build.partitions = partitions_ed.csv
-upload_port  = /dev/ttyACM1
-monitor_port = /dev/ttyACM1
+upload_port  = /dev/ttyACM2
+monitor_port = /dev/ttyACM2
 ```
+
+> **Pilih port USB-to-UART, bukan USB native.** Setiap board ESP32-H2 muncul sebagai **dua** port serial: jembatan USB-to-UART CH343 (`1a86:55d3`) dan USB-Serial/JTAG bawaan chip (`303a:1001`). Proses flash pada lab ini memakai **jembatan UART**, karena jalur itulah yang tersambung ke rangkaian *auto program* (DTR→IO9, RTS→EN) sehingga board masuk mode download tanpa menekan tombol. Pada Linux keduanya berselang-seling: port **genap** adalah UART, port **ganjil** adalah USB native. Dengan demikian satu board memakai `/dev/ttyACM0`, dua board memakai `/dev/ttyACM0` dan `/dev/ttyACM2`, tiga board memakai `/dev/ttyACM0`, `/dev/ttyACM2`, dan `/dev/ttyACM4`. Verifikasi dengan `pio device list` dan pilih port ber-Hardware ID `1A86:55D3`.
 
 **Pre-flight checklist**
 
@@ -158,7 +148,7 @@ pio run -d week08_zigbee_p2p -e coordinator -t upload -t monitor
 pio run -d week08_zigbee_p2p -e enddevice   -t upload    # jangan lewat 180 s
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Pembentukan Jaringan (Coordinator)
 
@@ -256,7 +246,7 @@ Dijalankan pada 2 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu agar tida
 | Selisih waktu perintah → aksi | ≈ 2 ms |
 | Siklus ON/OFF per menit | 12 |
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 | Jarak | RSSI (dBm) | Latency perintah (kasar) | Success ON/OFF (%) |
 |---|---|---|---|
@@ -283,9 +273,9 @@ Dijalankan pada 2 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu agar tida
 
 **Bandingkan dengan M07.** Pada jarak yang sama, apakah success rate Zigbee lebih baik, sama, atau lebih buruk daripada raw 802.15.4? Radionya identik — jadi selisih apa pun berasal dari lapisan di atasnya.
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Bagaimana pengaruh jarak terhadap keberhasilan perintah ON/OFF diterima lampu?
 2. Apakah latency perintah (ZC hingga LED berubah di ED) bertambah pada jarak jauh?
@@ -293,7 +283,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Berapa waktu proses join + binding dari tiga percobaan, dan apa yang membuatnya bervariasi?
 5. Apakah Zigbee (join/binding otomatis + enkripsi) lebih cocok untuk WSN dibanding raw 802.15.4 M07? Sebutkan apa yang diperoleh dan apa harga yang dibayar.
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Apa fungsi coordinator dalam jaringan Zigbee?
 2. Apa perbedaan proses join dan binding? Bisakah salah satu terjadi tanpa yang lain?
@@ -301,7 +291,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Apa yang terjadi bila end device dinyalakan setelah window 180 detik berakhir, dan bagaimana cara memperbaikinya?
 5. Mengapa `allowMultipleBinding(false)` dipakai pada skenario P2P ini, dan apa yang berubah di Modul 09?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Latency terukur.** Ukur latency perintah secara objektif: kirim timestamp di payload atau catat `millis()` saat `lightOn()` di coordinator dan saat `setLED()` di end device, lalu bandingkan. Lakukan 20 kali dan hitung rata-rata serta sebarannya.
 
@@ -311,7 +301,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Uji ketahanan NVS.** Flash ulang end device **tanpa** `-t erase`, lalu amati apakah ia langsung kembali ke jaringan. Jelaskan perbedaannya dengan perangkat BLE di M01–06 yang tidak menyimpan apa pun.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 

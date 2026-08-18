@@ -7,29 +7,16 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 16 |
-| Misi | Membuktikan dengan data — bukan dengan demo — protokol mana yang paling sesuai untuk sebuah skenario IoT |
-| Platform | ESP32-H2 (sensor) + ESP32-C6 (gateway BLE/Wi-Fi/MQTT) |
-| Durasi | 3 × 50 menit |
-| Mode | Proyek komparatif |
-| Level | Project |
-| Instrumen | 2 × Serial Monitor 115200 + `mosquitto_sub` + data Modul 05–15 |
 
-> **Yang dinilai bukan "sistem menyala".** Yang dinilai adalah kemampuan membuktikan, dengan angka hasil pengukuran sendiri, protokol mana yang paling sesuai untuk sebuah kasus — dan mempertahankan rekomendasi itu saat ditanya balik.
-
-## 2 · Keterkaitan Antar-Modul
+Modul 16 dirancang untuk tiga pertemuan (3 × 50 menit) dan berstatus proyek. Misinya membuktikan dengan data — bukan dengan demo — protokol mana yang paling sesuai untuk sebuah skenario IoT. Percobaan berjalan sebagai proyek komparatif, diamati melalui dua Serial Monitor 115200 baud, `mosquitto_sub`, serta seluruh data pengukuran yang dikumpulkan sejak Modul 05.
 
 Ini adalah modul **panen**. Lima belas modul sebelumnya menghasilkan angka; di sini angka-angka itu dikumpulkan menjadi satu tabel pembanding. Modul ini membangun pipeline **BLE → gateway C6 → MQTT** sebagai pasangan yang setara dengan pipeline Thread di M15 — dengan payload, interval, gateway, dan broker yang **sama persis**, sehingga hanya protokol hop pertama yang menjadi variabel.
 
-| | Cakupan |
-|---|---|
-| Prasyarat | M04–06 (BLE telemetry & mesh), M08–10 (Zigbee), M11–13 (Thread), M14–15 (MQTT & pipeline) — **beserta seluruh data pengukurannya** |
-| Dibangun di modul ini | Pipeline BLE→MQTT sebagai pembanding pipeline Thread M15, metodologi perbandingan yang adil (variabel kontrol), rekomendasi berbasis data |
-| Menutup | Seluruh seri: dari satu tautan radio (M01) sampai keputusan arsitektur berbasis bukti |
+Prasyaratnya adalah M04–M06 untuk BLE telemetry dan mesh, M08–M10 untuk Zigbee, M11–M13 untuk Thread, serta M14–M15 untuk MQTT dan pipeline — **beserta seluruh data pengukurannya**. Yang dibangun di sini adalah pipeline BLE→MQTT sebagai pembanding pipeline Thread M15, metodologi perbandingan yang adil melalui variabel kontrol, dan rekomendasi yang berpijak pada data. Modul ini menutup seluruh seri: dari satu tautan radio pada M01 sampai keputusan arsitektur yang berbasis bukti.
+
+> **Yang dinilai bukan "sistem menyala".** Yang dinilai adalah kemampuan membuktikan, dengan angka hasil pengukuran sendiri, protokol mana yang paling sesuai untuk sebuah kasus — dan mempertahankan rekomendasi itu saat ditanya balik.
 
 **Peta seluruh seri — dari mana angka hasil pengukuran berasal**
 
@@ -55,7 +42,7 @@ Ini adalah modul **panen**. Lima belas modul sebelumnya menghasilkan angka; di s
 
 Angka yang diukur pada kondisi berbeda **tidak boleh** dimasukkan ke tabel pembanding. Jika data M15 diambil pada interval 3 detik sementara modul ini 2 detik, ulangi salah satunya — atau nyatakan perbedaan itu secara eksplisit sebagai keterbatasan.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -71,7 +58,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Rekomendasi protokol dapat dipertanggungjawabkan dengan data, bukan opini.
 - ☐ Keterbatasan metodologi dinyatakan secara eksplisit.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (model konsumsi daya, analisis kapasitas kanal, metodologi benchmark jaringan) ada di buku teori terpisah.*
 
@@ -105,7 +92,7 @@ Protokol bisa unggul di satu metrik dan kalah di lainnya — itu justru inti pek
 [Broker] ──► [Subscriber di PC]
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
    BOARD #1 (H2)               BOARD #2 (C6)                    INTERNET
@@ -130,7 +117,9 @@ Perhatikan: **gateway-nya sama** dengan M15 (ESP32-C6), **broker dan topic-nya s
 
 UUID penting: service `4fafc201-1fb5-459e-8fcc-c5c9c331914b`, characteristic telemetri `beb5483e-36e1-4688-b7f5-ea07361b26b2` — sama dengan characteristic telemetri Modul 04, jadi sensor M04 bisa dipakai ulang di sini bila perlu.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (sensor) + ESP32-C6 (gateway BLE/Wi-Fi/MQTT).
 
 **Alat & bahan**
 
@@ -164,7 +153,7 @@ pio run -d week16_comparative -e sensor  -t upload -t monitor        # terminal 
 pio run -d week16_comparative -e gateway -t upload -t monitor        # terminal 3
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Sensor BLE & Advertising
 
@@ -245,7 +234,7 @@ Variasi wajib:
 | RSSI BLE (dari `getRssi()` di C6) | |
 | Perilaku saat sensor reset | |
 
-> **CHECKPOINT** — Tersedia **tiga baris data BLE** (1 m, 5 m, 5 m + dinding) dengan kondisi yang dapat dibuktikan sama dengan data M15. Tanpa itu, tabel perbandingan di Bagian 8 tidak sah — dan itulah yang paling sering membuat laporan modul ini gugur.
+> **CHECKPOINT** — Tersedia **tiga baris data BLE** (1 m, 5 m, 5 m + dinding) dengan kondisi yang dapat dibuktikan sama dengan data M15. Tanpa itu, tabel perbandingan di bagian Pengukuran tidak sah — dan itulah yang paling sering membuat laporan modul ini gugur.
 
 ### Verifikasi hardware (log referensi)
 
@@ -292,7 +281,7 @@ Yang membedakan bukan protokol di atas kertas, melainkan **biaya koeksistensi ra
 | `mqtt.connect()` dipanggil tiap iterasi `loop()` tanpa jeda → ribuan baris `DNS Failed` membanjiri Serial dan menenggelamkan log BLE | `maintainNetwork()` dengan jeda dan pengecekan status Wi-Fi lebih dulu |
 | `while (WiFi.status() != WL_CONNECTED)` menggantung selamanya | dibatasi `WIFI_TIMEOUT_MS`, lalu lanjut; kaki BLE tetap bisa diamati |
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 **Pengukuran BLE (proyek ini)**
 
@@ -311,7 +300,7 @@ Yang membedakan bukan protokol di atas kertas, melainkan **biaya koeksistensi ra
 | Zigbee (hop sensor) | M08–M10 | | | | | |
 | 802.15.4 raw (baseline) | M07 | | | | | |
 
-> Kolom **"Kondisi ukur"** wajib diisi (jarak, interval, ada/tidaknya penghalang, tanggal). Sel yang kondisinya berbeda dari baris lain harus ditandai dan disebut sebagai keterbatasan di Bagian 9 — bukan disembunyikan.
+> Kolom **"Kondisi ukur"** wajib diisi (jarak, interval, ada/tidaknya penghalang, tanggal). Sel yang kondisinya berbeda dari baris lain harus ditandai dan disebut sebagai keterbatasan di bagian Analisis — bukan disembunyikan.
 >
 > Zigbee tidak punya pipeline MQTT di lab ini, jadi angkanya adalah **latency hop sensor saja**, bukan end-to-end. Menuliskannya sebagai end-to-end adalah kesalahan yang akan langsung terlihat saat sidang.
 
@@ -323,9 +312,9 @@ Yang membedakan bukan protokol di atas kertas, melainkan **biaya koeksistensi ra
 | Waktu dari boot sampai data pertama sampai | | |
 | Pemulihan setelah sensor di-reset | | |
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8, dan **tunjuk barisnya**:
+Jawab berdasarkan tabel bagian Pengukuran, dan **tunjuk barisnya**:
 
 1. Berdasarkan data, protokol mana yang paling andal (packet loss terkecil) pada jarak terjauh, dan mengapa?
 2. Bagaimana latency end-to-end BLE→MQTT dibandingkan Thread→MQTT untuk payload yang sama? Berapa selisihnya, dan dari hop mana selisih itu berasal?
@@ -334,7 +323,7 @@ Jawab berdasarkan tabel Bagian 8, dan **tunjuk barisnya**:
 5. Untuk kasus (a) rumah pintar 15 node, (b) sensor tunggal dekat gateway, (c) gedung bertingkat — protokol apa yang direkomendasikan? Dasarkan tiap jawaban pada baris tabel tertentu.
 6. **Apa keterbatasan terbesar dari perbandingan ini?** Sebutkan minimal dua, dan jelaskan apa yang perlu diukur untuk mengatasinya.
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Jelaskan perbedaan topologi BLE (star/connection), Zigbee (mesh), dan Thread (mesh IPv6).
 2. Apa itu GATT notify dan mengapa dipakai, bukan indication atau polling read?
@@ -342,9 +331,9 @@ Jawab berdasarkan tabel Bagian 8, dan **tunjuk barisnya**:
 4. Apa peran MQTT dalam proyek ini, dan mengapa perbandingan protokol dilakukan di hop sensor→gateway, bukan di hop MQTT?
 5. Jika throughput naik 10× (interval 200 ms), protokol mana yang paling mungkin bermasalah lebih dulu? Mengapa — dan data modul mana yang mendukung dugaan awal?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
-- **CH-1 — Rekomendasi berbasis data (wajib).** Tulis mini-laporan 1 halaman yang memilih protokol untuk **satu** kasus nyata, dengan tabel Bagian 8 sebagai justifikasi. Sertakan satu paragraf "kapan rekomendasi ini salah" — kondisi yang akan membalikkan kesimpulan yang diambil.
+- **CH-1 — Rekomendasi berbasis data (wajib).** Tulis mini-laporan 1 halaman yang memilih protokol untuk **satu** kasus nyata, dengan tabel bagian Pengukuran sebagai justifikasi. Sertakan satu paragraf "kapan rekomendasi ini salah" — kondisi yang akan membalikkan kesimpulan yang diambil.
 
 - **CH-2 — Dua sensor BLE.** Tambahkan sensor BLE kedua (`CMP_SENSOR2`, UUID berbeda) dan buat gateway mem-forward keduanya ke topic berbeda. Ukur apakah latency berubah saat gateway melayani dua koneksi — bandingkan dengan temuan M05.
 
@@ -352,7 +341,7 @@ Jawab berdasarkan tabel Bagian 8, dan **tunjuk barisnya**:
 
 - **CH-4 — Pipeline Zigbee.** Lengkapi baris Zigbee pada tabel perbandingan dengan pipeline yang setara (Zigbee → gateway → MQTT), sehingga ketiga protokol diukur end-to-end pada kondisi yang sama. Ini pekerjaan terbesar — dan yang membuat tabel hasil pengukuran benar-benar utuh.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 

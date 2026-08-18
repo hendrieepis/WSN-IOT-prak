@@ -22,28 +22,27 @@ Fokusnya **protokol komunikasi** — dari Bluetooth Low Energy, IEEE 802.15.4, Z
 
 ## Struktur setiap modul
 
-Seluruh 16 modul memakai format yang sama, 12 bagian:
+Seluruh modul memakai format yang sama, 11 bagian:
 
 | # | Bagian | Isi |
 |---|---|---|
-| 1 | **Informasi Modul** | Misi, platform, durasi, mode, level, instrumen |
-| 2 | **Keterkaitan Antar-Modul** | Prasyarat, yang dibangun di sini, yang memakainya nanti + peta blok |
-| 3 | **Capaian Pembelajaran** | 4–5 capaian **terukur** + kriteria keberhasilan |
-| 4 | **Dasar Teori (secukupnya)** | Hanya istilah yang dipakai di percobaan + sekuens protokol |
-| 5 | **Topologi** | Diagram jaringan bernama board, peran tiap node, peta alamat |
-| 6 | **Persiapan** | Alat & bahan sampai versi/port, `platformio.ini`, pre-flight, perintah deploy |
-| 7 | **Percobaan** | EXP-01…03 dengan **CHECKPOINT** di tiap tahap + log referensi hasil uji nyata |
-| 8 | **Pengukuran** | Tabel yang diisi sendiri + tabel pembanding lintas modul |
-| 9 | **Analisis** | Pertanyaan yang hanya bisa dijawab dari tabel Bagian 8 |
-| 10 | **Concept Check** | Pertanyaan konseptual, bukan hafalan |
-| 11 | **Challenge** | Tugas **modifikasi kode**, bukan "jelaskan hasilnya" |
-| 12 | **Laporan** | Daftar deliverable |
+| 1 | **Pendahuluan** | Identitas modul (misi, durasi, mode, level, instrumen), keterkaitan dengan modul lain, prasyarat, dan apa yang dipakai lagi sesudahnya — seluruhnya dalam bentuk kalimat, ditutup peta blok dan kontrak data |
+| 2 | **Capaian Pembelajaran** | 4–5 capaian **terukur** + kriteria keberhasilan |
+| 3 | **Dasar Teori (secukupnya)** | Hanya istilah yang dipakai di percobaan + sekuens protokol |
+| 4 | **Topologi** | Diagram jaringan bernama board, peran tiap node, peta alamat |
+| 5 | **Alat yang Digunakan** | Platform, alat & bahan sampai versi/port, `platformio.ini`, pre-flight, perintah deploy |
+| 6 | **Percobaan** | EXP-01…03 dengan **CHECKPOINT** di tiap tahap + log referensi hasil uji nyata |
+| 7 | **Pengukuran** | Tabel yang diisi sendiri + tabel pembanding lintas modul |
+| 8 | **Analisis** | Pertanyaan yang hanya bisa dijawab dari tabel Pengukuran |
+| 9 | **Concept Check** | Pertanyaan konseptual, bukan hafalan |
+| 10 | **Challenge** | Tugas **modifikasi kode**, bukan "jelaskan hasilnya" |
+| 11 | **Laporan** | Daftar deliverable |
 
 Tiga hal yang membedakan format ini dari panduan praktikum biasa:
 
 - **CHECKPOINT di tengah percobaan.** Mahasiswa memverifikasi progres sebelum lanjut, bukan baru ketahuan salah di akhir sesi.
 - **"Buka abstraksinya".** Satu kotak per modul yang menyuruh mahasiswa membongkar satu baris kode yang tampak sepele (mis. mengomentari `subscribe()` lalu melihat notify berhenti) — menghubungkan API dengan apa yang sebenarnya terjadi di udara.
-- **Teori dibatasi.** Panduan ini menjawab **"bagaimana"**; pembahasan mendalam ("mengapa") ada di buku teori terpisah. Tiap Bagian 4 menyebut batas itu secara eksplisit.
+- **Teori dibatasi.** Panduan ini menjawab **"bagaimana"**; pembahasan mendalam ("mengapa") ada di buku teori terpisah. Tiap bagian Dasar Teori menyebut batas itu secara eksplisit.
 
 ## Keterkaitan antar-modul
 
@@ -282,16 +281,16 @@ pio run -d week02_ble_p2p_data -e node2 -t upload
 
 | Komponen | Bobot | Sumber penilaian |
 |---|---|---|
-| Persiapan & eksekusi percobaan (semua CHECKPOINT terlewati) | 25% | Bagian 6–7 |
-| Data pengukuran | 20% | Bagian 8 |
-| Analisis berbasis data | 20% | Bagian 9 |
-| Challenge (modifikasi kode) | 15% | Bagian 11 |
-| Concept check | 10% | Bagian 10 |
-| Laporan akhir & kesimpulan | 10% | Bagian 12 |
+| Persiapan & eksekusi percobaan (semua CHECKPOINT terlewati) | 25% | bagian Alat yang Digunakan & Percobaan |
+| Data pengukuran | 20% | bagian Pengukuran |
+| Analisis berbasis data | 20% | bagian Analisis |
+| Challenge (modifikasi kode) | 15% | bagian Challenge |
+| Concept check | 10% | bagian Concept Check |
+| Laporan akhir & kesimpulan | 10% | bagian Laporan |
 
 Catatan penilaian:
 
-- **Capaian pembelajaran (Bagian 3) adalah rubriknya.** Tiap capaian ditulis agar bisa dinilai lulus/tidak dari bukti yang dilampirkan, bukan dari kesan.
+- **Capaian pembelajaran (bagian Capaian Pembelajaran) adalah rubriknya.** Tiap capaian ditulis agar bisa dinilai lulus/tidak dari bukti yang dilampirkan, bukan dari kesan.
 - **Angka tanpa asal-usul dianggap tidak ada.** Setiap sel tabel pengukuran harus bisa ditunjuk log atau kondisi ukurnya — ini yang diuji habis-habisan di Modul 16.
 - **Challenge dinilai dari kode yang berubah**, bukan dari penjelasan tentang kode yang tidak diubah.
 

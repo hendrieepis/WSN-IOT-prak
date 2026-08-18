@@ -7,31 +7,18 @@
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-## 1 · Informasi Modul
+## 1 · Pendahuluan
 
-| Field | Nilai |
-|---|---|
-| Minggu / Modul | 15 |
-| Misi | Merangkai seluruh vertikal — sensor sampai dashboard — dan menunjukkan di hop mana pesan hilang bila hilang |
-| Platform | ESP32-H2 (sensor Thread) + ESP32-C6 (gateway Thread + Wi-Fi/MQTT) |
-| Durasi | 3 × 50 menit |
-| Mode | End-to-end (4 hop) |
-| Level | Advanced |
-| Instrumen | 2 × Serial Monitor 115200 + `mosquitto_sub` di PC |
+
+Modul 15 dirancang untuk tiga pertemuan (3 × 50 menit) pada tingkat lanjut. Misinya merangkai seluruh vertikal — dari sensor sampai dashboard — dan menunjukkan di hop mana pesan hilang apabila memang hilang. Percobaan berjalan sebagai rantai end-to-end empat hop, diamati melalui dua Serial Monitor 115200 baud dan `mosquitto_sub` di sisi PC.
+
+Modul ini **tidak memperkenalkan protokol baru**. Seluruh komponennya sudah dibangun: sensor Thread (M11), mesh (M12), gateway dwi-radio (M13), dan klien MQTT (M14). Yang baru adalah menyatukannya — dan menghadapi masalah yang hanya muncul saat sistem punya banyak hop: **ketika data tidak sampai, hop mana yang salah?** Karena tiap hop sudah diukur sendiri pada modul sebelumnya, angka pembanding untuk menjawabnya sudah tersedia.
+
+Prasyaratnya adalah M11–M12 untuk Thread beserta dataset-nya, M13 untuk gateway dwi-radio, dan M14 untuk MQTT beserta `mosquitto_sub`. Yang dibangun di sini adalah integrasi tiga stack pada satu gateway, pengukuran latency dan loss per hop pada rantai empat hop, isolasi kesalahan, serta verifikasi dari sisi luar sistem. Semuanya dipakai lagi pada M16 ketika pipeline ini menjadi kerangka baku dan hanya protokol hop pertama yang diganti-ganti agar perbandingannya adil.
 
 ```
 H2 → Thread → C6 → Wi-Fi → MQTT → Dashboard
 ```
-
-## 2 · Keterkaitan Antar-Modul
-
-Modul ini **tidak memperkenalkan protokol baru**. Seluruh komponennya sudah dibangun: sensor Thread (M11), mesh (M12), gateway dwi-radio (M13), dan klien MQTT (M14). Yang baru adalah menyatukannya — dan menghadapi masalah yang hanya muncul saat sistem punya banyak hop: **ketika data tidak sampai, hop mana yang salah?** Karena tiap hop sudah diukur sendiri pada modul sebelumnya, angka pembanding untuk menjawabnya sudah tersedia.
-
-| | Cakupan |
-|---|---|
-| Prasyarat | M11–12 (Thread + dataset), M13 (gateway dwi-radio), M14 (MQTT + `mosquitto_sub`) |
-| Dibangun di modul ini | Integrasi tiga stack pada satu gateway, latency & loss per hop pada rantai 4 hop, isolasi kesalahan, verifikasi dari sisi luar |
-| Dipakai lagi di | M16 (pipeline ini jadi kerangka baku; hanya protokol hop pertama yang diganti-ganti agar perbandingannya adil) |
 
 **Peta modul blok integrasi (penutup blok)**
 
@@ -44,7 +31,7 @@ Modul ini **tidak memperkenalkan protokol baru**. Seluruh komponennya sudah diba
 
 **Kontrak data lab ini.** Payload `suhu:XX.X` berjalan **tanpa diubah** dari node H2 sampai subscriber di PC — gateway tidak mem-parsing ulang, hanya memindahkan dari satu transport ke transport lain. Karena itu topic `praktikum/h2/telemetri` di sini identik dengan M14, dan datanya bisa langsung dibandingkan dengan M16.
 
-## 3 · Capaian Pembelajaran
+## 2 · Capaian Pembelajaran
 
 Setelah menyelesaikan modul ini, mahasiswa mampu:
 
@@ -60,7 +47,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 - ☐ Hop penyebab loss teridentifikasi dengan membandingkan counter tiap tahap.
 - ☐ Satu pesan yang sama dapat ditunjukkan jejaknya di H2, C6, dan `mosquitto_sub`.
 
-## 4 · Dasar Teori (secukupnya)
+## 3 · Dasar Teori (secukupnya)
 
 Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (arsitektur referensi IoT, edge vs cloud processing, skema QoS berlapis) ada di buku teori terpisah.*
 
@@ -84,7 +71,7 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (arsitek
 [PC] mosquitto_sub -t praktikum/h2/telemetri ──► praktikum/h2/telemetri suhu:25.3
 ```
 
-## 5 · Topologi
+## 4 · Topologi
 
 ```
    BOARD #1 (H2)              BOARD #2 (C6)                     INTERNET
@@ -130,7 +117,9 @@ Rantai vertikal per lapis:
 
 Sama seperti M13, **dua jenis board wajib**: ESP32-H2 tidak punya Wi-Fi, jadi hanya ESP32-C6 yang bisa memegang Thread dan Wi-Fi sekaligus.
 
-## 6 · Persiapan
+## 5 · Alat yang Digunakan
+
+Modul ini dijalankan di atas ESP32-H2 (sensor Thread) + ESP32-C6 (gateway Thread + Wi-Fi/MQTT).
 
 **Alat & bahan**
 
@@ -177,7 +166,7 @@ pio run -d week15_e2e_iot -e c6_gateway -t upload -t monitor
 pio run -d week15_e2e_iot -e h2_node    -t upload -t monitor
 ```
 
-## 7 · Percobaan
+## 6 · Percobaan
 
 ### EXP-01 — Inisialisasi Gateway
 
@@ -309,7 +298,7 @@ Tanpa baris itu, C6 tetap asosiasi Wi-Fi dan dapat IP, tetapi **seluruh TCP kelu
 
 Sinyal yang lebih kuat (AP-3) **tidak** menghasilkan hasil terbaik — jadi penyebabnya bukan link budget, melainkan pembagian airtime antara Wi-Fi dan 802.15.4 pada satu antena. Mengganti channel 802.15.4 (15 → 25, dan 15 → 11 untuk menjauh maksimum dari kanal Wi-Fi AP-3) juga tidak menolong.
 
-**Pelajaran penting dari AP-3: `publish()` bernilai `true` bukan bukti sampai.** Pada run itu gateway mencetak 7 baris `Publish MQTT [...]` sementara broker hanya menerima **2**. Pada QoS 0, `PubSubClient::publish()` hanya menulis ke buffer socket; bila koneksi TCP sudah setengah mati, tidak ada yang memberi tahu. Karena itu Bagian 8 mewajibkan kolom "Broker menerima" diisi dari **log broker**, bukan dari log gateway. Ini juga jawaban konkret untuk Concept Check nomor 3.
+**Pelajaran penting dari AP-3: `publish()` bernilai `true` bukan bukti sampai.** Pada run itu gateway mencetak 7 baris `Publish MQTT [...]` sementara broker hanya menerima **2**. Pada QoS 0, `PubSubClient::publish()` hanya menulis ke buffer socket; bila koneksi TCP sudah setengah mati, tidak ada yang memberi tahu. Karena itu bagian Pengukuran mewajibkan kolom "Broker menerima" diisi dari **log broker**, bukan dari log gateway. Ini juga jawaban konkret untuk Concept Check nomor 3.
 
 **Pembanding yang paling menentukan.** Modul 16 (BLE + Wi-Fi, bukan Thread + Wi-Fi) diukur pada AP-3, jarak, dan broker yang sama persis:
 
@@ -323,7 +312,7 @@ Kondisi jaringan identik; yang berbeda hanya radio hop pertama. Ini bahan utama 
 **Yang sudah dicoba dan tidak menyelesaikan:** mengganti channel 802.15.4 (15 → 25), memakai AP di kanal Wi-Fi yang tidak bertetangga, `WiFi.setSleep()` kedua nilainya, dan memaksa default netif ke Wi-Fi STA. Yang **berhasil** hanya kombinasi urutan inisialisasi + `esp_coex_preference_set(ESP_COEX_PREFER_WIFI)`
 + memisahkan jeda retry MQTT dari jeda retry Wi-Fi. Bahkan setelah itu, hop Wi-Fi tetap tidak andal — laporkan angkanya apa adanya.
 
-**Yang harus dilakukan praktikan:** catat RSSI Wi-Fi gateway di laporan dan isi tabel counter per tahap di Bagian 8. Rantai yang bocor di satu hop dengan sebab yang dapat ditunjuk bernilai lebih tinggi daripada demo mulus tanpa data.
+**Yang harus dilakukan praktikan:** catat RSSI Wi-Fi gateway di laporan dan isi tabel counter per tahap di bagian Pengukuran. Rantai yang bocor di satu hop dengan sebab yang dapat ditunjuk bernilai lebih tinggi daripada demo mulus tanpa data.
 
 **Perbaikan kode yang lahir dari uji ini**
 
@@ -338,7 +327,7 @@ Kondisi jaringan identik; yang berbeda hanya radio hop pertama. Ini bahan utama 
 | Seluruh TCP keluar gagal saat stack Thread aktif, padahal Wi-Fi sudah dapat IP | `esp_coex_preference_set(ESP_COEX_PREFER_WIFI)` dipanggil sebelum `OThread.start()` |
 | Percobaan MQTT ikut terkunci jeda retry Wi-Fi (20 s) padahal Wi-Fi sudah sehat | timer retry Wi-Fi dan MQTT dipisah (`WIFI_RETRY_MS` vs `MQTT_RETRY_MS`) |
 
-## 8 · Pengukuran
+## 7 · Pengukuran
 
 | Skenario / Jarak H2–C6 | RSSI Wi-Fi (C6) | Latency end-to-end (TX H2 → subscriber, ms) | Success / 40 pesan |
 |---|---|---|---|
@@ -367,9 +356,9 @@ Latency end-to-end: cap waktu `TX via Thread` pada H2 versus kemunculan pesan di
 | Latency end-to-end terukur (M15) | modul ini | |
 | Selisih (overhead integrasi) | — | |
 
-## 9 · Analisis
+## 8 · Analisis
 
-Jawab berdasarkan tabel Bagian 8:
+Jawab berdasarkan tabel bagian Pengukuran:
 
 1. Apa peran gateway C6 dalam pipeline ini, dan protokol apa saja yang ia jalankan bersamaan?
 2. Berapa latency tambahan karena hop Thread→MQTT dibanding pengiriman Thread satu hop (M11/M13)? Gunakan tabel dekomposisi latency.
@@ -377,7 +366,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Bagian mana dari rantai yang paling banyak kehilangan pesan? Tunjukkan dari tabel counter per tahap — bukan dari dugaan.
 5. Bandingkan arsitektur end-to-end ini dengan node sensor Wi-Fi-MQTT langsung (M14) dari sisi konsumsi daya, jangkauan, dan jumlah node yang bisa dilayani.
 
-## 10 · Concept Check
+## 9 · Concept Check
 
 1. Gambarkan kembali arsitektur H2 → Thread → C6 → MQTT dan jelaskan fungsi tiap elemen.
 2. Mengapa gateway melakukan publish dengan payload asli, bukan mem-parsing ulang datanya?
@@ -385,7 +374,7 @@ Jawab berdasarkan tabel Bagian 8:
 4. Bagaimana cara memonitor topic ini dari dashboard (mis. MQTT Explorer) dan apa yang perlu disiapkan?
 5. Keuntungan apa yang diperoleh dengan memisahkan jaringan sensor (Thread) dan backbone (Wi-Fi/MQTT), dibanding satu jaringan Wi-Fi untuk semuanya?
 
-## 11 · Challenge (tugas modifikasi)
+## 10 · Challenge (tugas modifikasi)
 
 - **CH-1 — Dua sensor.** Tambahkan node Thread H2 kedua dengan payload ber-ID (`suhu:25.3,node2`) sehingga sumber data dapat dibedakan di subscriber. Diskusikan alternatifnya: memberi ID di payload vs memberi topic sendiri per node.
 
@@ -395,7 +384,7 @@ Jawab berdasarkan tabel Bagian 8:
 
 - **CH-4 — Dashboard sungguhan.** Sambungkan topic ini ke MQTT Explorer, Node-RED, atau Grafana, dan tampilkan grafik suhu terhadap waktu. Lampirkan tangkapan layarnya di laporan.
 
-## 12 · Laporan
+## 11 · Laporan
 
 **Deliverable**
 

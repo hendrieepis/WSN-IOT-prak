@@ -164,6 +164,10 @@ monitor_port = /dev/ttyACM0
 build_src_filter = +<node2/*.cpp>
 upload_port  = /dev/ttyACM1
 monitor_port = /dev/ttyACM1
+
+[env:node3]
+build_src_filter = +<node3/*.cpp>
+; port diisi sesuai board ketiga (opsional, untuk EXP-04-e broadcast)
 ```
 
 **Pre-flight checklist**
@@ -286,6 +290,57 @@ TX balasan ke 0x0001: PONG 1
 > channel dan gagal karena PAN ID (petunjuk: yang satu radio tidak mendengar
 > sama sekali, yang satu mendengar tapi menyaring). Ini penting untuk memahami
 > penyaringan Zigbee/Thread di modul berikutnya.
+
+### EXP-04 — Efek Parameter: PAN ID, Channel, Broadcast
+
+Semua efek di bawah cukup dicapai dengan **mengubah `#define` di
+`src/nodeX/main.cpp`** — tidak ada logika yang diubah. Tiap ubah parameter,
+unggah ulang node yang bersangkutan.
+
+| Uji | `node1` | `node2` | Gejala yang harus terlihat |
+|---|---|---|---|
+| 04-a PAN sama | `PAN_ID 0xCAFE` | `PAN_ID 0xCAFE` | PING–PONG normal (baseline) |
+| 04-b PAN beda | `PAN_ID 0xCAFE` | `PAN_ID 0xBEEF` | Node1 tetap cetak `TX`, Node2 **tidak pernah** cetak `RX` — frame *heard but filtered* (disaring hardware MAC) |
+| 04-c Channel sama | `CHANNEL 15` | `CHANNEL 15` | PING–PONG normal |
+| 04-d Channel beda | `CHANNEL 15` | `CHANNEL 20` | Kedua node sunyi di sisi RX — radio *never heard* (tuli, tidak mendengar sama sekali) |
+| 04-e Broadcast | `PEER_ADDR 0xFFFF` | `PEER_ADDR` apa pun | Node2 **dan** Node3 (bila ada) menerima frame yang sama |
+
+Perbedaan 04-b vs 04-d adalah inti yang harus bisa dijelaskan:
+
+- **PAN ID beda (04-b):** radio memang menerima transmisi di channel yang sama,
+  tetapi MAC hardware **menyaring frame** dengan PAN ID asing sebelum sampai ke
+  callback. TX di sisi lain tetap berjalan normal — komunikasi terlihat
+  "searah hilang".
+- **Channel beda (04-d):** radio tidak berada di frekuensi yang sama — tidak ada
+  yang diterima secara fisik. Tidak ada filter yang "menolak" karena memang
+  tidak ada yang masuk.
+
+**Uji broadcast (04-e) — wajib 3 node.** Salin `src/node2` menjadi
+`src/node3`, ganti `MY_ADDR` menjadi `0x0003`, tambahkan `[env:node3]` di
+`platformio.ini`, lalu set `PEER_ADDR` Node1 menjadi `0xFFFF`. Amati bahwa
+Node2 dan Node3 menerima frame yang sama, lalu diskusikan apa yang hilang
+dibanding unicast (tidak ada ACK, tidak ada penyaringan alamat tujuan).
+
+**Bonus investigasi — promiscuous mode.** Tambahkan
+`esp_ieee802154_set_promiscuous_mode(true)` di `setup()` Node2 dan biarkan
+`PAN_ID` berbeda dengan Node1. Semua frame asing kini diterima — bukti bahwa
+penyaringan PAN ID sebelumnya bekerja di **hardware**, bukan di kode.
+
+**Data capture — tabel gejala lintas kelompok**
+
+| Uji | Konfigurasi (Node1 / Node2) | TX di Node1? | RX di Node2? | Loss (dari log) | Gejala yang diamati |
+|---|---|---|---|---|---|
+| 04-a | PAN sama | | | | |
+| 04-b | PAN beda | | | | |
+| 04-c | Channel sama | | | | |
+| 04-d | Channel beda | | | | |
+| 04-e | Broadcast (3 node) | | | | |
+
+> **CHECKPOINT** — Kamu bisa membedakan 04-b dari 04-d tanpa melihat kode,
+> hanya dari pola log: 04-b ada TX tanpa RX di pasangan; 04-d kedua sisi sunyi.
+> Kalau sebuah kelompok di ruangan sama menyalakan radio 802.15.4 di channel
+> yang sama denganmu, gejala yang muncul mirip 04-b — itu sebabnya tiap
+> kelompok wajib memakai channel berbeda.
 
 ### Verifikasi hardware (log referensi)
 

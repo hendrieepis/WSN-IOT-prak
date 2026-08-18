@@ -158,6 +158,7 @@ Setelah menyelesaikan seluruh modul, praktikan mampu:
 | 03 | `week03_ble_client_server` | Build a BLE Service | GATT read/write | ESP32-H2 | Intermediate |
 | 04 | `week04_ble_telemetry` | Stream Telemetry | server → client (notify) | ESP32-H2 | Intermediate |
 | 05 | `week05_ble_multinode` | Connect Multiple Devices | 1 pusat ↔ beberapa node | ESP32-H2 | Intermediate |
+| 05B | `week05b_ble_multinode_project` | Build a Smart Sensor System | 2 sensor bukaan ↔ 1 hub | ESP32-H2 | Intermediate |
 | 06 | `week06_ble_mesh` | Build a BLE Mesh | relay H2 ↔ H2 ↔ H2 | ESP32-H2 | Intermediate |
 | 07 | `week07_802154_p2p` | Speak Raw 802.15.4 | raw frame H2 ↔ H2 | ESP32-H2 | Intermediate |
 | 08 | `week08_zigbee_p2p` | Join a Zigbee Network | Coordinator ↔ End Device | ESP32-H2 | Advanced |
@@ -169,6 +170,12 @@ Setelah menyelesaikan seluruh modul, praktikan mampu:
 | 14 | `week14_mqtt` | Publish to the Cloud | C6 → MQTT broker | ESP32-C6 | Intermediate |
 | 15 | `week15_e2e_iot` | Build an End-to-End IoT System | H2 → Thread → C6 → MQTT | H2 + C6 | Advanced |
 | 16 | `week16_comparative` | Prove Your Protocol | BLE/Zigbee/Thread → MQTT | H2 + C6 | Project |
+
+> **MODUL 05B adalah mini project**, bukan modul inti — 16 modul utama tetap
+> 01–16. Isinya menerapkan topologi bintang M05 pada kasus nyata: dua smart
+> sensor bukaan (jendela dan pintu, tombol BOOT sebagai proximity switch
+> simulasi) melapor ke satu hub. Di sinilah trafik berubah dari periodik
+> menjadi *event-driven*.
 
 **MODULE 15 — rantai sistem end-to-end:**
 
@@ -192,6 +199,7 @@ hardware" pada README masing-masing modul.
 | 03 | ✅ | ✅ read/write 100 % | 2 × ESP32-H2 | — |
 | 04 | ✅ | ✅ 24/24 notify | 2 × ESP32-H2 | — |
 | 05 | ✅ | ✅ 2 koneksi simultan | 3 × ESP32-H2 | laju A 30/mnt, B 20/mnt |
+| 05B | ✅ | ✅ 8/8 kejadian + reconnect | 3 × ESP32-H2 | pulih 4,6 s (cepat) / 28,3 s (via scan ulang); kedip LED belum diverifikasi |
 | 06 | ✅ | ✅ relay A→B→C 9/9 | 3 × ESP32-H2 | — |
 | 07 | ✅ | ✅ 12/12 PING–PONG | 2 × ESP32-H2 | perlu 3 perbaikan kode (lihat di bawah) |
 | 08 | ✅ | ✅ 13/13 perintah | 2 × ESP32-H2 | erase NVS sebelum flash |

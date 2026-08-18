@@ -141,6 +141,7 @@ Setelah menyelesaikan seluruh modul, praktikan mampu:
 | 04 | `week04_ble_telemetry` | Stream Telemetry | server → client (notify) | ESP32-H2 | Intermediate |
 | 05 | `week05_ble_multinode` | Connect Multiple Devices | 1 pusat ↔ beberapa node | ESP32-H2 | Intermediate |
 | 05B | `week05b_ble_multinode_project` | Build a Smart Sensor System | 2 sensor bukaan ↔ 1 hub | ESP32-H2 | Intermediate |
+| 05C | `week05c_ble_pager` | Notify One Device, Not All | 1 controller ↔ N pager | ESP32-H2 | Intermediate |
 | 06 | `week06_ble_mesh` | Build a BLE Mesh | relay H2 ↔ H2 ↔ H2 | ESP32-H2 | Intermediate |
 | 07 | `week07_802154_p2p` | Speak Raw 802.15.4 | raw frame H2 ↔ H2 | ESP32-H2 | Intermediate |
 | 08 | `week08_zigbee_p2p` | Join a Zigbee Network | Coordinator ↔ End Device | ESP32-H2 | Advanced |
@@ -154,6 +155,11 @@ Setelah menyelesaikan seluruh modul, praktikan mampu:
 | 16 | `week16_comparative` | Prove Your Protocol | BLE/Zigbee/Thread → MQTT | H2 + C6 | Project |
 
 > **MODUL 00A dan 00B adalah warm-up** yang dikerjakan sebelum M01. Keduanya tidak memuat protokol komunikasi; fungsinya memastikan toolchain, board, dan rantai build–flash–monitor sudah terbukti bekerja, sehingga kegagalan pada modul komunikasi tidak lagi bercampur dengan masalah dasar.
+
+> **MODUL 05C adalah mini project** yang melanjutkan M05 dari arah sebaliknya:
+> pusat mengirim perintah ke **satu** node terpilih (sistem pager restoran).
+> Titik ajarnya adalah bahwa pengiriman terarah pada BLE bukan broadcast,
+> melainkan penulisan ke satu objek koneksi tertentu.
 
 > **MODUL 05B adalah mini project**, bukan modul inti — 16 modul utama tetap 01–16. Isinya menerapkan topologi bintang M05 pada kasus nyata: dua smart sensor bukaan (jendela dan pintu, tombol BOOT sebagai proximity switch simulasi) melapor ke satu hub. Di sinilah trafik berubah dari periodik menjadi *event-driven*.
 
@@ -176,6 +182,7 @@ Modul 02–16 sudah dikompilasi **dan** dijalankan di perangkat nyata (2 × ESP3
 | 04 | ✅ | ✅ 24/24 notify | 2 × ESP32-H2 | — |
 | 05 | ✅ | ✅ 2 koneksi simultan | 3 × ESP32-H2 | laju A 30/mnt, B 20/mnt |
 | 05B | ✅ | ✅ 8/8 kejadian + reconnect | 3 × ESP32-H2 | pulih 4,6 s (cepat) / 28,3 s (via scan ulang); kedip LED belum diverifikasi |
+| 05C | ✅ | ✅ panggilan terarah + ACK | 4 × ESP32-H2 | 0 baris bocor ke pager lain; **batas 2 koneksi serentak** ditemukan di sini; buzzer belum diuji akustik |
 | 06 | ✅ | ✅ relay A→B→C 9/9 | 3 × ESP32-H2 | — |
 | 07 | ✅ | ✅ 12/12 PING–PONG | 2 × ESP32-H2 | perlu 3 perbaikan kode (lihat di bawah) |
 | 08 | ✅ | ✅ 13/13 perintah | 2 × ESP32-H2 | erase NVS sebelum flash |
@@ -192,6 +199,7 @@ Modul 02–16 sudah dikompilasi **dan** dijalankan di perangkat nyata (2 × ESP3
 
 | Modul | Masalah di perangkat nyata | Perbaikan |
 |---|---|---|
+| 05C | Controller reboot saat koneksi BLE ketiga (`npl_freertos_callout_init`) | Controller ESP32-H2 hanya mencadangkan memori 2 koneksi dan tidak bisa dinaikkan lewat build flag; koneksi dibuka saat memanggil lalu dilepas setelah ACK |
 | 07 | Node2 tidak pernah menerima frame | `esp_ieee802154_receive()` dipanggil di `setup()` |
 | 07 | Payload sesekali berisi sampah RAM | buffer TX dijadikan `static` (transmit bersifat asinkron) |
 | 07 | Panjang frame salah | byte `Len` kini menghitung 2 byte FCS |

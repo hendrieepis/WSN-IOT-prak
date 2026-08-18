@@ -21,10 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-BLE adalah stack berlapis. Modul ini adalah lapisan paling bawah: tautan radio
-itu sendiri — belum ada payload aplikasi. Modul-modul berikutnya menumpuk di
-atas tautan yang dibangun di sini, sehingga modul ini perlu dikerjakan sampai
-benar-benar solid sebelum melangkah lebih jauh.
+BLE adalah stack berlapis. Modul ini adalah lapisan paling bawah: tautan radio itu sendiri — belum ada payload aplikasi. Modul-modul berikutnya menumpuk di atas tautan yang dibangun di sini, sehingga modul ini perlu dikerjakan sampai benar-benar solid sebelum melangkah lebih jauh.
 
 | | Cakupan |
 |---|---|
@@ -43,10 +40,7 @@ benar-benar solid sebelum melangkah lebih jauh.
 | 05 | Skala lebih dari dua node (menuju ranah WSN) |
 | 06 | Relay A→B→C — jangkauan diperluas lewat hop |
 
-**Kontrak data lab ini.** Modul ini belum mengirim payload, tetapi sudah
-menetapkan dua hal yang dipakai seterusnya: **Service UUID**
-`4fafc201-1fb5-459e-8fcc-c5c9c331914b` (dipakai ulang M02–M06 dan M16) dan
-**Serial Monitor sebagai instrumen ukur**, bukan sekadar tempat log.
+**Kontrak data lab ini.** Modul ini belum mengirim payload, tetapi sudah menetapkan dua hal yang dipakai seterusnya: **Service UUID** `4fafc201-1fb5-459e-8fcc-c5c9c331914b` (dipakai ulang M02–M06 dan M16) dan **Serial Monitor sebagai instrumen ukur**, bukan sekadar tempat log.
 
 ## 3 · Capaian Pembelajaran
 
@@ -67,9 +61,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori di sini dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(mengapa BLE hemat daya, detail lapisan protokol) ada di buku teori terpisah —
-panduan ini fokus pada "bagaimana".*
+Teori di sini dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (mengapa BLE hemat daya, detail lapisan protokol) ada di buku teori terpisah — panduan ini fokus pada "bagaimana".*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -82,17 +74,9 @@ panduan ini fokus pada "bagaimana".*
 | GATT / Service | Struktur data di atas koneksi; modul ini membuat service **tanpa** characteristic. |
 | RSSI | Kuat sinyal terima (dBm); makin mendekati 0 makin kuat — −50 lebih kuat dari −90. |
 
-**Mengapa ESP32-H2?** H2 mendukung BLE 5 dan 802.15.4 (Thread/Zigbee), tetapi
-tidak punya Wi-Fi maupun Bluetooth Classic. Jadi seluruh komunikasi di seri lab
-ini murni BLE (dan 802.15.4 di modul lanjutan) — bukan kebetulan, tapi pilihan
-board yang menegaskan fokus lab.
+**Mengapa ESP32-H2?** H2 mendukung BLE 5 dan 802.15.4 (Thread/Zigbee), tetapi tidak punya Wi-Fi maupun Bluetooth Classic. Jadi seluruh komunikasi di seri lab ini murni BLE (dan 802.15.4 di modul lanjutan) — bukan kebetulan, tapi pilihan board yang menegaskan fokus lab.
 
-**Mengapa output modul ini sedikit?** Service pada Node1 sengaja dibuat tanpa
-characteristic — tidak ada data aplikasi yang dikirim. Setelah banner boot dan
-pesan koneksi, kedua node hanya mencetak satu baris heartbeat tiap 5 detik.
-Itu bukan tanda program berhenti; itu memang bentuk keberhasilan Modul 01.
-Karena heartbeat dicetak dari status **lokal** masing-masing node, bukti tautan
-dua arah baru diperoleh di EXP-03.
+**Mengapa output modul ini sedikit?** Service pada Node1 sengaja dibuat tanpa characteristic — tidak ada data aplikasi yang dikirim. Setelah banner boot dan pesan koneksi, kedua node hanya mencetak satu baris heartbeat tiap 5 detik. Itu bukan tanda program berhenti; itu memang bentuk keberhasilan Modul 01. Karena heartbeat dicetak dari status **lokal** masing-masing node, bukti tautan dua arah baru diperoleh di EXP-03.
 
 **Sekuens protokol yang diamati**
 
@@ -139,9 +123,7 @@ Service UUID kedua node: `4fafc201-1fb5-459e-8fcc-c5c9c331914b`
 
 **platformio.ini — kunci agar dua board tidak salah flash**
 
-Dengan dua ESP32-H2 tercolok bersamaan, auto-detect port bisa mengirim firmware
-`node1` ke board yang dimaksudkan sebagai `node2`. Pin port tiap environment, dan
-pakai `build_src_filter` untuk memilih source per node:
+Dengan dua ESP32-H2 terpasang bersamaan, auto-detect port bisa mengirim firmware `node1` ke board yang dimaksudkan sebagai `node2`. Pin port tiap environment, dan gunakan `build_src_filter` untuk memilih source per node:
 
 ```ini
 [env]
@@ -181,8 +163,7 @@ pio run -d week01_ble_p2p -e node2 -t upload -t monitor
 
 ### EXP-01 — Advertising & Scanning
 
-Node1 advertise sebagai `NODE1_H2` membawa Service UUID. Node2 melakukan active
-scan 5 detik dan mencetak hasil temuan beserta RSSI.
+Node1 advertise sebagai `NODE1_H2` membawa Service UUID. Node2 melakukan active scan 5 detik dan mencetak hasil temuan beserta RSSI.
 
 ```
 Node1: [ADV] "NODE1_H2" + SERVICE_UUID
@@ -201,20 +182,13 @@ Node2: Scan 5 detik ──► onResult() ──► nama cocok? ──► stop sc
 | Waktu scanning (detik) | |
 | MAC address Node1 (jika ada) | |
 
-**Buka abstraksinya** — sebelum lanjut, scan `NODE1_H2` pakai nRF Connect dan
-amati isi paket advertising: Device Name, Service UUID, dan flags. Cocokkan tiap
-field dengan baris di `src/node1/main.cpp` — baris kode mana yang menyetel
-masing-masing? Ini menghubungkan API NimBLE dengan byte yang benar-benar
-mengudara.
+**Buka abstraksinya** — sebelum lanjut, pindai `NODE1_H2` menggunakan nRF Connect dan amati isi paket advertising: Device Name, Service UUID, dan flags. Cocokkan tiap field dengan baris di `src/node1/main.cpp` — baris kode mana yang menyetel masing-masing? Ini menghubungkan API NimBLE dengan byte yang benar-benar mengudara.
 
-> **CHECKPOINT** — Node2 mencetak `Node1 ditemukan` dan sebuah nilai RSSI. Jika
-> tidak: pastikan board `node1` menyala dan filter nama di `ScanCallbacks`
-> Node2 benar.
+> **CHECKPOINT** — Node2 mencetak `Node1 ditemukan` dan sebuah nilai RSSI. Jika tidak: pastikan board `node1` menyala dan filter nama di `ScanCallbacks` Node2 benar.
 
 ### EXP-02 — Pembentukan Tautan
 
-Setelah Node1 ditemukan, Node2 menjalankan alur koneksi. Verifikasi tiap tahap
-di Serial Monitor kedua node.
+Setelah Node1 ditemukan, Node2 menjalankan alur koneksi. Verifikasi tiap tahap di Serial Monitor kedua node.
 
 ```
 Scan ──► Node1 ditemukan ──► Connect ──► Service check ──► Connected
@@ -240,13 +214,11 @@ Koneksi berhasil
 Status: H2 <-> H2 terhubung | RSSI: -57 dBm
 ```
 
-> **CHECKPOINT** — Kedua node mencetak baris `Status: ... terhubung` berulang
-> tiap 5 detik, dan baris Node2 menyertakan nilai RSSI.
+> **CHECKPOINT** — Kedua node mencetak baris `Status: ... terhubung` berulang tiap 5 detik, dan baris Node2 menyertakan nilai RSSI.
 
 ### EXP-03 — Ketahanan Tautan
 
-Modul ini belum mempertukarkan payload aplikasi. Uji ketahanan tautan dan amati
-perilaku dua arahnya:
+Modul ini belum mempertukarkan payload aplikasi. Uji ketahanan tautan dan amati perilaku dua arahnya:
 
 1. **Reset Node1** — Node2 mencetak `Terputus dari Node1` setelah supervision timeout (± 2–3 detik), lalu berhenti mencetak status. Node1 hanya mencetak banner boot-nya, bukan `Node2 terputus`, karena baru restart.
 2. **Reset Node2** — Node1 mencetak `Node2 terputus, mulai advertise ulang`, lalu `Node2 terhubung` saat Node2 selesai boot & scan lagi. Ini satu-satunya skenario yang memicu `onDisconnect` di Node1.
@@ -262,13 +234,11 @@ perilaku dua arahnya:
 | Pesan saat disconnect pada Node2 | |
 | Interval cetak status (ms) | |
 
-> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa reset Node1 dan reset Node2
-> memicu pesan yang berbeda — itu bukti tautan diamati dari dua sisi.
+> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa reset Node1 dan reset Node2 memicu pesan yang berbeda — itu bukti tautan diamati dari dua sisi.
 
 ## 8 · Pengukuran
 
-RSSI dibaca dari log Node2 sendiri, bukan aplikasi luar. Tambahkan cetak RSSI
-koneksi pada heartbeat Node2:
+RSSI dibaca dari log Node2 sendiri, bukan aplikasi luar. Tambahkan cetak RSSI koneksi pada heartbeat Node2:
 
 ```cpp
 // Node2 - loop(), cetak tiap 5000 ms saat terhubung
@@ -278,8 +248,7 @@ if (pClient && pClient->isConnected()) {
 }
 ```
 
-nRF Connect boleh dipakai sebagai cross-check opsional. Gunakan referensi
-berikut untuk menilai kualitas tautan:
+nRF Connect boleh dipakai sebagai cross-check opsional. Gunakan referensi berikut untuk menilai kualitas tautan:
 
 | RSSI (dBm) | Interpretasi |
 |---|---|
@@ -298,8 +267,7 @@ Ukur pada beberapa jarak (isi dari Serial Monitor Node2):
 | 10 m | | | |
 | 15 m | | | |
 
-Metrik turunan: latency rata-rata scan→connected, dan ambang RSSI saat koneksi
-mulai gagal.
+Metrik turunan: latency rata-rata scan→connected, dan ambang RSSI saat koneksi mulai gagal.
 
 ## 9 · Analisis
 
@@ -327,9 +295,9 @@ Modifikasi kode, bukan sekadar menjelaskan hasil:
 
 - **CH-2** — Tambahkan LED pada Node1 yang menyala saat ada Central terhubung.
 
-- **CH-3** — Ukur waktu dari Node2 start sampai `Koneksi berhasil` pakai `millis()`, 5 percobaan, hitung rata-rata.
+- **CH-3** — Ukur waktu dari Node2 start sampai `Koneksi berhasil` menggunakan `millis()`, 5 percobaan, hitung rata-rata.
 
-- **CH-4** — Buat Node2 nge-scan ulang otomatis saat `onDisconnect` agar tautan self-healing (fondasi robustness untuk M04/M05):
+- **CH-4** — Buat Node2 melakukan scan ulang otomatis saat `onDisconnect` agar tautan self-healing (fondasi robustness untuk M04/M05):
 
   ```cpp
   // CH-4 - di ClientCallbacks::onDisconnect(), picu scan ulang

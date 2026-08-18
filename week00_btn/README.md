@@ -21,11 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-M00A membuktikan jalur **keluaran** bekerja. Modul ini melengkapinya dengan
-jalur **masukan**, sehingga board memiliki dua unsur minimal sebuah simpul
-sensor: sesuatu yang dibaca dari lingkungan, dan sesuatu yang ditampilkan
-sebagai tanggapan. Keduanya dipakai kembali secara langsung pada M05B, ketika
-tombol yang sama berperan sebagai simulasi *proximity switch*.
+M00A membuktikan jalur **keluaran** bekerja. Modul ini melengkapinya dengan jalur **masukan**, sehingga board memiliki dua unsur minimal sebuah simpul sensor: sesuatu yang dibaca dari lingkungan, dan sesuatu yang ditampilkan sebagai tanggapan. Keduanya dipakai kembali secara langsung pada M05B, ketika tombol yang sama berperan sebagai simulasi *proximity switch*.
 
 | | Cakupan |
 |---|---|
@@ -59,11 +55,7 @@ Setelah menyelesaikan modul ini, praktikan mampu:
 | Bounce | Pantulan kontak mekanis selama beberapa milidetik saat tombol ditekan; tanpa penyaringan, satu penekanan terbaca sebagai banyak kejadian. |
 | Strapping pin | Pin yang keadaannya dibaca chip **pada saat reset** untuk menentukan mode boot. GPIO9 termasuk di dalamnya. |
 
-**Mengapa pencetakan dibatasi pada perubahan keadaan?** `loop()` berjalan
-ribuan kali per detik. Mencetak pada setiap iterasi akan membanjiri Serial
-Monitor dan menyembunyikan informasi yang justru dicari, yaitu **kapan**
-keadaan berubah. Pola "cetak hanya saat berubah" ini dipakai kembali pada
-seluruh modul komunikasi.
+**Mengapa pencetakan dibatasi pada perubahan keadaan?** `loop()` berjalan ribuan kali per detik. Mencetak pada setiap iterasi akan membanjiri Serial Monitor dan menyembunyikan informasi yang justru dicari, yaitu **kapan** keadaan berubah. Pola "cetak hanya saat berubah" ini dipakai kembali pada seluruh modul komunikasi.
 
 ## 5 · Perangkat & Pin
 
@@ -96,17 +88,13 @@ pio run -d week00_btn -e node -t upload
 pio device monitor -e node
 ```
 
-> **Peringatan operasional** — GPIO9 juga merupakan *strapping pin* mode
-> download. Menahan tombol **pada saat board direset** akan membuat board masuk
-> mode flash dan program tidak berjalan. Tombol hanya ditekan setelah firmware
-> berjalan.
+> **Peringatan operasional** — GPIO9 juga merupakan *strapping pin* mode download. Menahan tombol **pada saat board direset** akan membuat board masuk mode flash dan program tidak berjalan. Tombol hanya ditekan setelah firmware berjalan.
 
 ## 7 · Percobaan
 
 ### EXP-01 — Input Mengendalikan Output
 
-Unggah firmware, buka Serial Monitor, lalu tekan dan lepas tombol BOOT
-beberapa kali.
+Unggah firmware, buka Serial Monitor, lalu tekan dan lepas tombol BOOT beberapa kali.
 
 **Expected output**
 
@@ -125,14 +113,11 @@ Tombol DILEPAS  -> LED mati
 | Jumlah baris Serial untuk satu kali tekan-lepas | |
 | Apakah LED padam tepat saat tombol dilepas? | |
 
-> **CHECKPOINT** — Satu kali tekan-lepas menghasilkan **tepat dua** baris.
-> Munculnya baris berlipat menandakan *bounce* belum teredam; catat gejalanya,
-> karena hal itu menjadi bahan CH-3.
+> **CHECKPOINT** — Satu kali tekan-lepas menghasilkan **tepat dua** baris. Munculnya baris berlipat menandakan *bounce* belum teredam; catat gejalanya, karena hal itu menjadi bahan CH-3.
 
 ### EXP-02 — GPIO9 sebagai Strapping Pin
 
-Tahan tombol BOOT, tekan tombol RESET, lalu lepaskan keduanya. Amati Serial
-Monitor.
+Tahan tombol BOOT, tekan tombol RESET, lalu lepaskan keduanya. Amati Serial Monitor.
 
 **Data capture**
 
@@ -142,9 +127,7 @@ Monitor.
 | Apakah program aplikasi berjalan? | |
 | Cara mengembalikan board ke mode normal | |
 
-> **CHECKPOINT** — Board masuk mode download dan pesan startup **tidak**
-> muncul. Pengamatan ini menjelaskan mengapa satu pin dapat memiliki dua peran
-> berbeda, bergantung pada waktu pembacaannya.
+> **CHECKPOINT** — Board masuk mode download dan pesan startup **tidak** muncul. Pengamatan ini menjelaskan mengapa satu pin dapat memiliki dua peran berbeda, bergantung pada waktu pembacaannya.
 
 ## 8 · Analisis
 

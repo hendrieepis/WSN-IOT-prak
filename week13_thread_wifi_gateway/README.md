@@ -21,11 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-Sampai M12 data tidak pernah keluar dari jaringan 802.15.4. Modul ini adalah
-**titik keluar**: ESP32-C6 menjalankan dua stack sekaligus dan meneruskan
-payload apa adanya ke server HTTP. Ini juga modul pertama yang benar-benar
-membutuhkan **dua jenis board** — sebuah batasan perangkat keras, bukan
-firmware.
+Sampai M12 data tidak pernah keluar dari jaringan 802.15.4. Modul ini adalah **titik keluar**: ESP32-C6 menjalankan dua stack sekaligus dan meneruskan payload apa adanya ke server HTTP. Ini juga modul pertama yang benar-benar membutuhkan **dua jenis board** — sebuah batasan perangkat keras, bukan firmware.
 
 | | Cakupan |
 |---|---|
@@ -42,10 +38,7 @@ firmware.
 | 14 | Sisi IP diperdalam: MQTT publish/subscribe di C6 |
 | 15 | M12 + M13 + M14 digabung: sensor → Thread → C6 → MQTT → dashboard |
 
-**Kontrak data lab ini.** Payload `suhu:XX.X` diteruskan **tanpa diubah** dari
-Thread ke HTTP; gateway hanya membungkusnya dalam JSON. Prinsip ini
-(*transparent forwarding*, sama seperti relay M06) membuat M15 bisa mengganti
-HTTP dengan MQTT tanpa menyentuh firmware node sensor sama sekali.
+**Kontrak data lab ini.** Payload `suhu:XX.X` diteruskan **tanpa diubah** dari Thread ke HTTP; gateway hanya membungkusnya dalam JSON. Prinsip ini (*transparent forwarding*, sama seperti relay M06) membuat M15 bisa mengganti HTTP dengan MQTT tanpa menyentuh firmware node sensor sama sekali.
 
 ## 3 · Capaian Pembelajaran
 
@@ -65,9 +58,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(Thread Border Router penuh, SRP/DNS-SD, NAT64, koeksistensi radio) ada di buku
-teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (Thread Border Router penuh, SRP/DNS-SD, NAT64, koeksistensi radio) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -79,21 +70,14 @@ teori terpisah.*
 | HTTP POST | Pengiriman data ke server; payload dibungkus JSON `{"sensor":"h2","data":"..."}`. |
 | `huge_app.csv` | Tabel partisi besar; firmware Thread + Wi-Fi + HTTP melebihi partisi app default 1,25 MB. |
 
-**Mengapa H2 dan C6 wajib memakai prefix mesh-local yang sama.**
-`DataSet::initNew()` mengacak network key, ext PAN ID, dan **prefix mesh-local**
-di tiap board. Kedua firmware karena itu menimpa field-field tersebut dengan
-konstanta dan memaksa prefix lewat `otThreadSetMeshLocalPrefix()` sebelum
-`OThread.start()`:
+**Mengapa H2 dan C6 wajib memakai prefix mesh-local yang sama.** `DataSet::initNew()` mengacak network key, ext PAN ID, dan **prefix mesh-local** di tiap board. Kedua firmware karena itu menimpa field-field tersebut dengan konstanta dan memaksa prefix lewat `otThreadSetMeshLocalPrefix()` sebelum `OThread.start()`:
 
 ```cpp
 const uint8_t OT_ML_PREFIX[OT_MESH_LOCAL_PREFIX_SIZE] =
     {0xfd, 0xde, 0xad, 0x00, 0xbe, 0xef, 0x00, 0x00};   // fdde:ad00:beef::/64
 ```
 
-Tanpa itu H2 dan C6 tetap attach dan Serial Monitor keduanya tampak sehat,
-tetapi gateway tidak pernah mencetak satu pun baris `RX via Thread` — paket
-multicast `ff03::abcd` tidak diteruskan antar prefix mesh-local yang berbeda.
-Pemeriksaan cepat: awalan Mesh-Local EID kedua board harus sama persis.
+Tanpa itu H2 dan C6 tetap attach dan Serial Monitor keduanya tampak sehat, tetapi gateway tidak pernah mencetak satu pun baris `RX via Thread` — paket multicast `ff03::abcd` tidak diteruskan antar prefix mesh-local yang berbeda. Pemeriksaan cepat: awalan Mesh-Local EID kedua board harus sama persis.
 
 **Sekuens protokol yang diamati**
 
@@ -123,13 +107,7 @@ Pemeriksaan cepat: awalan Mesh-Local EID kedua board harus sama persis.
 | Node sensor | **ESP32-H2** DevKitM-1 | `h2_node` | Thread node (Child) | TX `suhu:XX.X` multicast tiap 3 s |
 | Gateway | **ESP32-C6** DevKitC-1 | `c6_gateway` | Thread Leader + Wi-Fi STA | RX Thread → HTTP POST |
 
-**Inilah modul pertama yang benar-benar butuh dua jenis board.** ESP32-H2 punya
-radio 802.15.4 tetapi **tidak punya Wi-Fi**; ESP32-C6 punya keduanya, sehingga
-hanya C6 yang bisa memegang kaki Thread dan kaki Wi-Fi sekaligus. Menukar peran
-(H2 sebagai gateway) tidak mungkin — bukan soal firmware, tetapi soal radio yang
-tersedia di chip. Karena itu `platformio.ini` modul ini memakai `board` berbeda
-per environment (`esp32-h2-devkitm-1` vs `esp32-c6-devkitc-1`), tidak seperti
-Modul 01–12 yang seragam ESP32-H2.
+**Inilah modul pertama yang benar-benar butuh dua jenis board.** ESP32-H2 punya radio 802.15.4 tetapi **tidak punya Wi-Fi**; ESP32-C6 punya keduanya, sehingga hanya C6 yang bisa memegang kaki Thread dan kaki Wi-Fi sekaligus. Menukar peran (H2 sebagai gateway) tidak mungkin — bukan soal firmware, tetapi soal radio yang tersedia di chip. Karena itu `platformio.ini` modul ini memakai `board` berbeda per environment (`esp32-h2-devkitm-1` vs `esp32-c6-devkitc-1`), tidak seperti Modul 01–12 yang seragam ESP32-H2.
 
 ## 6 · Persiapan
 
@@ -156,11 +134,7 @@ Modul 01–12 yang seragam ESP32-H2.
 
 **Server HTTP lokal — `http_sink.py`**
 
-Bila `httpbin.org` terblokir (gejala di Serial Monitor: `HTTP -1`), pakai server
-HTTP lokal yang sudah disertakan di folder modul ini (`http_sink.py`). Server ini
-mendengarkan POST di `0.0.0.0:8080`, mencetak tiap POST yang masuk dengan
-timestamp, lalu membalas HTTP 200 + JSON — berfungsi sebagai pengganti
-`httpbin.org` sekaligus bukti bahwa hop Wi-Fi/HTTP benar-benar sampai.
+Bila `httpbin.org` terblokir (gejala di Serial Monitor: `HTTP -1`), gunakan server HTTP lokal yang sudah disertakan di folder modul ini (`http_sink.py`). Server ini mendengarkan POST di `0.0.0.0:8080`, mencetak tiap POST yang masuk dengan timestamp, lalu membalas HTTP 200 + JSON — berfungsi sebagai pengganti `httpbin.org` sekaligus bukti bahwa hop Wi-Fi/HTTP benar-benar sampai.
 
 ```bash
 # 1. cari IP laptop di Wi-Fi yang sama dengan board
@@ -183,10 +157,7 @@ Output contoh (setiap POST yang sampai):
 [ 480.308] #1    POST /post from 192.168.1.39  ->  {"sensor":"h2","data":"suhu:23.1"}
 ```
 
-Catatan: karena hop Wi-Fi/HTTP di gateway dwi-radio ini paling rapuh (koeksistensi
-Thread + Wi-Fi), sebagian besar POST bisa tercetak `HTTP -1` di Serial Monitor
-sedangkan server tidak menerima apa pun. Tugas pada modul ini menghitung berapa `RX via Thread`
-yang berhasil sampai ke server (lihat Bagian 8).
+Catatan: karena hop Wi-Fi/HTTP di gateway dwi-radio ini paling rapuh (koeksistensi Thread + Wi-Fi), sebagian besar POST bisa tercetak `HTTP -1` di Serial Monitor sedangkan server tidak menerima apa pun. Tugas pada modul ini menghitung berapa `RX via Thread` yang berhasil sampai ke server (lihat Bagian 8).
 
 **platformio.ini — dua board berbeda dalam satu proyek**
 
@@ -224,9 +195,7 @@ pio run -d week13_thread_wifi_gateway -e h2_node    -t upload
 
 ### EXP-01 — Menyalakan Jaringan Thread
 
-Deploy firmware `h2_node` ke ESP32-H2 dan `c6_gateway` ke ESP32-C6. Kedua board
-memakai dataset Thread identik. Gateway menjadi Leader, node menunggu hingga
-role mencapai Child.
+Deploy firmware `h2_node` ke ESP32-H2 dan `c6_gateway` ke ESP32-C6. Kedua board memakai dataset Thread identik. Gateway menjadi Leader, node menunggu hingga role mencapai Child.
 
 ```
 +--------+   dataset sama: ESP_OT_GW / ch15 / 0xABCD   +----------+
@@ -246,22 +215,18 @@ role mencapai Child.
 | Awalan Mesh-Local EID H2 dan C6 sama? | … (harus `fdde:ad00:beef:0:`) |
 | Waktu hingga attach (± detik) | |
 
-> **CHECKPOINT** — Kedua board mencetak `Attached as: ...` **dan** awalan EID
-> keduanya sama. Jika berbeda, gateway tidak akan pernah menerima apa pun
-> meski keduanya tampak "terhubung" — perbaiki dulu.
+> **CHECKPOINT** — Kedua board mencetak `Attached as: ...` **dan** awalan EID keduanya sama. Jika berbeda, gateway tidak akan pernah menerima apa pun meski keduanya tampak "terhubung" — perbaiki dulu.
 
 ### EXP-02 — Telemetri lewat Thread
 
-Setelah attach, H2 mengirim `suhu:XX.X` ke grup multicast tiap 3 detik. Amati
-pasangan TX/RX pada kedua Serial Monitor.
+Setelah attach, H2 mengirim `suhu:XX.X` ke grup multicast tiap 3 detik. Amati pasangan TX/RX pada kedua Serial Monitor.
 
 ```
 [H2 loop] ──tiap 3 s──► OtUdp.beginPacket(GROUP,5050) ──► "TX via Thread: suhu:25.3"
 [C6 loop] ────────────► OtUdp.parsePacket()           ──► "RX via Thread [<EID sumber>]: suhu:25.3"
 ```
 
-Catatan: alamat yang tercetak gateway adalah `OtUdp.remoteIP()` — mesh-local EID
-**node pengirim** (`fdde:ad00:...`), bukan alamat grup `ff03::abcd` yang dituju.
+Catatan: alamat yang tercetak gateway adalah `OtUdp.remoteIP()` — mesh-local EID **node pengirim** (`fdde:ad00:...`), bukan alamat grup `ff03::abcd` yang dituju.
 
 **Expected output — H2**
 
@@ -284,30 +249,18 @@ Gateway siap (Thread -> Wi-Fi).
 RX via Thread [fdde:ad00:beef:0:xxxx:xxxx:xxxx:xxxx]: suhu:25.4
 ```
 
-**Buka abstraksinya** — perhatikan urutan di `setup()` gateway: `OThread.begin()`
-dulu, lalu Wi-Fi, baru `OThread.start()`. Coba dua variasi, flash, dan catat
-gejalanya masing-masing:
+**Buka abstraksinya** — perhatikan urutan di `setup()` gateway: `OThread.begin()` dulu, lalu Wi-Fi, baru `OThread.start()`. Coba dua variasi, flash, dan catat gejalanya masing-masing:
 
-1. Pindahkan blok Wi-Fi ke paling atas → board **panic**
-   (`Failed to create OpentThread event loop` → `assert failed: otTaskletsSignalPending`).
-2. Pindahkan blok Wi-Fi ke bawah `OThread.start()` → board hidup, tetapi Wi-Fi
-   **tidak pernah** asosiasi (`status=6` terus).
+1. Pindahkan blok Wi-Fi ke paling atas → board **panic** (`Failed to create OpentThread event loop` → `assert failed: otTaskletsSignalPending`).
+2. Pindahkan blok Wi-Fi ke bawah `OThread.start()` → board hidup, tetapi Wi-Fi **tidak pernah** asosiasi (`status=6` terus).
 
-Telusuri sebab (1) hingga menemukan `esp_event_loop_create_default()`: siapa yang
-membuatnya lebih dulu, dan mengapa satu stack menerima kondisi "sudah ada"
-sedangkan yang lain menganggapnya fatal? Untuk (2), kaitkan dengan *radio
-coexistence*: kedua radio berbagi satu antena 2,4 GHz.
+Telusuri sebab (1) hingga menemukan `esp_event_loop_create_default()`: siapa yang membuatnya lebih dulu, dan mengapa satu stack menerima kondisi "sudah ada" sedangkan yang lain menganggapnya fatal? Untuk (2), kaitkan dengan *radio coexistence*: kedua radio berbagi satu antena 2,4 GHz.
 
-> **CHECKPOINT** — Jumlah baris `TX via Thread` di H2 dan `RX via Thread` di C6
-> harus sama dalam periode pengamatan yang sama. Selisihnya adalah loss hop
-> Thread — catat, jangan diabaikan.
+> **CHECKPOINT** — Jumlah baris `TX via Thread` di H2 dan `RX via Thread` di C6 harus sama dalam periode pengamatan yang sama. Selisihnya adalah loss hop Thread — catat, jangan diabaikan.
 
 ### EXP-03 — Penerusan ke Wi-Fi (HTTP POST)
 
-Setiap pesan yang diterima diteruskan gateway ke `SERVER_URL` sebagai JSON
-`{"sensor":"h2","data":"suhu:XX.X"}` dengan header
-`Content-Type: application/json`. Verifikasi kode respons HTTP (200 = sukses).
-Biarkan sistem berjalan 2–3 menit.
+Setiap pesan yang diterima diteruskan gateway ke `SERVER_URL` sebagai JSON `{"sensor":"h2","data":"suhu:XX.X"}` dengan header `Content-Type: application/json`. Verifikasi kode respons HTTP (200 = sukses). Biarkan sistem berjalan 2–3 menit.
 
 ```
 "RX via Thread" ──► forwardToWifi(buf) ──► HTTPClient ──► http.POST(JSON)
@@ -318,9 +271,7 @@ Biarkan sistem berjalan 2–3 menit.
 Forward via Wi-Fi -> http://httpbin.org/post | HTTP 200
 ```
 
-Variasi wajib: **matikan hotspot ± 15 detik** saat sistem berjalan. Amati baris
-`Wi-Fi terputus, skip forward` dan catat apakah data Thread yang datang selama
-itu hilang atau tertahan.
+Variasi wajib: **matikan hotspot ± 15 detik** saat sistem berjalan. Amati baris `Wi-Fi terputus, skip forward` dan catat apakah data Thread yang datang selama itu hilang atau tertahan.
 
 **Data capture**
 
@@ -333,10 +284,7 @@ itu hilang atau tertahan.
 | Paket Thread diterima vs di-POST (2 menit) | |
 | Nasib data saat Wi-Fi putus | |
 
-> **CHECKPOINT** — Tersedia **tiga** angka untuk periode yang sama: paket
-> dikirim H2, paket diterima C6, dan POST berhasil (HTTP 200). Selisih antar
-> ketiganya menunjukkan hop mana yang bermasalah — inilah yang membedakan
-> laporan yang bisa dipertanggungjawabkan dari sekadar "sistem berjalan".
+> **CHECKPOINT** — Tersedia **tiga** angka untuk periode yang sama: paket dikirim H2, paket diterima C6, dan POST berhasil (HTTP 200). Selisih antar ketiganya menunjukkan hop mana yang bermasalah — inilah yang membedakan laporan yang bisa dipertanggungjawabkan dari sekadar "sistem berjalan".
 
 ### Verifikasi hardware (log referensi)
 
@@ -361,10 +309,7 @@ Dijalankan pada **ESP32-H2 DevKitM-1** + **ESP32-C6 DevKitC-1** asli.
 | HTTP POST ke server | ⚠️ sampai di server, tetapi balasan sering timeout (`HTTP -11`) |
 | Penanganan Wi-Fi gagal | ✅ setup() lanjut, dicoba ulang berkala di `loop()` |
 
-**Koeksistensi Wi-Fi + 802.15.4 — syarat wajib yang ditemukan lewat uji.**
-Gateway ini menjalankan dua radio pada satu antena 2,4 GHz. Tanpa penanganan
-khusus, C6 tetap asosiasi Wi-Fi dan dapat IP yang benar, tetapi **seluruh TCP
-keluar gagal** — bahkan ke router sendiri:
+**Koeksistensi Wi-Fi + 802.15.4 — syarat wajib yang ditemukan lewat uji.** Gateway ini menjalankan dua radio pada satu antena 2,4 GHz. Tanpa penanganan khusus, C6 tetap asosiasi Wi-Fi dan dapat IP yang benar, tetapi **seluruh TCP keluar gagal** — bahkan ke router sendiri:
 
 ```
 diag: status=3 rssi=-82 ip=... gw=...
@@ -381,16 +326,9 @@ Dua hal yang menyelesaikannya, keduanya sudah ada di kode:
 esp_coex_preference_set(ESP_COEX_PREFER_WIFI);   // sebelum OThread.start()
 ```
 
-Setelah keduanya diterapkan, POST benar-benar sampai di server
-(`{"sensor":"h2","data":"suhu:22.9"}` tercatat di server penerima). Namun hop
-Wi-Fi tetap yang paling rapuh: **balasan** HTTP sering tidak kembali tepat
-waktu, tercetak sebagai `HTTP -11` (read timeout) walaupun datanya sudah
-diterima server. Karena itu `http.setConnectTimeout()`/`setTimeout()` dinaikkan
-ke 8 detik.
+Setelah keduanya diterapkan, POST benar-benar sampai di server (`{"sensor":"h2","data":"suhu:22.9"}` tercatat di server penerima). Namun hop Wi-Fi tetap yang paling rapuh: **balasan** HTTP sering tidak kembali tepat waktu, tercetak sebagai `HTTP -11` (read timeout) walaupun datanya sudah diterima server. Karena itu `http.setConnectTimeout()`/`setTimeout()` dinaikkan ke 8 detik.
 
-**Yang sudah dicoba dan tidak menyelesaikan:** mengganti channel 802.15.4
-(15 → 25), memakai AP di kanal Wi-Fi yang tidak bertetangga, `WiFi.setSleep()`
-kedua nilainya, dan memaksa default netif ke Wi-Fi STA.
+**Yang sudah dicoba dan tidak menyelesaikan:** mengganti channel 802.15.4 (15 → 25), memakai AP di kanal Wi-Fi yang tidak bertetangga, `WiFi.setSleep()` kedua nilainya, dan memaksa default netif ke Wi-Fi STA.
 
 **Cara membaca kegagalan HTTP:**
 
@@ -400,10 +338,7 @@ kedua nilainya, dan memaksa default netif ke Wi-Fi STA.
 | `-1` | koneksi TCP gagal terbentuk | periksa server terjangkau; bila server lokal, pastikan satu subnet |
 | `-11` | request terkirim, **balasan** timeout | perbesar `http.setTimeout()`; cek apakah data sudah masuk di sisi server |
 
-**Yang harus dilakukan praktikan:** catat RSSI Wi-Fi gateway, dan isi tabel loss
-per hop di Bagian 8 dengan membandingkan `RX via Thread`, kode HTTP, dan log di
-sisi server. Bila `RX via Thread` normal tetapi POST bocor, itu bukan kegagalan
-praktikum — itu justru data yang diminta Bagian 9 nomor 1.
+**Yang harus dilakukan praktikan:** catat RSSI Wi-Fi gateway, dan isi tabel loss per hop di Bagian 8 dengan membandingkan `RX via Thread`, kode HTTP, dan log di sisi server. Bila `RX via Thread` normal tetapi POST bocor, itu bukan kegagalan praktikum — itu justru data yang diminta Bagian 9 nomor 1.
 
 **Delapan perbaikan kode yang lahir dari uji ini**
 
@@ -427,8 +362,7 @@ praktikum — itu justru data yang diminta Bagian 9 nomor 1.
 4. OThread.networkInterfaceUp() + OThread.start()
 ```
 
-Membalik langkah 1 dan 3 membuat board **panic**; menaruh langkah 3 setelah
-langkah 4 membuat Wi-Fi **tidak pernah** asosiasi.
+Membalik langkah 1 dan 3 membuat board **panic**; menaruh langkah 3 setelah langkah 4 membuat Wi-Fi **tidak pernah** asosiasi.
 
 ## 8 · Pengukuran
 
@@ -438,11 +372,9 @@ langkah 4 membuat Wi-Fi **tidak pernah** asosiasi.
 | 5 m, garis pandang | | | |
 | 5 m + penghalang dinding | | | |
 
-Latency diukur manual: cap waktu baris `TX via Thread` pada H2 vs
-`Forward via Wi-Fi ... HTTP 200` pada C6.
+Latency diukur manual: cap waktu baris `TX via Thread` pada H2 vs `Forward via Wi-Fi ... HTTP 200` pada C6.
 
-**Tabel loss per hop — wajib.** Inilah yang membedakan modul ini dari sekadar
-demo:
+**Tabel loss per hop — wajib.** Inilah yang membedakan modul ini dari sekadar demo:
 
 | Hop | Dikirim | Diterima | Loss (%) |
 |---|---|---|---|

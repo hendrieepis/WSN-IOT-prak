@@ -21,12 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-M13 mengeluarkan data ke jaringan IP lewat HTTP POST — satu arah, satu tujuan
-tetap, satu koneksi per pesan. MQTT membalik modelnya: perangkat menempel pada
-**broker**, telemetri naik dan perintah turun lewat koneksi yang sama, dan
-tidak ada pihak yang perlu tahu alamat pihak lain. Modul ini sengaja **tanpa
-Thread** supaya sisi IP bisa dipelajari terpisah; keduanya baru disatukan di
-M15.
+M13 mengeluarkan data ke jaringan IP lewat HTTP POST — satu arah, satu tujuan tetap, satu koneksi per pesan. MQTT membalik modelnya: perangkat menempel pada **broker**, telemetri naik dan perintah turun lewat koneksi yang sama, dan tidak ada pihak yang perlu tahu alamat pihak lain. Modul ini sengaja **tanpa Thread** supaya sisi IP bisa dipelajari terpisah; keduanya baru disatukan di M15.
 
 | | Cakupan |
 |---|---|
@@ -43,12 +38,7 @@ M15.
 | 15 | M12 + M13 + M14 digabung: sensor → Thread → C6 → MQTT → dashboard |
 | 16 | Protokol sensor diganti-ganti, muara MQTT-nya tetap sama |
 
-**Kontrak data lab ini.** Topic dibagi dua: **`praktikum/h2/telemetri`** untuk
-data naik dan **`praktikum/h2/perintah`** untuk perintah turun. Pemisahan ini
-adalah kelanjutan langsung dari pola M03 (characteristic data vs characteristic
-perintah) dan M08 (cluster On/Off vs laporan status). Topic telemetri yang sama
-dipakai lagi di M15 dan M16 — itulah yang membuat data ketiga modul bisa
-dibandingkan.
+**Kontrak data lab ini.** Topic dibagi dua: **`praktikum/h2/telemetri`** untuk data naik dan **`praktikum/h2/perintah`** untuk perintah turun. Pemisahan ini adalah kelanjutan langsung dari pola M03 (characteristic data vs characteristic perintah) dan M08 (cluster On/Off vs laporan status). Topic telemetri yang sama dipakai lagi di M15 dan M16 — itulah yang membuat data ketiga modul bisa dibandingkan.
 
 ## 3 · Capaian Pembelajaran
 
@@ -68,9 +58,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(paket kontrol MQTT, session state, last will & testament, MQTT 5) ada di buku
-teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (paket kontrol MQTT, session state, last will & testament, MQTT 5) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -83,18 +71,9 @@ teori terpisah.*
 | Client ID | Identitas unik klien pada broker; dua klien dengan ID sama akan saling menendang. |
 | Keep alive & reconnect | Klien menjaga koneksi; kode ini otomatis reconnect Wi-Fi/MQTT bila terputus. |
 
-**Batasan PubSubClient yang wajib diketahui.** Library ini hanya melakukan
-**publish QoS 0**. Argumen ketiga `mqtt.publish(topic, payload, true)` adalah
-flag *retained*, **bukan** QoS. Artinya: setiap klaim tentang QoS 1/2 pada
-laporan harus berasal dari library lain (mis. `arduino-mqtt`,
-`AsyncMqttClient`), bukan dari percobaan ini. Menyebut "QoS 1" tanpa mengganti
-library adalah kesalahan yang sering muncul di laporan.
+**Batasan PubSubClient yang wajib diketahui.** Library ini hanya melakukan **publish QoS 0**. Argumen ketiga `mqtt.publish(topic, payload, true)` adalah flag *retained*, **bukan** QoS. Artinya: setiap klaim tentang QoS 1/2 pada laporan harus berasal dari library lain (mis. `arduino-mqtt`, `AsyncMqttClient`), bukan dari percobaan ini. Menyebut "QoS 1" tanpa mengganti library adalah kesalahan yang sering muncul di laporan.
 
-**Mengapa modul ini tanpa Thread?** Supaya kegagalan bisa dilokalisasi. Jika
-MQTT dan Thread dinyalakan bersamaan sejak awal (seperti M15), pesan yang tidak
-sampai bisa berasal dari mana saja. Di sini hanya ada satu hop — sehingga
-angka latency dan loss yang diperoleh adalah **milik MQTT saja**, dan dapat
-dikurangkan dari angka M15 nanti.
+**Mengapa modul ini tanpa Thread?** Supaya kegagalan bisa dilokalisasi. Jika MQTT dan Thread dinyalakan bersamaan sejak awal (seperti M15), pesan yang tidak sampai bisa berasal dari mana saja. Di sini hanya ada satu hop — sehingga angka latency dan loss yang diperoleh adalah **milik MQTT saja**, dan dapat dikurangkan dari angka M15 nanti.
 
 **Sekuens protokol yang diamati**
 
@@ -129,9 +108,7 @@ dikurangkan dari angka M15 nanti.
 | Broker | layanan publik | `test.mosquitto.org:1883` | routing berbasis topic |
 | Verifikator | PC/laptop | `mosquitto_sub` / `mosquitto_pub` | pembuktian independen dari sisi luar |
 
-**Mengapa ESP32-C6, bukan H2?** ESP32-H2 tidak punya radio Wi-Fi sama sekali,
-jadi ia tidak bisa menjadi klien MQTT. Modul ini hanya memakai kaki Wi-Fi C6 —
-radio 802.15.4-nya menganggur, dan baru dipakai bersamaan di M15.
+**Mengapa ESP32-C6, bukan H2?** ESP32-H2 tidak punya radio Wi-Fi sama sekali, jadi ia tidak bisa menjadi klien MQTT. Modul ini hanya memakai kaki Wi-Fi C6 — radio 802.15.4-nya menganggur, dan baru dipakai bersamaan di M15.
 
 ## 6 · Persiapan
 
@@ -180,9 +157,7 @@ pio run -d week14_mqtt -e node -t upload -t monitor
 
 ### EXP-01 — Koneksi Wi-Fi & Broker
 
-Deploy firmware `node` ke ESP32-C6. Node terhubung ke Wi-Fi (`reconnectWiFi`),
-lalu melakukan koneksi MQTT dengan client ID `esp32c6-praktikum` dan subscribe
-topic perintah.
+Deploy firmware `node` ke ESP32-C6. Node terhubung ke Wi-Fi (`reconnectWiFi`), lalu melakukan koneksi MQTT dengan client ID `esp32c6-praktikum` dan subscribe topic perintah.
 
 ```
 [C6] ──► WiFi.begin ──► IP didapat ──► mqtt.connect("esp32c6-praktikum")
@@ -200,16 +175,11 @@ topic perintah.
 | Topic yang di-subscribe | |
 | Waktu boot → `MQTT terhubung` (s) | |
 
-> **CHECKPOINT** — Serial Monitor mencetak `Wi-Fi OK, IP: ...` **lalu**
-> `MQTT terhubung`. Jika berhenti di titik-titik Wi-Fi, periksa apakah hotspot
-> 2,4 GHz (C6 tidak mendukung 5 GHz). Jika Wi-Fi OK tetapi MQTT gagal, catat
-> `rc=` yang tercetak — angka itu jawaban soal analisis.
+> **CHECKPOINT** — Serial Monitor mencetak `Wi-Fi OK, IP: ...` **lalu** `MQTT terhubung`. Jika berhenti di titik-titik Wi-Fi, periksa apakah hotspot 2,4 GHz (C6 tidak mendukung 5 GHz). Jika Wi-Fi OK tetapi MQTT gagal, catat `rc=` yang tercetak — angka itu jawaban soal analisis.
 
 ### EXP-02 — Publish Berkala
 
-Pada `loop()`, setiap 5 detik node membaca sensor (simulasi suhu 20–40 °C) dan
-melakukan `mqtt.publish(TOPIC_TELEM, "XX.X")`. Ukur interval publish aktual
-pada log.
+Pada `loop()`, setiap 5 detik node membaca sensor (simulasi suhu 20–40 °C) dan melakukan `mqtt.publish(TOPIC_TELEM, "XX.X")`. Ukur interval publish aktual pada log.
 
 ```
 loop() ──► millis()-last > 5000 ──► readSensor() ──► mqtt.publish
@@ -235,15 +205,9 @@ Verifikasi di PC:
 mosquitto_sub -h test.mosquitto.org -t "praktikum/h2/telemetri" -v
 ```
 
-**Buka abstraksinya** — jalankan subscriber dengan wildcard
-`mosquitto_sub -h test.mosquitto.org -t "praktikum/#" -v`. Data kelompok lain — bahkan
-data orang asing — mungkin ikut terlihat pada broker publik yang sama. Jelaskan
-dari sini: apa yang **tidak** dikerjakan broker, dan mengapa produksi nyata tidak
-pernah memakai broker publik tanpa autentikasi.
+**Buka abstraksinya** — jalankan subscriber dengan wildcard `mosquitto_sub -h test.mosquitto.org -t "praktikum/#" -v`. Data kelompok lain — bahkan data orang asing — mungkin ikut terlihat pada broker publik yang sama. Jelaskan dari sini: apa yang **tidak** dikerjakan broker, dan mengapa produksi nyata tidak pernah memakai broker publik tanpa autentikasi.
 
-> **CHECKPOINT** — Baris yang muncul di `mosquitto_sub` **sama persis** dengan
-> baris `TX MQTT` di Serial Monitor, termasuk nilainya. Jika Serial mencetak
-> tetapi subscriber diam, publish gagal di sisi jaringan — bukan di sisi kode.
+> **CHECKPOINT** — Baris yang muncul di `mosquitto_sub` **sama persis** dengan baris `TX MQTT` di Serial Monitor, termasuk nilainya. Jika Serial mencetak tetapi subscriber diam, publish gagal di sisi jaringan — bukan di sisi kode.
 
 ### EXP-03 — Perintah Turun & Pemulihan
 
@@ -275,15 +239,11 @@ Variasi wajib:
 | Return code saat gagal connect | |
 | Apakah subscription bertahan setelah reconnect? | |
 
-> **CHECKPOINT** — Setelah hotspot dinyalakan lagi, perintah baru **tetap**
-> sampai ke perangkat. Jika tidak, subscription hilang saat reconnect — temuan
-> penting, dan jawabannya ada di apakah `subscribe()` dipanggil ulang di dalam
-> fungsi reconnect.
+> **CHECKPOINT** — Setelah hotspot dinyalakan lagi, perintah baru **tetap** sampai ke perangkat. Jika tidak, subscription hilang saat reconnect — temuan penting, dan jawabannya ada di apakah `subscribe()` dipanggil ulang di dalam fungsi reconnect.
 
 ### Verifikasi hardware (log referensi)
 
-Dijalankan pada **ESP32-C6 DevKitC-1** asli dengan broker lokal
-(`tools/mqtt_broker.py`) karena `test.mosquitto.org:1883` diblokir jaringan uji.
+Dijalankan pada **ESP32-C6 DevKitC-1** asli dengan broker lokal (`tools/mqtt_broker.py`) karena `test.mosquitto.org:1883` diblokir jaringan uji.
 
 ```
 # ESP32-C6 (env node)                       # Broker (tools/mqtt_broker.py)
@@ -308,11 +268,7 @@ Dijalankan pada **ESP32-C6 DevKitC-1** asli dengan broker lokal
 | Perintah dikirim / memicu `onMessage()` | 3 / 3 (`LED_ON`, `LED_OFF`, `RESET`) |
 | Subscription bertahan setelah reboot board | ya, re-subscribe 0,2 s setelah connect |
 
-> **`test.mosquitto.org` sering tidak terjangkau dari jaringan kampus** (port
-> 1883 keluar diblokir). Gejalanya: `Gagal (rc=-2)` disertai
-> `hostByName(): DNS Failed` dan `Host is unreachable`. Solusinya ada di
-> `tools/README.md` — jalankan broker lokal dan arahkan `MQTT_BROKER` ke IP
-> laptop.
+> **`test.mosquitto.org` sering tidak terjangkau dari jaringan kampus** (port 1883 keluar diblokir). Gejalanya: `Gagal (rc=-2)` disertai `hostByName(): DNS Failed` dan `Host is unreachable`. Solusinya ada di `tools/README.md` — jalankan broker lokal dan arahkan `MQTT_BROKER` ke IP laptop.
 
 **Perbaikan kode yang lahir dari uji ini**
 
@@ -330,11 +286,9 @@ Dijalankan pada **ESP32-C6 DevKitC-1** asli dengan broker lokal
 | Jauh AP + dinding | 5 | 0 | | |
 | Interval 1 s (modifikasi) | 1 | 0 | | |
 
-Latency diukur dengan cap waktu log publish C6 versus kemunculan pesan pada
-`mosquitto_sub` (gunakan `mosquitto_sub -F '%t %p'` atau timestamp terminal).
+Latency diukur dengan cap waktu log publish C6 versus kemunculan pesan pada `mosquitto_sub` (gunakan `mosquitto_sub -F '%t %p'` atau timestamp terminal).
 
-**Tabel pembanding transport — wajib.** Isi kolom M13 dari data modul
-sebelumnya:
+**Tabel pembanding transport — wajib.** Isi kolom M13 dari data modul sebelumnya:
 
 | Aspek | HTTP POST (M13) | MQTT publish (M14) |
 |---|---|---|

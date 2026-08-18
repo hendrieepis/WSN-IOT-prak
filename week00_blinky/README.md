@@ -21,11 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-Modul ini tidak mengajarkan protokol apa pun. Fungsinya menutup satu sumber
-kebingungan yang berulang di laboratorium: ketika sebuah modul komunikasi
-gagal, penyebabnya bisa berada di protokol, di firmware, atau di rantai
-kerja paling dasar — toolchain, board, kabel, dan port. Dengan menuntaskan
-modul ini lebih dahulu, kemungkinan terakhir dapat dicoret sejak awal.
+Modul ini tidak mengajarkan protokol apa pun. Fungsinya menutup satu sumber kebingungan yang berulang di laboratorium: ketika sebuah modul komunikasi gagal, penyebabnya bisa berada di protokol, di firmware, atau di rantai kerja paling dasar — toolchain, board, kabel, dan port. Dengan menuntaskan modul ini lebih dahulu, kemungkinan terakhir dapat dicoret sejak awal.
 
 | | Cakupan |
 |---|---|
@@ -116,15 +112,11 @@ Blinky RGB WS2812 ESP32-H2-DEV-KIT-N4 dimulai
 | Pemakaian Flash / RAM dari ringkasan build | |
 | Periode kedip terukur (s) | |
 
-> **CHECKPOINT** — LED berkedip **dan** pesan startup muncul tepat satu kali.
-> Pesan yang muncul berulang menandakan board melakukan reset berkala; hentikan
-> dan periksa catu daya serta kabel sebelum melanjutkan.
+> **CHECKPOINT** — LED berkedip **dan** pesan startup muncul tepat satu kali. Pesan yang muncul berulang menandakan board melakukan reset berkala; hentikan dan periksa catu daya serta kabel sebelum melanjutkan.
 
 ### EXP-02 — Warna sebagai Data
 
-Ubah argumen `strip.Color(r, g, b)`, unggah ulang, dan amati perubahannya.
-Percobaan ini menegaskan perbedaan mendasar LED beralamat dari LED biasa:
-yang dikirim adalah **nilai**, bukan sekadar keadaan nyala atau padam.
+Ubah argumen `strip.Color(r, g, b)`, unggah ulang, dan amati perubahannya. Percobaan ini menegaskan perbedaan mendasar LED beralamat dari LED biasa: yang dikirim adalah **nilai**, bukan sekadar keadaan nyala atau padam.
 
 | Nilai `Color(r, g, b)` | Warna yang teramati |
 |---|---|
@@ -133,9 +125,7 @@ yang dikirim adalah **nilai**, bukan sekadar keadaan nyala atau padam.
 | `(0, 0, 255)` | |
 | `(255, 255, 255)` | |
 
-> **CHECKPOINT** — Warna yang teramati sesuai dengan urutan RGB. Apabila
-> `(255, 0, 0)` justru menghasilkan hijau, urutan byte board berbeda dan
-> konstanta `NEO_RGB` perlu diganti `NEO_GRB`.
+> **CHECKPOINT** — Warna yang teramati sesuai dengan urutan RGB. Apabila `(255, 0, 0)` justru menghasilkan hijau, urutan byte board berbeda dan konstanta `NEO_RGB` perlu diganti `NEO_GRB`.
 
 ## 8 · Analisis
 

@@ -21,11 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-Zigbee memakai alamat 16-bit milik jaringannya sendiri; untuk keluar ke
-Internet ia butuh penerjemah. Thread memakai **IPv6** — alamat yang bentuknya
-sama dengan alamat Internet — di atas radio 802.15.4 yang sama persis dengan
-M07–M10. Inilah alasan Thread bisa disambungkan ke Wi-Fi di M13 hampir tanpa
-penerjemahan: paketnya sudah IP sejak dari node sensor.
+Zigbee memakai alamat 16-bit milik jaringannya sendiri; untuk keluar ke Internet ia butuh penerjemah. Thread memakai **IPv6** — alamat yang bentuknya sama dengan alamat Internet — di atas radio 802.15.4 yang sama persis dengan M07–M10. Inilah alasan Thread bisa disambungkan ke Wi-Fi di M13 hampir tanpa penerjemahan: paketnya sudah IP sejak dari node sensor.
 
 | | Cakupan |
 |---|---|
@@ -43,10 +39,7 @@ penerjemahan: paketnya sudah IP sejak dari node sensor.
 | 12 | Mesh Thread many-to-many, role election |
 | 13 | Thread disambungkan ke Wi-Fi lewat gateway C6 |
 
-**Kontrak data lab ini.** Grup multicast `ff03::abcd` dan port **5050**
-dipakai sama persis di M11, M12, M13, dan M15. Karena itu firmware penerima
-modul mana pun bisa dijadikan alat bantu diagnosis untuk modul lainnya —
-teknik yang benar-benar dipakai saat menguji M13 tanpa board C6.
+**Kontrak data lab ini.** Grup multicast `ff03::abcd` dan port **5050** dipakai sama persis di M11, M12, M13, dan M15. Karena itu firmware penerima modul mana pun bisa dijadikan alat bantu diagnosis untuk modul lainnya — teknik yang benar-benar dipakai saat menguji M13 tanpa board C6.
 
 ## 3 · Capaian Pembelajaran
 
@@ -66,9 +59,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (MLE,
-Router ID assignment, MPL forwarding, keamanan DTLS/commissioning) ada di buku
-teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (MLE, Router ID assignment, MPL forwarding, keamanan DTLS/commissioning) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -82,24 +73,14 @@ teori terpisah.*
 | Multicast `ff03::abcd` | Realm-local: diteruskan ke seluruh mesh, bukan hanya tetangga langsung. |
 | "ping" | Di lab ini diwakili pola PING/PONG aplikasi di atas UDP, bukan ICMPv6 echo. |
 
-**Mengapa dataset di-commit ulang tiap boot.** `DataSet::initNew()` memanggil
-`otDatasetCreateNewNetwork()`, yang **mengacak** network key, ext PAN ID, *dan*
-mesh-local prefix. Kode modul ini menimpa empat field pertama dengan konstanta,
-lalu memaksa prefix mesh-local lewat `otThreadSetMeshLocalPrefix()` sebelum
-`OThread.start()`:
+**Mengapa dataset di-commit ulang tiap boot.** `DataSet::initNew()` memanggil `otDatasetCreateNewNetwork()`, yang **mengacak** network key, ext PAN ID, *dan* mesh-local prefix. Kode modul ini menimpa empat field pertama dengan konstanta, lalu memaksa prefix mesh-local lewat `otThreadSetMeshLocalPrefix()` sebelum `OThread.start()`:
 
 ```cpp
 const uint8_t OT_ML_PREFIX[OT_MESH_LOCAL_PREFIX_SIZE] =
     {0xfd, 0xde, 0xad, 0x00, 0xbe, 0xef, 0x00, 0x00};   // fdde:ad00:beef::/64
 ```
 
-Tanpa langkah itu tiap board memakai prefix acak sendiri. Gejalanya
-menyesatkan: kedua node **tetap attach** (MLE hanya mencocokkan channel, PAN ID,
-ext PAN ID, dan network key) dan Serial Monitor tampak normal, tetapi tidak satu
-pun paket multicast `ff03::` sampai — karena penerusan multicast realm-local
-terikat pada prefix mesh-local jaringan. Cirinya: dua node dengan awalan
-Mesh-Local EID berbeda, misal `fdcd:8b6:7a73:...` di satu sisi dan
-`fd99:6dd0:2d68:...` di sisi lain.
+Tanpa langkah itu tiap board memakai prefix acak sendiri. Gejalanya menyesatkan: kedua node **tetap attach** (MLE hanya mencocokkan channel, PAN ID, ext PAN ID, dan network key) dan Serial Monitor tampak normal, tetapi tidak satu pun paket multicast `ff03::` sampai — karena penerusan multicast realm-local terikat pada prefix mesh-local jaringan. Cirinya: dua node dengan awalan Mesh-Local EID berbeda, misal `fdcd:8b6:7a73:...` di satu sisi dan `fd99:6dd0:2d68:...` di sisi lain.
 
 **Sekuens protokol yang diamati**
 
@@ -128,14 +109,9 @@ Mesh-Local EID berbeda, misal `fdcd:8b6:7a73:...` di satu sisi dan
 | Node1 | ESP32-H2 DevKitM-1 | `node1` | Leader **atau** Child (dinamis) | bind multicast + unicast, balas `PONG` |
 | Node2 | ESP32-H2 DevKitM-1 | `node2` | Leader **atau** Child (dinamis) | kirim `PING` multicast tiap 3 s |
 
-Keduanya **ESP32-H2 DevKitM-1** (radio 802.15.4). ESP32-C6 baru masuk di Modul
-13 saat Thread perlu disambungkan ke Wi-Fi.
+Keduanya **ESP32-H2 DevKitM-1** (radio 802.15.4). ESP32-C6 baru masuk di Modul 13 saat Thread perlu disambungkan ke Wi-Fi.
 
-> **Role Thread tidak ditentukan oleh nama environment.** Leader dipilih
-> otomatis oleh stack — biasanya board yang selesai boot lebih dulu. Pada uji
-> referensi, `node2` justru menjadi Leader dan `node1` menjadi Child, dan
-> PING/PONG tetap berjalan normal. Yang harus sama di kedua board adalah
-> **dataset**, bukan role.
+> **Role Thread tidak ditentukan oleh nama environment.** Leader dipilih otomatis oleh stack — biasanya board yang selesai boot lebih dulu. Pada uji referensi, `node2` justru menjadi Leader dan `node1` menjadi Child, dan PING/PONG tetap berjalan normal. Yang harus sama di kedua board adalah **dataset**, bukan role.
 
 ## 6 · Persiapan
 
@@ -184,9 +160,7 @@ pio run -d week11_thread_p2p -e node2 -t upload -t monitor
 
 ### EXP-01 — Pembentukan Jaringan & Attach
 
-Nyalakan kedua board. Keduanya men-commit dataset identik (termasuk prefix
-mesh-local), start Thread, dan menunggu role minimal CHILD. Board yang selesai
-boot lebih dulu umumnya menjadi Leader — urutannya boleh berbeda tiap percobaan.
+Nyalakan kedua board. Keduanya men-commit dataset identik (termasuk prefix mesh-local), start Thread, dan menunggu role minimal CHILD. Board yang selesai boot lebih dulu umumnya menjadi Leader — urutannya boleh berbeda tiap percobaan.
 
 ```
  [board A] dataset (+ ML prefix) ──► start ──► Leader
@@ -204,21 +178,13 @@ boot lebih dulu umumnya menjadi Leader — urutannya boleh berbeda tiap percobaa
 | Mesh-Local EID Node2 | |
 | Waktu attach tiap node (detik) | |
 
-**Buka abstraksinya** — komentari baris `applyMeshLocalPrefix();` pada **salah
-satu** node, flash ulang, dan amati: kedua node tetap mencetak `Attached as:`,
-tetapi tidak ada satu pun baris `RX`. Bandingkan awalan EID keduanya —
-di situlah bukti kegagalannya. Kembalikan kodenya. Percobaan ini mengajarkan
-sesuatu yang jarang terlihat: **jaringan bisa "terbentuk" tetapi tidak
-berfungsi**, dan log status saja tidak cukup untuk menyimpulkan keberhasilan.
+**Buka abstraksinya** — komentari baris `applyMeshLocalPrefix();` pada **salah satu** node, flash ulang, dan amati: kedua node tetap mencetak `Attached as:`, tetapi tidak ada satu pun baris `RX`. Bandingkan awalan EID keduanya — di situlah bukti kegagalannya. Kembalikan kodenya. Percobaan ini mengajarkan sesuatu yang jarang terlihat: **jaringan bisa "terbentuk" tetapi tidak berfungsi**, dan log status saja tidak cukup untuk menyimpulkan keberhasilan.
 
-> **CHECKPOINT** — Kedua node mencetak `Attached as: ...` **dan** awalan EID
-> keduanya sama (`fdde:ad00:beef:0:`). Jika awalannya berbeda, jangan lanjut —
-> tidak akan ada paket yang sampai.
+> **CHECKPOINT** — Kedua node mencetak `Attached as: ...` **dan** awalan EID keduanya sama (`fdde:ad00:beef:0:`). Jika awalannya berbeda, jangan lanjut — tidak akan ada paket yang sampai.
 
 ### EXP-02 — PING Multicast / PONG Unicast
 
-Node1 bind grup multicast port 5050 dan juga unicast; Node2 mengirim `PING`
-multicast tiap 3 detik lalu Node1 membalas `PONG` unicast.
+Node1 bind grup multicast port 5050 dan juga unicast; Node2 mengirim `PING` multicast tiap 3 detik lalu Node1 membalas `PONG` unicast.
 
 ```
  [N2] TX PING (multicast ff03::abcd:5050) ──3 s──►
@@ -249,9 +215,7 @@ TX PING (multicast)
 RX [fdde:ad00:beef:0:xxxx:...]:5050 -> 'PONG'
 ```
 
-> **CHECKPOINT** — Alamat yang tercetak pada baris `RX` di Node2 harus **sama
-> persis** dengan Mesh-Local EID Node1. Jika tidak cocok, ada node lain di
-> ruangan yang ikut membalas — catat, itu temuan menarik untuk analisis.
+> **CHECKPOINT** — Alamat yang tercetak pada baris `RX` di Node2 harus **sama persis** dengan Mesh-Local EID Node1. Jika tidak cocok, ada node lain di ruangan yang ikut membalas — catat, itu temuan menarik untuk analisis.
 
 ### EXP-03 — Jarak, Kehilangan Peer, dan Latency
 
@@ -268,14 +232,11 @@ RX [fdde:ad00:beef:0:xxxx:...]:5050 -> 'PONG'
 | Waktu pemulihan setelah Node1 hidup lagi | |
 | Latency rata-rata (10 sampel) | |
 
-> **CHECKPOINT** — Setelah Node1 dinyalakan lagi, `RX PONG` kembali muncul di
-> Node2 **tanpa** Node2 direset sama sekali. Bandingkan dengan M06 (relay BLE) yang
-> tidak pulih sendiri — perbedaan ini adalah nilai jual Thread.
+> **CHECKPOINT** — Setelah Node1 dinyalakan lagi, `RX PONG` kembali muncul di Node2 **tanpa** Node2 direset sama sekali. Bandingkan dengan M06 (relay BLE) yang tidak pulih sendiri — perbedaan ini adalah nilai jual Thread.
 
 ### Verifikasi hardware (log referensi)
 
-Dijalankan pada 2 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu),
-capture 45 detik.
+Dijalankan pada 2 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu), capture 45 detik.
 
 ```
 # Node1 (ESP32-H2, env node1)              # Node2 (ESP32-H2, env node2)
@@ -295,10 +256,7 @@ capture 45 detik.
 | PING dikirim / PONG diterima | 12 / 12 (0 % loss) |
 | Latency PING→PONG | < 1 ms terukur di Serial (satu hop) |
 
-> Baris `E OT_STATE: handle_ot_role_change(105): Failed to get the active
-> dataset` muncul sekali saat boot dan tidak berbahaya: role sempat berubah
-> sebelum dataset selesai dibaca netif. Jaringan tetap terbentuk normal
-> sesudahnya.
+> Baris `E OT_STATE: handle_ot_role_change(105): Failed to get the active dataset` muncul sekali saat boot dan tidak berbahaya: role sempat berubah sebelum dataset selesai dibaca netif. Jaringan tetap terbentuk normal sesudahnya.
 
 ## 8 · Pengukuran
 
@@ -312,8 +270,7 @@ capture 45 detik.
 
 Success = jumlah PONG diterima dari 10 PING; latency = waktu PING→PONG (ms).
 
-**Bandingkan dengan M07 dan M08.** Radionya sama (802.15.4 channel 15), jadi
-selisih jangkauan berasal dari lapisan di atasnya:
+**Bandingkan dengan M07 dan M08.** Radionya sama (802.15.4 channel 15), jadi selisih jangkauan berasal dari lapisan di atasnya:
 
 | Protokol | Modul | Jarak 100 % berhasil | Overhead per pesan |
 |---|---|---|---|

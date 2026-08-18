@@ -21,12 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-Modul 03 membuat client **menarik** data berulang-ulang, sebagian besar mubazir.
-Modul ini membalik arah inisiatif: sensor mendorong nilai baru begitu tersedia,
-monitor hanya menunggu. Pola inilah yang dipakai semua telemetri di sisa lab —
-Zigbee attribute report (M09), Thread UDP periodik (M11–13), dan MQTT publish
-(M14). Angka transaksi/menit yang dihitung pada M03 dipakai lagi di sini
-sebagai pembanding.
+Modul 03 membuat client **menarik** data berulang-ulang, sebagian besar mubazir. Modul ini membalik arah inisiatif: sensor mendorong nilai baru begitu tersedia, monitor hanya menunggu. Pola inilah yang dipakai semua telemetri di sisa lab — Zigbee attribute report (M09), Thread UDP periodik (M11–13), dan MQTT publish (M14). Angka transaksi/menit yang dihitung pada M03 dipakai lagi di sini sebagai pembanding.
 
 | | Cakupan |
 |---|---|
@@ -45,10 +40,7 @@ sebagai pembanding.
 | 05 | Lebih dari dua node |
 | 06 | Relay A→B→C |
 
-**Kontrak data lab ini.** Payload telemetri di lab ini selalu berupa **nilai
-terukur dalam bentuk string ringkas** (`"26.3"`, nanti `"suhu:26.3"`). Format
-itu dipertahankan agar hop terakhir — publish MQTT di M14/M15 — tidak perlu
-mengubah isinya sama sekali (*transparent forwarding*).
+**Kontrak data lab ini.** Payload telemetri di lab ini selalu berupa **nilai terukur dalam bentuk string ringkas** (`"26.3"`, nanti `"suhu:26.3"`). Format itu dipertahankan agar hop terakhir — publish MQTT di M14/M15 — tidak perlu mengubah isinya sama sekali (*transparent forwarding*).
 
 ## 3 · Capaian Pembelajaran
 
@@ -68,9 +60,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (siklus
-connection event BLE, hubungan interval notify dengan konsumsi arus) ada di buku
-teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (siklus connection event BLE, hubungan interval notify dengan konsumsi arus) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -81,10 +71,7 @@ teori terpisah.*
 | Push vs pull | Push = pengirim menentukan kapan data dikirim; pull = penerima yang meminta (M03). |
 | Sensor simulasi | Nilai suhu dibangkitkan `random()`, mulai 25,0 °C, fluktuasi ±1,0 °C, reset ke 25,0 bila keluar rentang 20–40 °C. |
 
-**Mengapa sensornya disimulasi?** Karena yang diuji modul ini adalah **kanal
-telemetri**, bukan akurasi sensor. Nilai simulasi menghilangkan variabel
-kalibrasi sehingga setiap kelainan pada log pasti berasal dari kanal radio.
-Mengganti `readSensor()` dengan sensor asli adalah CH-3.
+**Mengapa sensornya disimulasi?** Karena yang diuji modul ini adalah **kanal telemetri**, bukan akurasi sensor. Nilai simulasi menghilangkan variabel kalibrasi sehingga setiap kelainan pada log pasti berasal dari kanal radio. Mengganti `readSensor()` dengan sensor asli adalah CH-3.
 
 **Sekuens protokol yang diamati**
 
@@ -173,8 +160,7 @@ pio run -d week04_ble_telemetry -e monitor -t upload -t monitor
 
 ### EXP-01 — Subscribe & Stream Start
 
-Monitor scan, connect, lalu subscribe. Aliran data baru dimulai **setelah**
-subscribe berhasil — bukan setelah connect.
+Monitor scan, connect, lalu subscribe. Aliran data baru dimulai **setelah** subscribe berhasil — bukan setelah connect.
 
 **Data capture**
 
@@ -185,15 +171,9 @@ subscribe berhasil — bukan setelah connect.
 | Waktu connect → nilai pertama tiba (s) | |
 | Apakah ada `readValue()` di kode monitor? (ya/tidak) | |
 
-**Buka abstraksinya** — sebelum lanjut, komentari baris `pTx->subscribe(...)`
-di `src/monitor/main.cpp`, flash ulang, dan amati: koneksi tetap terbentuk,
-sensor tetap memanggil `notify()`, tetapi monitor **tidak menerima apa pun**.
-Kembalikan kodenya. Ini membuktikan notify bukan sekadar "server mengirim",
-melainkan kontrak dua pihak yang dicatat di CCCD.
+**Buka abstraksinya** — sebelum lanjut, komentari baris `pTx->subscribe(...)` di `src/monitor/main.cpp`, flash ulang, dan amati: koneksi tetap terbentuk, sensor tetap memanggil `notify()`, tetapi monitor **tidak menerima apa pun**. Kembalikan kodenya. Ini membuktikan notify bukan sekadar "server mengirim", melainkan kontrak dua pihak yang dicatat di CCCD.
 
-> **CHECKPOINT** — Monitor mencetak `Koneksi berhasil, menunggu telemetry...`
-> lalu baris `Telemetry diterima` pertama muncul < 1,5 detik kemudian. Jika
-> baris kedua tidak pernah muncul, subscribe gagal — periksa dulu.
+> **CHECKPOINT** — Monitor mencetak `Koneksi berhasil, menunggu telemetry...` lalu baris `Telemetry diterima` pertama muncul < 1,5 detik kemudian. Jika baris kedua tidak pernah muncul, subscribe gagal — periksa dulu.
 
 ### EXP-02 — Aliran Telemetri
 
@@ -231,9 +211,7 @@ Telemetry diterima: suhu = 26.1 C
 | Jumlah telemetry diterima / 60 detik | |
 | Interval kedatangan terkecil / terbesar (ms) | |
 
-> **CHECKPOINT** — Tiap nilai `Notify:` di sensor punya pasangan
-> `Telemetry diterima:` di monitor dengan angka yang sama persis. Cocokkan
-> minimal 10 baris berturut-turut sebelum masuk EXP-03.
+> **CHECKPOINT** — Tiap nilai `Notify:` di sensor punya pasangan `Telemetry diterima:` di monitor dengan angka yang sama persis. Cocokkan minimal 10 baris berturut-turut sebelum masuk EXP-03.
 
 ### EXP-03 — Kontinuitas & Pemulihan
 
@@ -250,9 +228,7 @@ Telemetry diterima: suhu = 26.1 C
 | Aliran pulih otomatis? (ya/tidak) | |
 | Alasan berdasarkan kode | |
 
-> **CHECKPOINT** — Praktikan dapat menunjukkan baris kode yang menentukan apakah
-> monitor melakukan scan ulang atau tidak. Jika belum bisa, jangan lanjut ke
-> analisis — jawabannya ada di `setup()` monitor.
+> **CHECKPOINT** — Praktikan dapat menunjukkan baris kode yang menentukan apakah monitor melakukan scan ulang atau tidak. Jika belum bisa, jangan lanjut ke analisis — jawabannya ada di `setup()` monitor.
 
 ### Verifikasi hardware (log referensi)
 

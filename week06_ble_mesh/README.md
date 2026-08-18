@@ -21,12 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-Modul 05 menambah node sebagai **cabang** — semua tetap bicara langsung ke
-pusat. Modul ini memakai node ketiga sebagai **jembatan**, sehingga jangkauan
-jaringan melampaui jangkauan satu radio. Konsep hop inilah yang membuat Zigbee
-(M10) dan Thread (M12) disebut mesh; bedanya, di sana routing dikerjakan stack,
-sedangkan di sini routing dituliskan sendiri di lapisan aplikasi — supaya
-mekanismenya terlihat telanjang sebelum disembunyikan protokol.
+Modul 05 menambah node sebagai **cabang** — semua tetap bicara langsung ke pusat. Modul ini memakai node ketiga sebagai **jembatan**, sehingga jangkauan jaringan melampaui jangkauan satu radio. Konsep hop inilah yang membuat Zigbee (M10) dan Thread (M12) disebut mesh; bedanya, di sana routing dikerjakan stack, sedangkan di sini routing dituliskan sendiri di lapisan aplikasi — supaya mekanismenya terlihat telanjang sebelum disembunyikan protokol.
 
 | | Cakupan |
 |---|---|
@@ -46,10 +41,7 @@ mekanismenya terlihat telanjang sebelum disembunyikan protokol.
 | **06 (ini)** | **Jangkauan diperluas lewat hop — penutup blok BLE** |
 | 07 | Turun ke lapisan MAC 802.15.4 telanjang — fondasi Zigbee & Thread |
 
-**Kontrak data lab ini.** Payload `A:n` **tidak diubah** saat melewati relay —
-inilah *transparent forwarding*. Prinsip yang sama dipakai gateway di M13 dan
-M15: gateway meneruskan isi apa adanya, tidak mem-parsing ulang, sehingga hop
-tambahan tidak merusak data.
+**Kontrak data lab ini.** Payload `A:n` **tidak diubah** saat melewati relay — inilah *transparent forwarding*. Prinsip yang sama dipakai gateway di M13 dan M15: gateway meneruskan isi apa adanya, tidak mem-parsing ulang, sehingga hop tambahan tidak merusak data.
 
 ## 3 · Capaian Pembelajaran
 
@@ -69,9 +61,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(BLE Mesh standar/ESP-BLE-MESH, flooding vs routing, model publish-subscribe
-mesh) ada di buku teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (BLE Mesh standar/ESP-BLE-MESH, flooding vs routing, model publish-subscribe mesh) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -82,11 +72,7 @@ mesh) ada di buku teori terpisah.*
 | Loss per hop | Kehilangan dihitung terpisah tiap lompatan, bukan hanya ujung-ke-ujung. |
 | Latency kumulatif | Waktu total A→C = latency hop 1 + waktu proses relay + latency hop 2. |
 
-**Ini bukan BLE Mesh standar.** ESP-BLE-MESH (spesifikasi Bluetooth SIG)
-memakai flooding, provisioning, dan model publish-subscribe — jalur pesan
-ditentukan protokol. Di sini rantai A→B→C ditentukan **oleh kode aplikasi**.
-Keterbatasannya (tidak ada penemuan rute, tidak ada self-healing, arah tunggal)
-justru yang perlu dicatat, karena itulah yang dibereskan Thread di M12.
+**Ini bukan BLE Mesh standar.** ESP-BLE-MESH (spesifikasi Bluetooth SIG) memakai flooding, provisioning, dan model publish-subscribe — jalur pesan ditentukan protokol. Di sini rantai A→B→C ditentukan **oleh kode aplikasi**. Keterbatasannya (tidak ada penemuan rute, tidak ada self-healing, arah tunggal) justru yang perlu dicatat, karena itulah yang dibereskan Thread di M12.
 
 **Sekuens protokol yang diamati**
 
@@ -116,11 +102,9 @@ justru yang perlu dicatat, karena itulah yang dibereskan Thread di M12.
 | Node B | ESP32-H2 DevKitM-1 | `nodeb` | Relay (server + client) | terima dari A, teruskan ke C |
 | Node C | ESP32-H2 DevKitM-1 | `nodec` | Penerima akhir (client) | cetak pesan yang tiba |
 
-Ketiganya **ESP32-H2 DevKitM-1**. Relay di sini dibuat di lapisan aplikasi di
-atas BLE GATT — bukan BLE Mesh standar — sehingga tidak butuh board lain.
+Ketiganya **ESP32-H2 DevKitM-1**. Relay di sini dibuat di lapisan aplikasi di atas BLE GATT — bukan BLE Mesh standar — sehingga tidak butuh board lain.
 
-Susun posisi **A — B — C dalam satu garis**; A dan C tidak perlu (dan sebaiknya
-tidak) saling terjangkau.
+Susun posisi **A — B — C dalam satu garis**; A dan C tidak perlu (dan sebaiknya tidak) saling terjangkau.
 
 ## 6 · Persiapan
 
@@ -174,8 +158,7 @@ pio run -d week06_ble_mesh -e nodec -t upload -t monitor
 
 ### EXP-01 — Menyalakan Relay (Node B)
 
-Unggah environment `nodeb` lebih dulu, lalu verifikasi dual-role: server
-(advertise `MESH_NODE_B` untuk C) sekaligus client (scan `MESH_NODE_A`).
+Unggah environment `nodeb` lebih dulu, lalu verifikasi dual-role: server (advertise `MESH_NODE_B` untuk C) sekaligus client (scan `MESH_NODE_A`).
 
 ```
         server (untuk C)         client (ke A)
@@ -193,21 +176,13 @@ Unggah environment `nodeb` lebih dulu, lalu verifikasi dual-role: server
 | Characteristic yang dipakai (UUID akhir) | |
 | Berapa peran radio yang dijalankan Node B? | |
 
-**Buka abstraksinya** — di `src/nodeb/main.cpp`, tunjukkan **dua blok kode
-terpisah**: satu yang membuat `NimBLEServer` (untuk C) dan satu yang membuat
-`NimBLEClient` (ke A). Keduanya hidup di board yang sama dengan satu radio.
-Pertanyaan yang harus dijawab sebelum lanjut: saat B sedang mengirim notify
-ke C, apakah B masih bisa menerima notify dari A pada saat yang sama?
+**Buka abstraksinya** — di `src/nodeb/main.cpp`, tunjukkan **dua blok kode terpisah**: satu yang membuat `NimBLEServer` (untuk C) dan satu yang membuat `NimBLEClient` (ke A). Keduanya hidup di board yang sama dengan satu radio. Pertanyaan yang harus dijawab sebelum lanjut: saat B sedang mengirim notify ke C, apakah B masih bisa menerima notify dari A pada saat yang sama?
 
-> **CHECKPOINT** — Node B mencetak baris start-nya dan tidak crash. Jika board
-> reboot berulang (boot loop), kemungkinan besar radio kehabisan resource —
-> periksa jumlah koneksi maksimum di konfigurasi NimBLE.
+> **CHECKPOINT** — Node B mencetak baris start-nya dan tidak crash. Jika board reboot berulang (boot loop), kemungkinan besar radio kehabisan resource — periksa jumlah koneksi maksimum di konfigurasi NimBLE.
 
 ### EXP-02 — Menutup Rantai (Node A & Node C)
 
-Unggah `nodea` (server, kirim `A:n` tiap 4 s saat relay terhubung) dan `nodec`
-(client yang scan `MESH_NODE_B` lalu subscribe). Amati Serial Monitor ketiga
-node dan verifikasi jejak pesan per hop.
+Unggah `nodea` (server, kirim `A:n` tiap 4 s saat relay terhubung) dan `nodec` (client yang scan `MESH_NODE_B` lalu subscribe). Amati Serial Monitor ketiga node dan verifikasi jejak pesan per hop.
 
 ```
  A: setup ──► advertise ──► B konek ke A ──► A kirim "A:n" / 4 s
@@ -221,10 +196,7 @@ node dan verifikasi jejak pesan per hop.
 - **Node B** — `Node B (relay) starting...`, `Node A ditemukan`, `Terhubung ke Node A`, `Koneksi ke A berhasil`, `Node C terhubung`, `Terima dari A: A:1 (diteruskan)`, `Teruskan ke C: A:1`, …
 - **Node C** — `Node C (penerima akhir) starting...`, `Scanning Node B...`, `Node B ditemukan`, `Terhubung ke Node B`, `Koneksi ke B berhasil`, `Pesan tiba (via A -> B -> C): A:1`, …
 
-> **CHECKPOINT** — Cocokkan **nomor pesan yang sama** di tiga Serial Monitor:
-> `Kirim ke B: A:5` di A, `Teruskan ke C: A:5` di B, dan
-> `Pesan tiba ...: A:5` di C. Jika nomor di C tertinggal jauh atau melompat,
-> hentikan dan catat — itu loss per hop yang akan diukur pada Bagian 8.
+> **CHECKPOINT** — Cocokkan **nomor pesan yang sama** di tiga Serial Monitor: `Kirim ke B: A:5` di A, `Teruskan ke C: A:5` di B, dan `Pesan tiba ...: A:5` di C. Jika nomor di C tertinggal jauh atau melompat, hentikan dan catat — itu loss per hop yang akan diukur pada Bagian 8.
 
 ### EXP-03 — Mode Kegagalan Rantai
 
@@ -242,9 +214,7 @@ node dan verifikasi jejak pesan per hop.
 | Perilaku saat Node B dimatikan | |
 | Apakah rantai pulih sendiri setelah B dinyalakan lagi? | |
 
-> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa matinya B menghentikan A
-> (bukan sekadar "pesannya tidak sampai"), dengan menunjuk baris kode di
-> `src/nodea/main.cpp`.
+> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa matinya B menghentikan A (bukan sekadar "pesannya tidak sampai"), dengan menunjuk baris kode di `src/nodea/main.cpp`.
 
 ### Verifikasi hardware (log referensi)
 
@@ -287,9 +257,7 @@ Geser jarak hop A–B dan B–C (ukur dari posisi Node B); catat RSSI dan succes
 
 Periksa: apakah loss A→C ≈ loss A→B + loss B→C? Jelaskan jika tidak.
 
-**Uji jangkauan (wajib)** — jauhkan A dan C sampai **tidak saling terjangkau
-langsung**, buktikan dengan mematikan B (pesan berhenti), lalu nyalakan B lagi
-(pesan kembali). Inilah bukti hop benar-benar menambah jangkauan.
+**Uji jangkauan (wajib)** — jauhkan A dan C sampai **tidak saling terjangkau langsung**, buktikan dengan mematikan B (pesan berhenti), lalu nyalakan B lagi (pesan kembali). Inilah bukti hop benar-benar menambah jangkauan.
 
 ## 9 · Analisis
 

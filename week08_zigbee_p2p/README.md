@@ -21,12 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-Pada M07 frame disusun sendiri: tidak ada identitas jaringan, tidak ada
-keamanan, tidak ada penemuan perangkat. Zigbee menambahkan ketiganya di atas
-radio 802.15.4 yang **sama persis**. Yang menarik justru harga yang harus
-dibayar: firmware jauh lebih besar (butuh tabel partisi khusus), dan perangkat
-menyimpan keanggotaan jaringan di NVS — sesuatu yang tidak pernah jadi masalah
-di modul-modul BLE.
+Pada M07 frame disusun sendiri: tidak ada identitas jaringan, tidak ada keamanan, tidak ada penemuan perangkat. Zigbee menambahkan ketiganya di atas radio 802.15.4 yang **sama persis**. Yang menarik justru harga yang harus dibayar: firmware jauh lebih besar (butuh tabel partisi khusus), dan perangkat menyimpan keanggotaan jaringan di NVS — sesuatu yang tidak pernah jadi masalah di modul-modul BLE.
 
 | | Cakupan |
 |---|---|
@@ -43,11 +38,7 @@ di modul-modul BLE.
 | 09 | Satu coordinator melayani banyak end device (binding table) |
 | 10 | Router menambah hop — routing multi-hop otomatis |
 
-**Kontrak data lab ini.** Zigbee tidak mengirim "string", melainkan **perintah
-cluster standar** (`On/Off`). Perbedaan ini penting untuk M16: BLE dan Thread
-di lab ini mengirim payload bebas, Zigbee mengirim perintah baku. Catat
-konsekuensinya pada interoperabilitas — perangkat Zigbee merek berbeda bisa
-saling mengerti, payload BLE buatan sendiri tidak.
+**Kontrak data lab ini.** Zigbee tidak mengirim "string", melainkan **perintah cluster standar** (`On/Off`). Perbedaan ini penting untuk M16: BLE dan Thread di lab ini mengirim payload bebas, Zigbee mengirim perintah baku. Catat konsekuensinya pada interoperabilitas — perangkat Zigbee merek berbeda bisa saling mengerti, payload BLE buatan sendiri tidak.
 
 ## 3 · Capaian Pembelajaran
 
@@ -67,9 +58,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (ZDO,
-APS layer, key management, Zigbee Cluster Library lengkap) ada di buku teori
-terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (ZDO, APS layer, key management, Zigbee Cluster Library lengkap) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -83,11 +72,7 @@ terpisah.*
 | Partisi khusus | `partitions_zczr.csv` / `partitions_ed.csv` menyediakan `zb_storage` dan `zb_fct`. |
 | NVS jaringan | Keanggotaan Zigbee disimpan di flash — bertahan melewati reset **dan** melewati flash ulang firmware. |
 
-**Join ≠ binding.** Join membuat perangkat menjadi **anggota jaringan** (punya
-alamat, punya kunci). Binding membuat satu endpoint **tahu harus mengirim ke
-endpoint mana**. Perangkat bisa sudah join tetapi belum ter-binding — dan
-perintahnya tidak akan sampai ke mana pun. Dua tahap ini muncul sebagai dua
-baris log yang berbeda; pastikan keduanya dapat ditunjuk.
+**Join ≠ binding.** Join membuat perangkat menjadi **anggota jaringan** (punya alamat, punya kunci). Binding membuat satu endpoint **tahu harus mengirim ke endpoint mana**. Perangkat bisa sudah join tetapi belum ter-binding — dan perintahnya tidak akan sampai ke mana pun. Dua tahap ini muncul sebagai dua baris log yang berbeda; pastikan keduanya dapat ditunjuk.
 
 **Sekuens protokol yang diamati**
 
@@ -115,9 +100,7 @@ baris log yang berbeda; pastikan keduanya dapat ditunjuk.
 | Coordinator | ESP32-H2 DevKitM-1 | `coordinator` | ZC + switch | EP 5 |
 | End device | ESP32-H2 DevKitM-1 | `enddevice` | ZED + light | EP 10 |
 
-Kedua peran memakai **ESP32-H2 DevKitM-1**. Perbedaannya hanya pada
-`build_flags` (`-DZIGBEE_MODE_ZCZR` vs `-DZIGBEE_MODE_ED`) dan tabel partisi —
-board-nya identik, jadi board mana pun bisa diberi peran mana pun.
+Kedua peran memakai **ESP32-H2 DevKitM-1**. Perbedaannya hanya pada `build_flags` (`-DZIGBEE_MODE_ZCZR` vs `-DZIGBEE_MODE_ED`) dan tabel partisi — board-nya identik, jadi board mana pun bisa diberi peran mana pun.
 
 ## 6 · Persiapan
 
@@ -179,8 +162,7 @@ pio run -d week08_zigbee_p2p -e enddevice   -t upload    # jangan lewat 180 s
 
 ### EXP-01 — Pembentukan Jaringan (Coordinator)
 
-Unggah environment `coordinator`, buka Serial Monitor, verifikasi: coordinator
-membuka network 180 detik dan menunggu binding.
+Unggah environment `coordinator`, buka Serial Monitor, verifikasi: coordinator membuka network 180 detik dan menunggu binding.
 
 ```
  boot ──► begin(ZIGBEE_COORDINATOR) OK
@@ -197,20 +179,13 @@ membuka network 180 detik dan menunggu binding.
 | Endpoint switch | |
 | Perintah yang dikirim tiap 5 s | |
 
-**Buka abstraksinya** — bandingkan ukuran firmware modul ini dengan modul BLE
-(lihat ringkasan `RAM/Flash` di akhir `pio run`). Lalu buka
-`partitions_zczr.csv` dan temukan partisi `zb_storage` dan `zb_fct`. Jawab: apa
-yang disimpan di sana, dan mengapa tabel partisi default Arduino tidak cukup?
+**Buka abstraksinya** — bandingkan ukuran firmware modul ini dengan modul BLE (lihat ringkasan `RAM/Flash` di akhir `pio run`). Lalu buka `partitions_zczr.csv` dan temukan partisi `zb_storage` dan `zb_fct`. Jawab: apa yang disimpan di sana, dan mengapa tabel partisi default Arduino tidak cukup?
 
-> **CHECKPOINT** — Coordinator mencetak titik-titik `.` berulang. Jika
-> langsung muncul `Zigbee gagal start!` lalu board restart, tabel partisi atau
-> `build_flags` tidak cocok — perbaiki sebelum lanjut.
+> **CHECKPOINT** — Coordinator mencetak titik-titik `.` berulang. Jika langsung muncul `Zigbee gagal start!` lalu board restart, tabel partisi atau `build_flags` tidak cocok — perbaiki sebelum lanjut.
 
 ### EXP-02 — Join & Binding (End Device)
 
-Unggah environment `enddevice` ke board kedua **sebelum 180 detik habis**.
-Amati proses join lalu binding, dan verifikasi RGB bawaan berkedip ON/OFF tiap
-5 detik.
+Unggah environment `enddevice` ke board kedua **sebelum 180 detik habis**. Amati proses join lalu binding, dan verifikasi RGB bawaan berkedip ON/OFF tiap 5 detik.
 
 ```
  ED boot ──► Zigbee.begin() ──► scan channel
@@ -228,11 +203,7 @@ Perintah: Lampu ON
 Perintah: Lampu OFF
 ```
 
-> Baris `Lampu sekarang: ...` berasal dari callback `onLightStateChange()`,
-> yaitu **laporan balik** dari lampu ke switch. Pada firmware Arduino core
-> 3.3.x baris ini tidak muncul karena `ZigbeeLight` tidak mengonfigurasi
-> attribute reporting ke switch secara otomatis — perintah tetap sampai dan
-> lampu tetap menyala. Mengaktifkan laporan balik justru menjadi CH-2.
+> Baris `Lampu sekarang: ...` berasal dari callback `onLightStateChange()`, yaitu **laporan balik** dari lampu ke switch. Pada firmware Arduino core 3.3.x baris ini tidak muncul karena `ZigbeeLight` tidak mengonfigurasi attribute reporting ke switch secara otomatis — perintah tetap sampai dan lampu tetap menyala. Mengaktifkan laporan balik justru menjadi CH-2.
 
 **Expected output — End device**
 
@@ -243,11 +214,7 @@ Lampu ON
 Lampu OFF
 ```
 
-> **CHECKPOINT** — Dua hal harus terjadi berurutan: end device mencetak
-> `Berhasil bergabung ke network!` (join), lalu coordinator mencetak
-> `End device ter-binding!` (binding). Jika join berhasil tetapi binding tidak
-> pernah terjadi, perintah tidak akan sampai — jangan lanjut, ulangi dengan
-> menghapus NVS kedua board.
+> **CHECKPOINT** — Dua hal harus terjadi berurutan: end device mencetak `Berhasil bergabung ke network!` (join), lalu coordinator mencetak `End device ter-binding!` (binding). Jika join berhasil tetapi binding tidak pernah terjadi, perintah tidak akan sampai — jangan lanjut, ulangi dengan menghapus NVS kedua board.
 
 ### EXP-03 — Keandalan Kontrol
 
@@ -266,14 +233,11 @@ Lampu OFF
 | Sinkron status ZC vs ED? | |
 | Jarak mulai ada perintah tertinggal (m) | |
 
-> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa end device yang di-reset bisa
-> kembali **tanpa** window join dibuka lagi (petunjuk: keanggotaan tersimpan di
-> NVS, join hanya diperlukan sekali).
+> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa end device yang di-reset bisa kembali **tanpa** window join dibuka lagi (petunjuk: keanggotaan tersimpan di NVS, join hanya diperlukan sekali).
 
 ### Verifikasi hardware (log referensi)
 
-Dijalankan pada 2 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu agar
-tidak ada sisa jaringan Zigbee lama di NVS), capture 70 detik.
+Dijalankan pada 2 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu agar tidak ada sisa jaringan Zigbee lama di NVS), capture 70 detik.
 
 ```
 # Coordinator (ESP32-H2, ZCZR)         # End device (ESP32-H2, ED)
@@ -317,9 +281,7 @@ tidak ada sisa jaringan Zigbee lama di NVS), capture 70 detik.
 | 2 | | | |
 | 3 | | | |
 
-**Bandingkan dengan M07.** Pada jarak yang sama, apakah success rate Zigbee
-lebih baik, sama, atau lebih buruk daripada raw 802.15.4? Radionya identik —
-jadi selisih apa pun berasal dari lapisan di atasnya.
+**Bandingkan dengan M07.** Pada jarak yang sama, apakah success rate Zigbee lebih baik, sama, atau lebih buruk daripada raw 802.15.4? Radionya identik — jadi selisih apa pun berasal dari lapisan di atasnya.
 
 ## 9 · Analisis
 

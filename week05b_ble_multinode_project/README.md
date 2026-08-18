@@ -21,10 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-M05 membuktikan satu central sanggup memegang dua koneksi, tetapi datanya
-masih counter (`A:1`, `B:1`) yang tidak berarti apa-apa. Modul ini mengganti
-counter itu dengan **kejadian nyata dari sensor**, dan di situlah karakter
-lalu lintas berubah total: dari periodik menjadi *event-driven*.
+M05 membuktikan satu central sanggup memegang dua koneksi, tetapi datanya masih counter (`A:1`, `B:1`) yang tidak berarti apa-apa. Modul ini mengganti counter itu dengan **kejadian nyata dari sensor**, dan di situlah karakter lalu lintas berubah total: dari periodik menjadi *event-driven*.
 
 | | Cakupan |
 |---|---|
@@ -43,10 +40,7 @@ lalu lintas berubah total: dari periodik menjadi *event-driven*.
 | Peran central | Mencetak apa yang diterima | Menyimpan state ruangan + lampu status |
 | Sensor hilang | Koneksi mati sampai central di-reset | Disambungkan ulang otomatis, waktu pemulihan dicetak |
 
-**Kontrak data lab ini.** Payload berbentuk `<ID>:<STATE>:<nomor_event>`:
-identitas sensor, statusnya, dan nomor urut kejadian. Nomor urut inilah yang
-membuat *kejadian yang hilang* bisa dideteksi — pada trafik event-driven,
-pesan yang hilang tidak terlihat sebagai jeda seperti pada trafik periodik.
+**Kontrak data lab ini.** Payload berbentuk `<ID>:<STATE>:<nomor_event>`: identitas sensor, statusnya, dan nomor urut kejadian. Nomor urut inilah yang membuat *kejadian yang hilang* bisa dideteksi — pada trafik event-driven, pesan yang hilang tidak terlihat sebagai jeda seperti pada trafik periodik.
 
 ## 3 · Capaian Pembelajaran
 
@@ -81,12 +75,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 | Sambung ulang otomatis | Hub mencoba menyambung lagi tiap 3 detik ke sensor yang hilang; setelah 3 kali gagal, alamatnya dicari ulang lewat scan. |
 | CCCD | Penanda "aku mau notify" di sisi sensor. Hilang saat koneksi putus (tidak ada bonding), jadi **subscribe wajib diulang** tiap kali menyambung. |
 
-**Mengapa event-driven lebih rawan daripada periodik?** Pada M05, kehilangan
-satu `A:7` langsung terlihat — nomor urut melompat dan pengiriman berikutnya
-datang 2 detik lagi. Di sini, jika kejadian `OPEN` hilang, tidak ada
-pengiriman berikutnya sampai seseorang menyentuh jendela lagi. Hub akan terus
-menampilkan "tertutup" padahal jendela terbuka: **kegagalan yang senyap**.
-Itulah alasan nomor urut disertakan di payload.
+**Mengapa event-driven lebih rawan daripada periodik?** Pada M05, kehilangan satu `A:7` langsung terlihat — nomor urut melompat dan pengiriman berikutnya datang 2 detik lagi. Di sini, jika kejadian `OPEN` hilang, tidak ada pengiriman berikutnya sampai seseorang menyentuh jendela lagi. Hub akan terus menampilkan "tertutup" padahal jendela terbuka: **kegagalan yang senyap**. Itulah alasan nomor urut disertakan di payload.
 
 **Sekuens yang diamati**
 
@@ -152,12 +141,9 @@ Itulah alasan nomor urut disertakan di payload.
 | Proximity switch simulasi | **GPIO9** | Tombol BOOT (`Key2`), ke GND saat ditekan, pull-up 10K di board → active low |
 | Indikator sensor / status | **GPIO8** | LED RGB WS2812 (`RGB_CTRL`), 1 pixel, order byte RGB |
 
-Tidak ada wiring tambahan — tombol dan LED sudah ada di board. Bila ingin
-sensor sungguhan, reed switch cukup dipasang antara GPIO9 dan GND (lihat CH-4).
+Tidak ada wiring tambahan — tombol dan LED sudah ada di board. Bila ingin sensor sungguhan, reed switch cukup dipasang antara GPIO9 dan GND (lihat CH-4).
 
-> **Catatan penting** — GPIO9 juga strapping pin mode download. Menahan tombol
-> **saat board reset** membuat board masuk mode flash, bukan menjalankan
-> program. Tekan tombol hanya setelah firmware berjalan.
+> **Catatan penting** — GPIO9 juga strapping pin mode download. Menahan tombol **saat board reset** membuat board masuk mode flash, bukan menjalankan program. Tekan tombol hanya setelah firmware berjalan.
 
 **Struktur proyek**
 
@@ -174,11 +160,9 @@ week05b_ble_multinode_project/
 
 ## 7 · Build & Flash
 
-Flash **sensor dulu**, hub belakangan, agar saat hub melakukan scan 5 detik
-kedua sensor sudah mengudara.
+Flash **sensor dulu**, hub belakangan, agar saat hub melakukan scan 5 detik kedua sensor sudah mengudara.
 
-Port tiap environment sudah di-pin di `platformio.ini`, jadi tidak perlu
-`--upload-port` selama urutan port pada komputer yang dipakai sama:
+Port tiap environment sudah di-pin di `platformio.ini`, jadi tidak perlu `--upload-port` selama urutan port pada komputer yang dipakai sama:
 
 | Environment | Port | Board |
 |---|---|---|
@@ -192,13 +176,11 @@ pio run -d week05b_ble_multinode_project -e nodeb   -t upload
 pio run -d week05b_ble_multinode_project -e central -t upload
 ```
 
-Jika port pada komputer yang dipakai berbeda, jalankan `pio device list` lalu sesuaikan
-`upload_port`/`monitor_port` pada `platformio.ini` (Windows memakai `COMx`).
+Jika port pada komputer yang dipakai berbeda, jalankan `pio device list` lalu sesuaikan `upload_port`/`monitor_port` pada `platformio.ini` (Windows memakai `COMx`).
 
 **Memantau satu per satu dengan picocom**
 
-Jika lebih suka satu terminal per board, pakai picocom (keluar: `Ctrl-A`
-lalu `Ctrl-X`):
+Apabila pemantauan lebih nyaman dilakukan satu terminal per board, gunakan picocom (keluar: `Ctrl-A` lalu `Ctrl-X`):
 
 ```bash
 picocom /dev/ttyACM4 -b115200 --imap crcrlf,lfcrlf   # central / hub
@@ -206,19 +188,11 @@ picocom /dev/ttyACM0 -b115200                        # nodea — sensor jendela
 picocom /dev/ttyACM2 -b115200                        # nodeb — sensor pintu
 ```
 
-`--imap crcrlf,lfcrlf` hanya perlu di central, dan sebabnya ada di kode, bukan
-di kabelnya: hub mencetak lewat `Serial.printf("...\n")` yang mengirim **LF
-saja**, sehingga kursor turun tanpa kembali ke kolom pertama — barisnya
-bertingkat seperti tangga. Kedua node memakai `Serial.println()` yang mengirim
-CR+LF, jadi tampil rapi tanpa opsi tambahan. Menambahkan `--imap` pada node
-juga tidak merusak apa pun, jadi aman dipakai seragam jika lebih mudah
-diingat.
+`--imap crcrlf,lfcrlf` hanya perlu di central, dan sebabnya ada di kode, bukan di kabelnya: hub mencetak lewat `Serial.printf("...\n")` yang mengirim **LF saja**, sehingga kursor turun tanpa kembali ke kolom pertama — barisnya bertingkat seperti tangga. Kedua node memakai `Serial.println()` yang mengirim CR+LF, jadi tampil rapi tanpa opsi tambahan. Menambahkan `--imap` pada node juga tidak merusak apa pun, jadi aman dipakai seragam jika lebih mudah diingat.
 
 **Memantau ketiga board sekaligus**
 
-Membuka tiga Serial Monitor terpisah membuat urutan kejadian antar-board sulit
-dibaca — tiap terminal punya timestamp sendiri. Skrip `monitor_serial.py`
-menggabungkan ketiganya dalam satu jendela dengan satu sumbu waktu:
+Membuka tiga Serial Monitor terpisah membuat urutan kejadian antar-board sulit dibaca — tiap terminal punya timestamp sendiri. Skrip `monitor_serial.py` menggabungkan ketiganya dalam satu jendela dengan satu sumbu waktu:
 
 ```bash
 python3 week05b_ble_multinode_project/monitor_serial.py
@@ -226,9 +200,7 @@ python3 week05b_ble_multinode_project/monitor_serial.py --log sesi1.txt
 python3 week05b_ble_multinode_project/monitor_serial.py --port JENDELA=/dev/ttyACM1
 ```
 
-Contoh tampilan — sensor dan hub berdampingan, jadi latency kejadian bisa
-dibaca langsung dari selisih timestamp (log hasil uji nyata ada di
-`logserial.md`):
+Contoh tampilan — sensor dan hub berdampingan, jadi latency kejadian bisa dibaca langsung dari selisih timestamp (log hasil uji nyata ada di `logserial.md`):
 
 ```
 [   0.408] HUB     | Mencari smart sensor jendela dan pintu...
@@ -241,11 +213,7 @@ dibaca langsung dari selisih timestamp (log hasil uji nyata ada di
 
 Ctrl-C menghentikannya dan mencetak ringkasan jumlah baris per board.
 
-> **Membuka monitor me-reset ketiga board** — persis seperti `pio device
-> monitor`. Kernel mengaktifkan DTR/RTS saat port dibuka, dan pada board ini
-> RTS terhubung ke EN. Karena itu **jalankan monitor lebih dulu**, baru mulai
-> percobaan; banner startup ketiga board justru ikut terekam. Jangan membukanya
-> di tengah percobaan yang sedang berjalan.
+> **Membuka monitor me-reset ketiga board** — persis seperti `pio device monitor`. Kernel mengaktifkan DTR/RTS saat port dibuka, dan pada board ini RTS terhubung ke EN. Karena itu **jalankan monitor lebih dulu**, baru mulai percobaan; banner startup ketiga board justru ikut terekam. Jangan membukanya di tengah percobaan yang sedang berjalan.
 
 **Pre-flight checklist**
 
@@ -278,14 +246,11 @@ Sensor aktif tapi hub belum tersambung: JENDELA1:CLOSED:2
 | Satu tekanan → berapa baris di Serial? | |
 | Apakah nomor event naik satu per perubahan? | |
 
-> **CHECKPOINT** — Satu tekanan harus menghasilkan **tepat satu** baris `OPEN`
-> dan satu pelepasan menghasilkan **tepat satu** `CLOSED`. Jika muncul
-> berkali-kali, debounce gagal — periksa `DEBOUNCE_MS` di `src/nodea/main.cpp`.
+> **CHECKPOINT** — Satu tekanan harus menghasilkan **tepat satu** baris `OPEN` dan satu pelepasan menghasilkan **tepat satu** `CLOSED`. Jika muncul berkali-kali, debounce gagal — periksa `DEBOUNCE_MS` di `src/nodea/main.cpp`.
 
 ### EXP-02 — Hub Memantau Dua Sensor
 
-Nyalakan hub. Hub melakukan active scan 5 detik, menemukan kedua sensor,
-membuka dua koneksi, dan subscribe notify.
+Nyalakan hub. Hub melakukan active scan 5 detik, menemukan kedua sensor, membuka dua koneksi, dan subscribe notify.
 
 **Expected output — hub**
 
@@ -314,20 +279,13 @@ Semua sensor terpantau — sistem siaga
 | Warna LED hub saat jendela ditutup **tapi** pintu masih terbuka | |
 | Warna LED hub saat satu sensor dicabut | |
 
-**Buka abstraksinya** — di `src/central/main.cpp`, `handleEvent()` menerima
-`idx` sebagai argumen pertama. Cari dari mana `idx` itu berasal (petunjuk:
-lihat lambda pada `pChar->subscribe(...)`). Lalu jawab: jika kedua sensor
-mengirim payload identik `"OPEN"` tanpa prefiks ID, apakah hub masih bisa
-membedakannya? Jika ya, mengapa prefiks `JENDELA1:` tetap dipakai?
+**Buka abstraksinya** — di `src/central/main.cpp`, `handleEvent()` menerima `idx` sebagai argumen pertama. Cari dari mana `idx` itu berasal (petunjuk: lihat lambda pada `pChar->subscribe(...)`). Lalu jawab: jika kedua sensor mengirim payload identik `"OPEN"` tanpa prefiks ID, apakah hub masih bisa membedakannya? Jika ya, mengapa prefiks `JENDELA1:` tetap dipakai?
 
-> **CHECKPOINT** — Tekan tombol di board jendela, pastikan yang muncul
-> `Jendela 1`, bukan `Pintu 1`. Jika tertukar, kedua node kemungkinan
-> di-flash dengan environment yang sama — cek ulang `-e nodea` / `-e nodeb`.
+> **CHECKPOINT** — Tekan tombol di board jendela, pastikan yang muncul `Jendela 1`, bukan `Pintu 1`. Jika tertukar, kedua node kemungkinan di-flash dengan environment yang sama — cek ulang `-e nodea` / `-e nodeb`.
 
 ### EXP-03 — Keandalan Sistem Alarm
 
-Uji tiga skenario kegagalan dan catat apa yang dilihat "pemilik rumah"
-(yaitu: apa yang ditampilkan hub).
+Uji tiga skenario kegagalan dan catat apa yang dilihat "pemilik rumah" (yaitu: apa yang ditampilkan hub).
 
 | # | Skenario | Langkah | Hasil di hub |
 |---|---|---|---|
@@ -361,18 +319,9 @@ Jendela 1 terhubung
 Semua sensor terpantau — sistem siaga
 ```
 
-**Buka abstraksinya #2** — hub menyambung ulang lewat dua jalur berbeda:
-mencoba **alamat lama** (cepat), dan bila gagal 3 kali, **scan ulang** untuk
-mencari alamat baru. Cari keduanya di `maintainLinks()`. Lalu jawab: mengapa
-jalur kedua diperlukan padahal alamat BLE board biasanya tidak berubah? Dan
-mengapa `connect()` dibatasi 4 detik, bukan 30 detik bawaan library?
+**Buka abstraksinya #2** — hub menyambung ulang lewat dua jalur berbeda: mencoba **alamat lama** (cepat), dan bila gagal 3 kali, **scan ulang** untuk mencari alamat baru. Cari keduanya di `maintainLinks()`. Lalu jawab: mengapa jalur kedua diperlukan padahal alamat BLE board biasanya tidak berubah? Dan mengapa `connect()` dibatasi 4 detik, bukan 30 detik bawaan library?
 
-> **CHECKPOINT** — Skenario 2 adalah inti modul ini. Koneksinya memang pulih
-> sendiri (`[PULIH]`), tetapi **kejadian yang terjadi selama sensor mati tetap
-> hilang selamanya**: hub menampilkan "aman" padahal jendela terbuka, dan
-> tidak ada baris `[LOSS ]` karena lompatan nomor event baru ketahuan pada
-> kejadian berikutnya. Catat berapa lama kondisi salah ini bertahan, lalu
-> simpulkan: sambung ulang otomatis memperbaiki **tautan**, bukan **data**.
+> **CHECKPOINT** — Skenario 2 adalah inti modul ini. Koneksinya memang pulih sendiri (`[PULIH]`), tetapi **kejadian yang terjadi selama sensor mati tetap hilang selamanya**: hub menampilkan "aman" padahal jendela terbuka, dan tidak ada baris `[LOSS ]` karena lompatan nomor event baru ketahuan pada kejadian berikutnya. Catat berapa lama kondisi salah ini bertahan, lalu simpulkan: sambung ulang otomatis memperbaiki **tautan**, bukan **data**.
 
 ### Verifikasi build (referensi)
 
@@ -385,10 +334,7 @@ nodeb          SUCCESS   00:00:02.651     Flash 54.1%  RAM 6.8%
 
 ## 9 · Pengukuran
 
-**A. Latency kejadian** — dari LED node berkedip sampai baris muncul di hub.
-Ukur dengan merekam video kedua layar, atau bandingkan timestamp Serial node
-dan hub (perhatikan: tiap board punya `millis()` sendiri, jadi yang dibandingkan
-adalah **selisih antar-kejadian**, bukan nilai absolutnya).
+**A. Latency kejadian** — dari LED node berkedip sampai baris muncul di hub. Ukur dengan merekam video kedua layar, atau bandingkan timestamp Serial node dan hub (perhatikan: tiap board punya `millis()` sendiri, jadi yang dibandingkan adalah **selisih antar-kejadian**, bukan nilai absolutnya).
 
 | Jarak | RSSI jendela | RSSI pintu | Latency rata-rata (ms, 10 tekanan) | Kejadian hilang / 10 |
 |---|---|---|---|---|
@@ -397,8 +343,7 @@ adalah **selisih antar-kejadian**, bukan nilai absolutnya).
 | 10 m | | | | |
 | Balik dinding | | | | |
 
-**B. Uji beban event-driven** — tekan tombol secepat mungkin selama 30 detik
-pada satu node, lalu bandingkan nomor event terakhir di node dan di hub.
+**B. Uji beban event-driven** — tekan tombol secepat mungkin selama 30 detik pada satu node, lalu bandingkan nomor event terakhir di node dan di hub.
 
 | Node | Event terakhir di node | Event terakhir di hub | Kejadian hilang | Loss (%) |
 |---|---|---|---|---|
@@ -411,9 +356,7 @@ pada satu node, lalu bandingkan nomor event terakhir di node dan di hub.
 |---|---|---|---|---|
 | 1 m | 10 m | | | |
 
-**D. Waktu pemulihan sambung ulang** — matikan satu sensor, hidupkan lagi,
-catat angka pada baris `[PULIH]`. Ulangi 5 kali; dua di antaranya dengan sensor
-dimatikan lebih dari 15 detik, supaya jalur *scan ulang* ikut teruji.
+**D. Waktu pemulihan sambung ulang** — matikan satu sensor, hidupkan lagi, catat angka pada baris `[PULIH]`. Ulangi 5 kali; dua di antaranya dengan sensor dimatikan lebih dari 15 detik, supaya jalur *scan ulang* ikut teruji.
 
 | # | Sensor | Lama dimatikan (s) | `Gagal terhubung` (kali) | Scan ulang? | Waktu pemulihan (s) |
 |---|---|---|---|---|---|
@@ -423,9 +366,7 @@ dimatikan lebih dari 15 detik, supaya jalur *scan ulang* ikut teruji.
 | 4 | | | | | |
 | 5 | | | | | |
 
-Selama sensor itu mati, tekan tombol pada sensor **yang lain** dan pastikan
-alarmnya tetap tampil di hub — pemulihan satu tautan tidak boleh membekukan
-tautan lainnya.
+Selama sensor itu mati, tekan tombol pada sensor **yang lain** dan pastikan alarmnya tetap tampil di hub — pemulihan satu tautan tidak boleh membekukan tautan lainnya.
 
 ## 10 · Analisis
 

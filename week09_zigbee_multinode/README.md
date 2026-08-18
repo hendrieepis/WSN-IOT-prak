@@ -21,12 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-M08 mengikat **satu** lampu ke satu switch. Di sini `allowMultipleBinding(true)`
-dinyalakan, dan coordinator harus menyimpan **daftar** tujuan — inilah binding
-table. Masalah yang muncul identik dengan M05 di dunia BLE (satu pusat, banyak
-sumber), tetapi jawabannya berbeda: BLE memakai objek koneksi per node, Zigbee
-memakai `endpoint + short address`. Perbandingan dua cara ini adalah bahan
-analisis modul ini.
+M08 mengikat **satu** lampu ke satu switch. Di sini `allowMultipleBinding(true)` dinyalakan, dan coordinator harus menyimpan **daftar** tujuan — inilah binding table. Masalah yang muncul identik dengan M05 di dunia BLE (satu pusat, banyak sumber), tetapi jawabannya berbeda: BLE memakai objek koneksi per node, Zigbee memakai `endpoint + short address`. Perbandingan dua cara ini adalah bahan analisis modul ini.
 
 | | Cakupan |
 |---|---|
@@ -43,11 +38,7 @@ analisis modul ini.
 | **09 (ini)** | **Satu coordinator melayani banyak end device (binding table)** |
 | 10 | Router menambah hop — routing multi-hop otomatis |
 
-**Kontrak data lab ini.** Identitas node di Zigbee adalah pasangan
-**`endpoint` + `short address`** — bukan prefiks di dalam payload seperti M05
-(`A:`, `B:`). Catat perbedaannya: identitas di sini dikelola **jaringan**,
-bukan aplikasi. Konsekuensinya muncul langsung di modul ini (lihat catatan
-`0xFFFF` di Bagian 7).
+**Kontrak data lab ini.** Identitas node di Zigbee adalah pasangan **`endpoint` + `short address`** — bukan prefiks di dalam payload seperti M05 (`A:`, `B:`). Catat perbedaannya: identitas di sini dikelola **jaringan**, bukan aplikasi. Konsekuensinya muncul langsung di modul ini (lihat catatan `0xFFFF` di Bagian 7).
 
 ## 3 · Capaian Pembelajaran
 
@@ -67,9 +58,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (tabel
-routing Zigbee, addressing mode APS, group addressing) ada di buku teori
-terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (tabel routing Zigbee, addressing mode APS, group addressing) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -81,11 +70,7 @@ terpisah.*
 | Cluster On/Off | Perintah standar; dipanggil per tujuan lewat `lightOn(ep, addr)`. |
 | Short address | Alamat 16-bit node Zigbee, dicetak coordinator sebagai `0x%04X`. |
 
-**Mengapa endpoint kedua lampu harus berbeda?** Karena binding table
-mengidentifikasi tujuan dari pasangan `endpoint + address`. Bila dua lampu
-memakai endpoint yang sama, entri binding menjadi ambigu dan perintah bisa
-menyasar. Endpoint adalah "nomor kamar" — dua kamar tidak boleh bernomor sama
-di satu daftar tujuan.
+**Mengapa endpoint kedua lampu harus berbeda?** Karena binding table mengidentifikasi tujuan dari pasangan `endpoint + address`. Bila dua lampu memakai endpoint yang sama, entri binding menjadi ambigu dan perintah bisa menyasar. Endpoint adalah "nomor kamar" — dua kamar tidak boleh bernomor sama di satu daftar tujuan.
 
 **Sekuens protokol yang diamati**
 
@@ -125,8 +110,7 @@ di satu daftar tujuan.
 | Light #1 | ESP32-H2 DevKitM-1 | `light1` | ZED + light | EP 10 |
 | Light #2 | ESP32-H2 DevKitM-1 | `light2` | ZED + light | EP 11 |
 
-Ketiganya **ESP32-H2 DevKitM-1** dengan radio 802.15.4; peran ditentukan oleh
-`build_flags` dan tabel partisi, bukan oleh jenis board.
+Ketiganya **ESP32-H2 DevKitM-1** dengan radio 802.15.4; peran ditentukan oleh `build_flags` dan tabel partisi, bukan oleh jenis board.
 
 ## 6 · Persiapan
 
@@ -184,8 +168,7 @@ pio run -d week09_zigbee_multinode -e light2 -t upload      # dalam 180 s
 
 ### EXP-01 — Pembentukan Jaringan & Join Ganda
 
-Nyalakan coordinator lebih dulu. Jaringan terbuka 180 detik setelah reboot;
-dalam window ini nyalakan `light1` dan `light2` agar join dan binding.
+Nyalakan coordinator lebih dulu. Jaringan terbuka 180 detik setelah reboot; dalam window ini nyalakan `light1` dan `light2` agar join dan binding.
 
 ```
  [ZC reboot] ──► open network 180 s ──► [ZED1 join] [ZED2 join] ──► bound
@@ -200,15 +183,11 @@ dalam window ini nyalakan `light1` dan `light2` agar join dan binding.
 | Status LED saat join | |
 | Apakah keduanya masuk dalam satu window? | |
 
-> **CHECKPOINT** — Kedua light mencetak `tergabung ke network!`. Jika hanya
-> satu, window join sudah habis untuk yang kedua — reboot coordinator (window
-> terbuka lagi) lalu ulangi. Jangan lanjut dengan satu node saja.
+> **CHECKPOINT** — Kedua light mencetak `tergabung ke network!`. Jika hanya satu, window join sudah habis untuk yang kedua — reboot coordinator (window terbuka lagi) lalu ulangi. Jangan lanjut dengan satu node saja.
 
 ### EXP-02 — Binding Table & Kontrol Otomatis
 
-Setelah minimal satu light ter-bind, coordinator menunggu 5 detik tambahan
-(agar light kedua sempat join & bind), mencetak daftar device ter-bind, lalu
-men-toggle semua light setiap 5 detik.
+Setelah minimal satu light ter-bind, coordinator menunggu 5 detik tambahan (agar light kedua sempat join & bind), mencetak daftar device ter-bind, lalu men-toggle semua light setiap 5 detik.
 
 ```
  [ZC] getBoundDevices() ──► endpoint + short addr
@@ -229,8 +208,7 @@ Total 2 device.
 -> Light 0xYYYY OFF
 ```
 
-> Salah satu `short addr` sering tercetak `0xFFFF`. Itu **bukan** kegagalan
-> binding — lihat catatan pada "Verifikasi hardware" di bawah.
+> Salah satu `short addr` sering tercetak `0xFFFF`. Itu **bukan** kegagalan binding — lihat catatan pada "Verifikasi hardware" di bawah.
 
 **Expected output — Light1 / Light2**
 
@@ -240,15 +218,9 @@ Light1 ON
 Light1 OFF
 ```
 
-**Buka abstraksinya** — `getBoundDevices()` mengembalikan `std::list` berisi
-`zb_device_params_t`. Cetak **seluruh** field struct itu (bukan hanya endpoint
-dan short address) dan cocokkan dengan alamat IEEE (MAC 64-bit) tiap board yang
-diperoleh dari `esptool chip_id`. Jawab: entri mana yang benar-benar unik dan
-stabil — short address atau alamat IEEE?
+**Buka abstraksinya** — `getBoundDevices()` mengembalikan `std::list` berisi `zb_device_params_t`. Cetak **seluruh** field struct itu (bukan hanya endpoint dan short address) dan cocokkan dengan alamat IEEE (MAC 64-bit) tiap board yang diperoleh dari `esptool chip_id`. Jawab: entri mana yang benar-benar unik dan stabil — short address atau alamat IEEE?
 
-> **CHECKPOINT** — Baris `Total 2 device.` muncul, dan setelah itu ada **dua**
-> baris `-> Light 0x....` untuk tiap siklus ON dan tiap siklus OFF. Jika hanya
-> satu baris per siklus, binding kedua gagal.
+> **CHECKPOINT** — Baris `Total 2 device.` muncul, dan setelah itu ada **dua** baris `-> Light 0x....` untuk tiap siklus ON dan tiap siklus OFF. Jika hanya satu baris per siklus, binding kedua gagal.
 
 ### EXP-03 — Jarak & Kehilangan Node
 
@@ -265,15 +237,11 @@ stabil — short address atau alamat IEEE?
 | Perilaku coordinator saat Light1 mati | |
 | Light1 kembali otomatis? (ya/tidak) + alasan | |
 
-> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa coordinator tetap mengirim
-> perintah ke node yang sudah mati (petunjuk: binding table adalah daftar
-> statis, bukan daftar node yang sedang hidup). Ini temuan penting untuk desain
-> sistem nyata.
+> **CHECKPOINT** — Praktikan dapat menjelaskan mengapa coordinator tetap mengirim perintah ke node yang sudah mati (petunjuk: binding table adalah daftar statis, bukan daftar node yang sedang hidup). Ini temuan penting untuk desain sistem nyata.
 
 ### Verifikasi hardware (log referensi)
 
-Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu),
-capture 70 detik.
+Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu), capture 70 detik.
 
 ```
 # Coordinator (ESP32-H2, ZCZR)
@@ -298,11 +266,7 @@ capture 70 detik.
 | Aksi terjadi di Light1 / Light2 | 14 / 14 (0 % loss) |
 | Waktu join Light1 / Light2 | 0,6 s / 3,2 s |
 
-> **Short addr `0xFFFF` itu normal.** Entri binding yang dibuat lewat alamat
-> IEEE (bukan alamat pendek) disimpan library dengan `short_addr = 0xFFFF`.
-> `lightOn(ep, 0xFFFF)` tetap sampai ke node yang benar — buktinya Light1 tetap
-> menyala. Yang perlu dicatat pada laporan adalah jumlah device ter-bind dan
-> keberhasilan aksinya, bukan nilai alamatnya.
+> **Short addr `0xFFFF` itu normal.** Entri binding yang dibuat lewat alamat IEEE (bukan alamat pendek) disimpan library dengan `short_addr = 0xFFFF`. `lightOn(ep, 0xFFFF)` tetap sampai ke node yang benar — buktinya Light1 tetap menyala. Yang perlu dicatat pada laporan adalah jumlah device ter-bind dan keberhasilan aksinya, bukan nilai alamatnya.
 
 ## 8 · Pengukuran
 

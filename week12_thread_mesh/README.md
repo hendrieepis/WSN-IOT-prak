@@ -21,11 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-M11 membuktikan dua node Thread bisa saling kirim datagram. Di sini jumlahnya
-tiga, dan **tidak ada peran yang ditentukan manusia** — firmware ketiga node
-identik kecuali `NODE_ID`. Bandingkan dengan Zigbee M10, tempat peran ZC/ZR/ZED
-dipilih saat kompilasi: perbedaan ini adalah salah satu argumen terkuat Thread,
-dan angka pemulihannya menjadi bahan M16.
+M11 membuktikan dua node Thread bisa saling kirim datagram. Di sini jumlahnya tiga, dan **tidak ada peran yang ditentukan manusia** — firmware ketiga node identik kecuali `NODE_ID`. Bandingkan dengan Zigbee M10, tempat peran ZC/ZR/ZED dipilih saat kompilasi: perbedaan ini adalah salah satu argumen terkuat Thread, dan angka pemulihannya menjadi bahan M16.
 
 | | Cakupan |
 |---|---|
@@ -41,10 +37,7 @@ dan angka pemulihannya menjadi bahan M16.
 | **12 (ini)** | **Mesh many-to-many, role dipilih sendiri, self-healing** |
 | 13 | Mesh Thread bertemu Wi-Fi lewat gateway ESP32-C6 |
 
-**Kontrak data lab ini.** Payload `NODE<n>:<counter>` membawa **identitas
-sumber + nomor urut** sekaligus. Format ini yang membuat loss bisa dihitung
-tanpa alat bantu apa pun — cukup mencari lompatan angka di log. Pola yang sama
-dipakai di M13/M15 sebagai `suhu:XX.X,#<seq>`.
+**Kontrak data lab ini.** Payload `NODE<n>:<counter>` membawa **identitas sumber + nomor urut** sekaligus. Format ini yang membuat loss bisa dihitung tanpa alat bantu apa pun — cukup mencari lompatan angka di log. Pola yang sama dipakai di M13/M15 sebagai `suhu:XX.X,#<seq>`.
 
 ## 3 · Capaian Pembelajaran
 
@@ -64,8 +57,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(MLE, Router ID assignment, partition merge, MPL) ada di buku teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (MLE, Router ID assignment, partition merge, MPL) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -78,9 +70,7 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
 | UDP port 5050 | Port aplikasi kirim/terima (`OtUdp.beginMulticast(GROUP, PORT)`). |
 | Sequence/counter | Pesan `NODE<n>:<count>` sehingga paket hilang terdeteksi dari lompatan counter. |
 
-**Dataset harus identik, termasuk prefix mesh-local.** `DataSet::initNew()`
-mengacak prefix mesh-local tiap board. Ketiga firmware karena itu memaksa prefix
-yang sama sebelum `OThread.start()`:
+**Dataset harus identik, termasuk prefix mesh-local.** `DataSet::initNew()` mengacak prefix mesh-local tiap board. Ketiga firmware karena itu memaksa prefix yang sama sebelum `OThread.start()`:
 
 ```cpp
 const uint8_t OT_ML_PREFIX[OT_MESH_LOCAL_PREFIX_SIZE] =
@@ -88,9 +78,7 @@ const uint8_t OT_ML_PREFIX[OT_MESH_LOCAL_PREFIX_SIZE] =
 otThreadSetMeshLocalPrefix(esp_openthread_get_instance(), &prefix);
 ```
 
-Bila dilewatkan, node tetap attach dan `Attached as: ...` tetap tercetak, tetapi
-tidak ada satu pun baris `RX` — gejala yang mudah disalahartikan sebagai masalah
-jarak atau interferensi. Periksa awalan Mesh-Local EID: harus sama di semua node.
+Bila dilewatkan, node tetap attach dan `Attached as: ...` tetap tercetak, tetapi tidak ada satu pun baris `RX` — gejala yang mudah disalahartikan sebagai masalah jarak atau interferensi. Periksa awalan Mesh-Local EID: harus sama di semua node.
 
 **Sekuens protokol yang diamati**
 
@@ -129,12 +117,9 @@ jarak atau interferensi. Periksa awalan Mesh-Local EID: harus sama di semua node
 | Node2 | ESP32-H2 DevKitM-1 | `node2` | 2 | Leader/Router/Child (dinamis) | TX `NODE2:<n>` multicast tiap 5 s |
 | Node3 | ESP32-H2 DevKitM-1 | `node3` | 3 | Leader/Router/Child (dinamis) | TX `NODE3:<n>` multicast tiap 5 s |
 
-Ketiganya **ESP32-H2 DevKitM-1** dengan firmware yang sama kecuali `NODE_ID`.
-Role Thread dipilih otomatis oleh stack dan bisa berbeda tiap kali dinyalakan —
-bukan ditentukan oleh nama environment.
+Ketiganya **ESP32-H2 DevKitM-1** dengan firmware yang sama kecuali `NODE_ID`. Role Thread dipilih otomatis oleh stack dan bisa berbeda tiap kali dinyalakan — bukan ditentukan oleh nama environment.
 
-**Formasi awal:** segitiga dengan jarak antar node ± 3 m. Formasi garis
-(untuk membuktikan multi-hop) dipakai di EXP-03.
+**Formasi awal:** segitiga dengan jarak antar node ± 3 m. Formasi garis (untuk membuktikan multi-hop) dipakai di EXP-03.
 
 ## 6 · Persiapan
 
@@ -181,9 +166,7 @@ pio run -d week12_thread_mesh -e node3 -t upload -t monitor
 
 ### EXP-01 — Pembentukan Mesh & Pemilihan Role
 
-Nyalakan ketiga board. Tiap node men-commit dataset (termasuk prefix
-mesh-local), start, menunggu attach (role ≥ Child), lalu join grup multicast.
-Board yang selesai boot lebih dulu umumnya terpilih menjadi Leader.
+Nyalakan ketiga board. Tiap node men-commit dataset (termasuk prefix mesh-local), start, menunggu attach (role ≥ Child), lalu join grup multicast. Board yang selesai boot lebih dulu umumnya terpilih menjadi Leader.
 
 ```
  [board pertama] dataset (+ ML prefix) ──► start ──► Leader
@@ -201,20 +184,13 @@ Board yang selesai boot lebih dulu umumnya terpilih menjadi Leader.
 | Awalan Mesh-Local EID sama di ketiga node? | … (harus `fdde:ad00:beef:0:`) |
 | Waktu attach tiap node (detik) | |
 
-**Buka abstraksinya** — matikan board yang menjadi Leader, tunggu, lalu amati
-role kedua node sisanya di Serial Monitor. Salah satunya akan **naik menjadi
-Leader** tanpa satu baris kode tambahan. Catat berapa lama peralihan itu.
-Bandingkan dengan M10: di Zigbee, coordinator tidak bisa digantikan — matinya
-ZC berarti matinya jaringan.
+**Buka abstraksinya** — matikan board yang menjadi Leader, tunggu, lalu amati role kedua node sisanya di Serial Monitor. Salah satunya akan **naik menjadi Leader** tanpa satu baris kode tambahan. Catat berapa lama peralihan itu. Bandingkan dengan M10: di Zigbee, coordinator tidak bisa digantikan — matinya ZC berarti matinya jaringan.
 
-> **CHECKPOINT** — Ketiga node mencetak `Attached as: ...` dan awalan EID
-> ketiganya sama. Jika ada yang berbeda, node itu berada di jaringan lain —
-> hapus NVS-nya dan flash ulang.
+> **CHECKPOINT** — Ketiga node mencetak `Attached as: ...` dan awalan EID ketiganya sama. Jika ada yang berbeda, node itu berada di jaringan lain — hapus NVS-nya dan flash ulang.
 
 ### EXP-02 — Multicast Many-to-Many
 
-Setiap 5 detik tiap node mengirim `NODEn:<counter>` ke `ff03::abcd:5050` dan
-menerima pesan node lain; alamat sumber mesh-local tercetak pada baris RX.
+Setiap 5 detik tiap node mengirim `NODEn:<counter>` ke `ff03::abcd:5050` dan menerima pesan node lain; alamat sumber mesh-local tercetak pada baris RX.
 
 ```
  [tiap node] TX multicast ──► [semua node lain] RX [fdde:ad00:beef:0:...]: NODEx:c
@@ -233,9 +209,7 @@ TX multicast: NODE1:2
 RX [fdde:ad00:beef:0:yyyy:...]: NODE2:2
 ```
 
-> **CHECKPOINT** — Di **setiap** Serial Monitor muncul baris RX dari **dua**
-> sumber berbeda (bukan satu). Jika hanya satu, node ketiga belum masuk mesh
-> atau prefix-nya berbeda. Cocokkan juga counter: harus berurutan tanpa lompat.
+> **CHECKPOINT** — Di **setiap** Serial Monitor muncul baris RX dari **dua** sumber berbeda (bukan satu). Jika hanya satu, node ketiga belum masuk mesh atau prefix-nya berbeda. Cocokkan juga counter: harus berurutan tanpa lompat.
 
 ### EXP-03 — Perubahan Topologi & Kegagalan Node
 
@@ -254,15 +228,11 @@ RX [fdde:ad00:beef:0:yyyy:...]: NODE2:2
 | Latency 1 hop vs 2 hop | |
 | Role setelah N2 kembali — berubah? | |
 
-> **CHECKPOINT** — Tersedia bukti kuantitatif untuk dua klaim terpisah:
-> (a) pesan N3 mencapai N1 lewat N2, dan (b) mesh pulih sendiri. Klaim (a)
-> hanya sah bila N1 dan N3 memang **tidak** saling terjangkau langsung —
-> buktikan dulu dengan mematikan N2 dan melihat aliran berhenti.
+> **CHECKPOINT** — Tersedia bukti kuantitatif untuk dua klaim terpisah: (a) pesan N3 mencapai N1 lewat N2, dan (b) mesh pulih sendiri. Klaim (a) hanya sah bila N1 dan N3 memang **tidak** saling terjangkau langsung — buktikan dulu dengan mematikan N2 dan melihat aliran berhenti.
 
 ### Verifikasi hardware (log referensi)
 
-Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu, formasi
-meja < 1 m), capture 50 detik.
+Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu, formasi meja < 1 m), capture 50 detik.
 
 ```
 # Node1 (ESP32-H2)              # Node3 (ESP32-H2)
@@ -279,8 +249,7 @@ meja < 1 m), capture 50 detik.
 | Pesan diterima tiap node dari 2 node lain | 9 + 9, counter berurutan tanpa lompatan |
 | Loss | 0 % pada jarak meja |
 
-Karena semua node saling terjangkau langsung, hasil ini **belum** membuktikan
-routing multi-hop — itu tugas EXP-03 formasi garis.
+Karena semua node saling terjangkau langsung, hasil ini **belum** membuktikan routing multi-hop — itu tugas EXP-03 formasi garis.
 
 ## 8 · Pengukuran
 

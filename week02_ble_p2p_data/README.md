@@ -21,10 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-Modul 01 hanya membuktikan **tautan** terbentuk — belum ada satu byte
-aplikasi pun yang lewat. Modul ini memakai tautan itu untuk membawa data, dan
-memperkenalkan dua mekanisme yang akan dipakai terus sampai Modul 16: **notify**
-(server mendorong) dan **write** (client mengirim).
+Modul 01 hanya membuktikan **tautan** terbentuk — belum ada satu byte aplikasi pun yang lewat. Modul ini memakai tautan itu untuk membawa data, dan memperkenalkan dua mekanisme yang akan dipakai terus sampai Modul 16: **notify** (server mendorong) dan **write** (client mengirim).
 
 | | Cakupan |
 |---|---|
@@ -43,10 +40,7 @@ memperkenalkan dua mekanisme yang akan dipakai terus sampai Modul 16: **notify**
 | 05 | Lebih dari dua node — satu central, banyak peripheral |
 | 06 | Relay A→B→C, jangkauan diperluas lewat hop |
 
-**Kontrak data lab ini.** Mulai modul ini setiap payload membawa penanda yang
-bisa dihitung — di sini `millis()`, mulai CH-1 berupa nomor urut `SEQ=<n>`.
-Nomor urut itulah yang membuat *packet loss* bisa dihitung, dan format yang
-sama akan muncul lagi di Zigbee (M09), Thread (M12), dan MQTT (M14).
+**Kontrak data lab ini.** Mulai modul ini setiap payload membawa penanda yang bisa dihitung — di sini `millis()`, mulai CH-1 berupa nomor urut `SEQ=<n>`. Nomor urut itulah yang membuat *packet loss* bisa dihitung, dan format yang sama akan muncul lagi di Zigbee (M09), Thread (M12), dan MQTT (M14).
 
 ## 3 · Capaian Pembelajaran
 
@@ -66,9 +60,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori di sini dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(mengapa GATT dirancang berlapis, detail ATT/L2CAP) ada di buku teori terpisah —
-panduan ini fokus pada "bagaimana".*
+Teori di sini dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (mengapa GATT dirancang berlapis, detail ATT/L2CAP) ada di buku teori terpisah — panduan ini fokus pada "bagaimana".*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -81,11 +73,7 @@ panduan ini fokus pada "bagaimana".*
 | `onWrite` / `onNotify` | Callback yang dipicu saat data ditulis ke server / notifikasi tiba di client. |
 | Echo | Server mengirim balik isi write lewat notify — dipakai untuk membuktikan jalur pulang. |
 
-**Mengapa dua characteristic, bukan satu?** Satu characteristic hanya bisa
-mengalir efisien ke satu arah: `NOTIFY` adalah dorongan server→client,
-`WRITE` adalah kiriman client→server. Memisahkan TX dan RX membuat arah data
-terbaca langsung dari UUID-nya — pola yang sama dipakai profil serial BLE
-(Nordic UART Service) di dunia nyata.
+**Mengapa dua characteristic, bukan satu?** Satu characteristic hanya bisa mengalir efisien ke satu arah: `NOTIFY` adalah dorongan server→client, `WRITE` adalah kiriman client→server. Memisahkan TX dan RX membuat arah data terbaca langsung dari UUID-nya — pola yang sama dipakai profil serial BLE (Nordic UART Service) di dunia nyata.
 
 **Sekuens protokol yang diamati**
 
@@ -114,9 +102,7 @@ Node1 (Server)                              Node2 (Client)
 | Node 1 | ESP32-H2 DevKitM-1 | `node1` | BLE Server (`NODE1_H2`) | notify `Hello dari Node1 (<millis>)` tiap 2 s |
 | Node 2 | ESP32-H2 DevKitM-1 | `node2` | BLE Client | write `Halo dari Node2 (<millis>)` tiap 3 s |
 
-Kedua peran berjalan di **ESP32-H2** dengan radio Bluetooth LE — modul ini
-tidak membutuhkan ESP32-C6. Pesan yang diterima server di-echo kembali ke
-client lewat notify.
+Kedua peran berjalan di **ESP32-H2** dengan radio Bluetooth LE — modul ini tidak membutuhkan ESP32-C6. Pesan yang diterima server di-echo kembali ke client lewat notify.
 
 **Address map** (identik di kedua node)
 
@@ -140,8 +126,7 @@ client lewat notify.
 
 **platformio.ini — kunci agar dua board tidak salah flash**
 
-Dengan dua ESP32-H2 tercolok bersamaan, auto-detect port bisa mengirim firmware
-`node1` ke board yang dimaksudkan sebagai `node2`. Pin port tiap environment:
+Dengan dua ESP32-H2 terpasang bersamaan, auto-detect port bisa mengirim firmware `node1` ke board yang dimaksudkan sebagai `node2`. Pin port tiap environment:
 
 ```ini
 [env:node1]
@@ -174,8 +159,7 @@ pio run -d week02_ble_p2p_data -e node2 -t upload -t monitor
 
 ### EXP-01 — Connect & Subscribe
 
-Node1 advertise `NODE1_H2`; Node2 scan, konek, mencari service dan kedua
-characteristic, lalu subscribe ke TX.
+Node1 advertise `NODE1_H2`; Node2 scan, konek, mencari service dan kedua characteristic, lalu subscribe ke TX.
 
 ```
 Node2: Scan ─► NODE1_H2 ditemukan ─► Connect ─► getService()
@@ -191,17 +175,9 @@ Node2: Scan ─► NODE1_H2 ditemukan ─► Connect ─► getService()
 | Jumlah characteristic ditemukan | |
 | Waktu dari scan sampai subscribe selesai (s) | |
 
-**Buka abstraksinya** — di `src/node2/main.cpp`, `pTx->subscribe(true, onNotify)`
-tampak seperti satu baris biasa. Sebenarnya baris itu **menulis ke CCCD**
-(Client Characteristic Configuration Descriptor) milik server. Cari di
-`src/node1/main.cpp` di mana descriptor itu dibuat — jawabannya: tidak ada,
-NimBLE menambahkannya otomatis begitu property `NOTIFY` dipasang. Buktikan
-dengan nRF Connect: buka characteristic TX dan lihat descriptor `0x2902`.
+**Buka abstraksinya** — di `src/node2/main.cpp`, `pTx->subscribe(true, onNotify)` tampak seperti satu baris biasa. Sebenarnya baris itu **menulis ke CCCD** (Client Characteristic Configuration Descriptor) milik server. Cari di `src/node1/main.cpp` di mana descriptor itu dibuat — jawabannya: tidak ada, NimBLE menambahkannya otomatis begitu property `NOTIFY` dipasang. Buktikan dengan nRF Connect: buka characteristic TX dan lihat descriptor `0x2902`.
 
-> **CHECKPOINT** — Node2 mencetak `Koneksi berhasil`. Jika berhenti di
-> `Scanning Node1...`: pastikan board `node1` menyala dan nama pada
-> `advertisedDevice->getName()` di Node2 sama persis dengan
-> `pAdvertising->setName()` di Node1.
+> **CHECKPOINT** — Node2 mencetak `Koneksi berhasil`. Jika berhenti di `Scanning Node1...`: pastikan board `node1` menyala dan nama pada `advertisedDevice->getName()` di Node2 sama persis dengan `pAdvertising->setName()` di Node1.
 
 ### EXP-02 — Downlink: Server → Client (notify)
 
@@ -229,15 +205,11 @@ RX dari Node1: Hello dari Node1 (2043)
 RX dari Node1: Hello dari Node1 (4047)
 ```
 
-> **CHECKPOINT** — Baris `RX dari Node1` muncul di Node2 dengan jarak ±2 detik
-> dan nilai `millis()` yang sama persis dengan `TX ke Node2` di Node1. Jika
-> nilainya berbeda, log yang sedang dibaca tidak sinkron — hentikan dan
-> periksa dulu, jangan lanjut ke EXP-03.
+> **CHECKPOINT** — Baris `RX dari Node1` muncul di Node2 dengan jarak ±2 detik dan nilai `millis()` yang sama persis dengan `TX ke Node2` di Node1. Jika nilainya berbeda, log yang sedang dibaca tidak sinkron — hentikan dan periksa dulu, jangan lanjut ke EXP-03.
 
 ### EXP-03 — Uplink + Echo: Client → Server (write)
 
-Node2 menulis ke characteristic RX tiap 3000 ms. Server menerima (`onWrite`),
-mencetak, lalu meng-echo balik lewat notify pada characteristic TX.
+Node2 menulis ke characteristic RX tiap 3000 ms. Server menerima (`onWrite`), mencetak, lalu meng-echo balik lewat notify pada characteristic TX.
 
 ```
 Node2 ── WRITE "Halo dari Node2 (6051)" ──► Node1 CHAR_RX
@@ -269,15 +241,11 @@ RX dari Node1: Halo dari Node2 (6051)
 | Contoh payload write Node2 | |
 | Apakah echo diterima Node2? (ya/tidak) | |
 
-> **CHECKPOINT** — Pada Node2 muncul **dua jenis** baris `RX dari Node1`: yang
-> berisi `Hello ...` (notify periodik) dan yang berisi `Halo ...` (echo dari
-> write yang dikirim sendiri). Jika hanya satu jenis yang muncul, satu arah belum
-> jalan — perbaiki sebelum masuk ke pengukuran.
+> **CHECKPOINT** — Pada Node2 muncul **dua jenis** baris `RX dari Node1`: yang berisi `Hello ...` (notify periodik) dan yang berisi `Halo ...` (echo dari write yang dikirim sendiri). Jika hanya satu jenis yang muncul, satu arah belum jalan — perbaiki sebelum masuk ke pengukuran.
 
 ### Verifikasi hardware (log referensi)
 
-Modul ini sudah dijalankan pada 2 × **ESP32-H2 DevKitM-1** (jarak ±20 cm,
-capture 25 detik). Log di bawah adalah hasil sebenarnya, bukan ilustrasi.
+Modul ini sudah dijalankan pada 2 × **ESP32-H2 DevKitM-1** (jarak ±20 cm, capture 25 detik). Log di bawah adalah hasil sebenarnya, bukan ilustrasi.
 
 ```
 # Node 1 (ESP32-H2, env node1)          # Node 2 (ESP32-H2, env node2)
@@ -299,9 +267,7 @@ capture 25 detik). Log di bawah adalah hasil sebenarnya, bukan ilustrasi.
 
 ## 8 · Pengukuran
 
-Pindahkan Node1 menjauh; hitung jumlah pesan yang diterima Node2 per interval
-pengamatan. **Hitung tiap arah terpisah** — inti modul ini adalah dua arah
-tidak selalu gagal bersamaan.
+Pindahkan Node1 menjauh; hitung jumlah pesan yang diterima Node2 per interval pengamatan. **Hitung tiap arah terpisah** — inti modul ini adalah dua arah tidak selalu gagal bersamaan.
 
 RSSI dibaca dari log Node2 sendiri. Tambahkan pada heartbeat Node2:
 
@@ -325,8 +291,7 @@ Serial.printf("RSSI: %d dBm\n", pClient->getRssi());
 | 10 m | | | | | |
 | 15 m | | | | | |
 
-Latency diestimasi dari selisih nilai `millis()` pada payload terhadap waktu
-kedatangan di Node2.
+Latency diestimasi dari selisih nilai `millis()` pada payload terhadap waktu kedatangan di Node2.
 
 ## 9 · Analisis
 

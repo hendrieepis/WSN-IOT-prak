@@ -25,12 +25,7 @@ H2 → Thread → C6 → Wi-Fi → MQTT → Dashboard
 
 ## 2 · Keterkaitan Antar-Modul
 
-Modul ini **tidak memperkenalkan protokol baru**. Seluruh komponennya sudah dibangun:
-sensor Thread (M11), mesh (M12), gateway dwi-radio (M13), dan klien MQTT (M14).
-Yang baru adalah menyatukannya — dan menghadapi masalah yang hanya muncul saat
-sistem punya banyak hop: **ketika data tidak sampai, hop mana yang salah?**
-Karena tiap hop sudah diukur sendiri pada modul sebelumnya, angka pembanding
-untuk menjawabnya sudah tersedia.
+Modul ini **tidak memperkenalkan protokol baru**. Seluruh komponennya sudah dibangun: sensor Thread (M11), mesh (M12), gateway dwi-radio (M13), dan klien MQTT (M14). Yang baru adalah menyatukannya — dan menghadapi masalah yang hanya muncul saat sistem punya banyak hop: **ketika data tidak sampai, hop mana yang salah?** Karena tiap hop sudah diukur sendiri pada modul sebelumnya, angka pembanding untuk menjawabnya sudah tersedia.
 
 | | Cakupan |
 |---|---|
@@ -47,11 +42,7 @@ untuk menjawabnya sudah tersedia.
 | **15 (ini)** | **Semuanya disatukan: rantai lengkap sensor → dashboard** |
 | 16 | Hop pertama diganti BLE/Zigbee/Thread untuk dibandingkan |
 
-**Kontrak data lab ini.** Payload `suhu:XX.X` berjalan **tanpa diubah** dari
-node H2 sampai subscriber di PC — gateway tidak mem-parsing ulang, hanya
-memindahkan dari satu transport ke transport lain. Karena itu topic
-`praktikum/h2/telemetri` di sini identik dengan M14, dan datanya bisa langsung
-dibandingkan dengan M16.
+**Kontrak data lab ini.** Payload `suhu:XX.X` berjalan **tanpa diubah** dari node H2 sampai subscriber di PC — gateway tidak mem-parsing ulang, hanya memindahkan dari satu transport ke transport lain. Karena itu topic `praktikum/h2/telemetri` di sini identik dengan M14, dan datanya bisa langsung dibandingkan dengan M16.
 
 ## 3 · Capaian Pembelajaran
 
@@ -71,9 +62,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(arsitektur referensi IoT, edge vs cloud processing, skema QoS berlapis) ada di
-buku teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (arsitektur referensi IoT, edge vs cloud processing, skema QoS berlapis) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -84,12 +73,7 @@ buku teori terpisah.*
 | Topic | Data masuk ke `praktikum/h2/telemetri`; konsumen cukup berlangganan tanpa tahu sensornya. |
 | QoS | Jaminan pengiriman MQTT (0/1/2); kode ini memakai QoS 0 (batasan PubSubClient). |
 
-**Isolasi kesalahan adalah inti modul ini.** Empat hop berarti empat tempat
-pesan bisa hilang. Cara membedakannya: hitung **counter di tiap tahap** —
-berapa yang dikirim H2, berapa yang tercetak `RX via Thread` di C6, berapa yang
-tercetak `Publish MQTT`, dan berapa yang muncul di `mosquitto_sub`. Selisih
-antar tahap menunjuk hop yang bermasalah. Tanpa counter, semua kegagalan
-terlihat sama: "datanya tidak muncul".
+**Isolasi kesalahan adalah inti modul ini.** Empat hop berarti empat tempat pesan bisa hilang. Cara membedakannya: hitung **counter di tiap tahap** — berapa yang dikirim H2, berapa yang tercetak `RX via Thread` di C6, berapa yang tercetak `Publish MQTT`, dan berapa yang muncul di `mosquitto_sub`. Selisih antar tahap menunjuk hop yang bermasalah. Tanpa counter, semua kegagalan terlihat sama: "datanya tidak muncul".
 
 **Sekuens protokol yang diamati**
 
@@ -144,8 +128,7 @@ Rantai vertikal per lapis:
 | Gateway | **ESP32-C6** DevKitC-1 | `c6_gateway` | Thread Leader + Wi-Fi STA + klien MQTT (`esp32c6-gateway`) |
 | Konsumen | PC/laptop | — | `mosquitto_sub`, verifikasi independen |
 
-Sama seperti M13, **dua jenis board wajib**: ESP32-H2 tidak punya Wi-Fi, jadi
-hanya ESP32-C6 yang bisa memegang Thread dan Wi-Fi sekaligus.
+Sama seperti M13, **dua jenis board wajib**: ESP32-H2 tidak punya Wi-Fi, jadi hanya ESP32-C6 yang bisa memegang Thread dan Wi-Fi sekaligus.
 
 ## 6 · Persiapan
 
@@ -198,9 +181,7 @@ pio run -d week15_e2e_iot -e h2_node    -t upload -t monitor
 
 ### EXP-01 — Inisialisasi Gateway
 
-Deploy firmware kedua board. Gateway melakukan tiga tahap setup: konek Wi-Fi,
-konek MQTT (client ID `esp32c6-gateway`), lalu membentuk jaringan Thread
-`ESP_OT_E2E` sebagai Leader dan join grup multicast. Ukur waktu total setup.
+Deploy firmware kedua board. Gateway melakukan tiga tahap setup: konek Wi-Fi, konek MQTT (client ID `esp32c6-gateway`), lalu membentuk jaringan Thread `ESP_OT_E2E` sebagai Leader dan join grup multicast. Ukur waktu total setup.
 
 ```
 [C6 setup] WiFi.begin ──► mqtt.connect ──► OThread dataset ──► leader
@@ -218,23 +199,13 @@ konek MQTT (client ID `esp32c6-gateway`), lalu membentuk jaringan Thread
 | Awalan Mesh-Local EID H2 dan C6 sama? | |
 | Waktu total setup hingga `Gateway siap` | |
 
-**Buka abstraksinya** — gateway ini menjalankan **tiga** stack di satu chip:
-Thread, Wi-Fi, dan MQTT. Bandingkan ukuran firmware `c6_gateway` modul ini
-dengan `c6_gateway` M13 (Thread + Wi-Fi + HTTP) dari ringkasan `pio run`, lalu
-periksa `huge_app.csv` untuk melihat berapa besar partisi app yang tersedia.
-Jawab: berapa persen partisi sudah terpakai, dan apa yang akan terjadi bila
-ditambahkan satu stack lagi (mis. BLE seperti di M16)? Ini metrik yang jarang
-diukur orang tetapi menentukan apakah sebuah gateway bisa dikembangkan lagi.
+**Buka abstraksinya** — gateway ini menjalankan **tiga** stack di satu chip: Thread, Wi-Fi, dan MQTT. Bandingkan ukuran firmware `c6_gateway` modul ini dengan `c6_gateway` M13 (Thread + Wi-Fi + HTTP) dari ringkasan `pio run`, lalu periksa `huge_app.csv` untuk melihat berapa besar partisi app yang tersedia. Jawab: berapa persen partisi sudah terpakai, dan apa yang akan terjadi bila ditambahkan satu stack lagi (mis. BLE seperti di M16)? Ini metrik yang jarang diukur orang tetapi menentukan apakah sebuah gateway bisa dikembangkan lagi.
 
-> **CHECKPOINT** — Gateway mencetak **ketiga** tanda kesiapan berurutan:
-> `Wi-Fi OK, IP: ...`, `MQTT terhubung`, dan `Thread attached as: leader`.
-> Jika salah satu tidak muncul, hentikan di sini — mendiagnosis satu stack
-> jauh lebih mudah daripada mendiagnosis tiga sekaligus.
+> **CHECKPOINT** — Gateway mencetak **ketiga** tanda kesiapan berurutan: `Wi-Fi OK, IP: ...`, `MQTT terhubung`, dan `Thread attached as: leader`. Jika salah satu tidak muncul, hentikan di sini — mendiagnosis satu stack jauh lebih mudah daripada mendiagnosis tiga sekaligus.
 
 ### EXP-02 — Thread TX → Forward MQTT
 
-H2 mengirim `suhu:XX.X` tiap 3 detik; C6 menerima paket dan langsung
-mem-publish payload yang sama ke broker.
+H2 mengirim `suhu:XX.X` tiap 3 detik; C6 menerima paket dan langsung mem-publish payload yang sama ke broker.
 
 ```
 [H2] ──3 s──► "TX via Thread: suhu:25.3"
@@ -263,10 +234,7 @@ RX via Thread: suhu:25.2
 Publish MQTT [praktikum/h2/telemetri]: suhu:25.2
 ```
 
-> **CHECKPOINT** — Untuk **satu** nilai suhu yang sama (mis. `25.2`), tiga baris log
-> berurutan harus dapat ditunjuk: `TX via Thread` di H2, `RX via Thread` di
-> C6, dan `Publish MQTT` di C6. Jika baris kedua ada tetapi ketiga tidak,
-> masalahnya di MQTT — bukan di Thread.
+> **CHECKPOINT** — Untuk **satu** nilai suhu yang sama (mis. `25.2`), tiga baris log berurutan harus dapat ditunjuk: `TX via Thread` di H2, `RX via Thread` di C6, dan `Publish MQTT` di C6. Jika baris kedua ada tetapi ketiga tidak, masalahnya di MQTT — bukan di Thread.
 
 ### EXP-03 — Verifikasi End-to-End
 
@@ -298,9 +266,7 @@ Variasi wajib:
 | Perilaku saat MQTT terputus | |
 | Waktu pulih setelah H2 di-reset | |
 
-> **CHECKPOINT** — Nilai suhu yang muncul di `mosquitto_sub` sama persis dengan
-> yang dicetak H2. Jika berbeda atau tertukar urutannya, ada pihak lain yang
-> mem-publish ke topic yang sama — ganti prefix topic menjadi unik per kelompok.
+> **CHECKPOINT** — Nilai suhu yang muncul di `mosquitto_sub` sama persis dengan yang dicetak H2. Jika berbeda atau tertukar urutannya, ada pihak lain yang mem-publish ke topic yang sama — ganti prefix topic menjadi unik per kelompok.
 
 ### Verifikasi hardware (log referensi)
 
@@ -323,9 +289,7 @@ Dijalankan pada **ESP32-H2 DevKitM-1** + **ESP32-C6 DevKitC-1** asli.
 | C6 asosiasi Wi-Fi sambil Thread jalan | ✅ 2,0 s (setelah perbaikan urutan) |
 | Publish MQTT → broker | ⚠️ berjalan tetapi tidak andal (0–36 % end-to-end, tergantung AP) |
 
-**Rantai penuh terbukti — dengan satu syarat wajib.** Pipeline H2 → Thread →
-C6 → Wi-Fi → MQTT → subscriber berhasil dijalankan utuh, **tetapi hanya setelah
-prioritas radio diberikan ke Wi-Fi** sebelum stack 802.15.4 dinyalakan:
+**Rantai penuh terbukti — dengan satu syarat wajib.** Pipeline H2 → Thread → C6 → Wi-Fi → MQTT → subscriber berhasil dijalankan utuh, **tetapi hanya setelah prioritas radio diberikan ke Wi-Fi** sebelum stack 802.15.4 dinyalakan:
 
 ```cpp
 #include "esp_coexist.h"
@@ -333,11 +297,9 @@ prioritas radio diberikan ke Wi-Fi** sebelum stack 802.15.4 dinyalakan:
 esp_coex_preference_set(ESP_COEX_PREFER_WIFI);   // sebelum OThread.start()
 ```
 
-Tanpa baris itu, C6 tetap asosiasi Wi-Fi dan dapat IP, tetapi **seluruh TCP
-keluar gagal** — bahkan ke router sendiri (probe timeout 4 detik berulang).
+Tanpa baris itu, C6 tetap asosiasi Wi-Fi dan dapat IP, tetapi **seluruh TCP keluar gagal** — bahkan ke router sendiri (probe timeout 4 detik berulang).
 
-**Diuji pada tiga jaringan Wi-Fi berbeda.** Hop Thread selalu sehat; hop
-Wi-Fi/MQTT yang bervariasi dan selalu menjadi penyumbang kerugian:
+**Diuji pada tiga jaringan Wi-Fi berbeda.** Hop Thread selalu sehat; hop Wi-Fi/MQTT yang bervariasi dan selalu menjadi penyumbang kerugian:
 
 | AP uji | Kanal Wi-Fi | RSSI | H2 TX → C6 RX | Publish → broker | End-to-end |
 |---|---|---|---|---|---|
@@ -345,43 +307,23 @@ Wi-Fi/MQTT yang bervariasi dan selalu menjadi penyumbang kerugian:
 | AP-2 | 12 (2467 MHz) | −81 dBm | 32/33 (97 %) | 12/12 | **36 %** |
 | AP-3 | 9 (2452 MHz) | −71 dBm | 30/39 (77 %) | 2/7 | **5 %** |
 
-Sinyal yang lebih kuat (AP-3) **tidak** menghasilkan hasil terbaik — jadi
-penyebabnya bukan link budget, melainkan pembagian airtime antara Wi-Fi dan
-802.15.4 pada satu antena. Mengganti channel 802.15.4 (15 → 25, dan 15 → 11
-untuk menjauh maksimum dari kanal Wi-Fi AP-3) juga tidak menolong.
+Sinyal yang lebih kuat (AP-3) **tidak** menghasilkan hasil terbaik — jadi penyebabnya bukan link budget, melainkan pembagian airtime antara Wi-Fi dan 802.15.4 pada satu antena. Mengganti channel 802.15.4 (15 → 25, dan 15 → 11 untuk menjauh maksimum dari kanal Wi-Fi AP-3) juga tidak menolong.
 
-**Pelajaran penting dari AP-3: `publish()` bernilai `true` bukan bukti sampai.**
-Pada run itu gateway mencetak 7 baris `Publish MQTT [...]` sementara broker hanya
-menerima **2**. Pada QoS 0, `PubSubClient::publish()` hanya menulis ke buffer
-socket; bila koneksi TCP sudah setengah mati, tidak ada yang memberi tahu.
-Karena itu Bagian 8 mewajibkan kolom "Broker menerima" diisi dari **log broker**,
-bukan dari log gateway. Ini juga jawaban konkret untuk Concept Check nomor 3.
+**Pelajaran penting dari AP-3: `publish()` bernilai `true` bukan bukti sampai.** Pada run itu gateway mencetak 7 baris `Publish MQTT [...]` sementara broker hanya menerima **2**. Pada QoS 0, `PubSubClient::publish()` hanya menulis ke buffer socket; bila koneksi TCP sudah setengah mati, tidak ada yang memberi tahu. Karena itu Bagian 8 mewajibkan kolom "Broker menerima" diisi dari **log broker**, bukan dari log gateway. Ini juga jawaban konkret untuk Concept Check nomor 3.
 
-**Pembanding yang paling menentukan.** Modul 16 (BLE + Wi-Fi, bukan
-Thread + Wi-Fi) diukur pada AP-3, jarak, dan broker yang sama persis:
+**Pembanding yang paling menentukan.** Modul 16 (BLE + Wi-Fi, bukan Thread + Wi-Fi) diukur pada AP-3, jarak, dan broker yang sama persis:
 
 | Pipeline | Modul | Hop sensor | Hop Wi-Fi/MQTT | End-to-end |
 |---|---|---|---|---|
 | BLE → C6 → MQTT | M16 | 47/48 (98 %) | 47/47 (100 %) | **98 %** |
 | Thread → C6 → MQTT | M15 | 30/39 (77 %) | 2/7 (29 %) | **5 %** |
 
-Kondisi jaringan identik; yang berbeda hanya radio hop pertama. Ini bahan utama
-untuk analisis Modul 16: pada gateway satu-chip satu-antena, **BLE + Wi-Fi
-nyaris tanpa ongkos koeksistensi, Thread + Wi-Fi sangat mahal**. Kesimpulan
-yang tepat bukan "Thread lebih buruk dari BLE", melainkan bahwa arsitektur
-gateway satu-chip tidak cocok untuk Thread + Wi-Fi — border router dua-chip
-akan mengubah angka ini sepenuhnya.
+Kondisi jaringan identik; yang berbeda hanya radio hop pertama. Ini bahan utama untuk analisis Modul 16: pada gateway satu-chip satu-antena, **BLE + Wi-Fi nyaris tanpa ongkos koeksistensi, Thread + Wi-Fi sangat mahal**. Kesimpulan yang tepat bukan "Thread lebih buruk dari BLE", melainkan bahwa arsitektur gateway satu-chip tidak cocok untuk Thread + Wi-Fi — border router dua-chip akan mengubah angka ini sepenuhnya.
 
-**Yang sudah dicoba dan tidak menyelesaikan:** mengganti channel 802.15.4
-(15 → 25), memakai AP di kanal Wi-Fi yang tidak bertetangga, `WiFi.setSleep()`
-kedua nilainya, dan memaksa default netif ke Wi-Fi STA. Yang **berhasil** hanya
-kombinasi urutan inisialisasi + `esp_coex_preference_set(ESP_COEX_PREFER_WIFI)`
-+ memisahkan jeda retry MQTT dari jeda retry Wi-Fi. Bahkan setelah itu, hop
-Wi-Fi tetap tidak andal — laporkan angkanya apa adanya.
+**Yang sudah dicoba dan tidak menyelesaikan:** mengganti channel 802.15.4 (15 → 25), memakai AP di kanal Wi-Fi yang tidak bertetangga, `WiFi.setSleep()` kedua nilainya, dan memaksa default netif ke Wi-Fi STA. Yang **berhasil** hanya kombinasi urutan inisialisasi + `esp_coex_preference_set(ESP_COEX_PREFER_WIFI)`
++ memisahkan jeda retry MQTT dari jeda retry Wi-Fi. Bahkan setelah itu, hop Wi-Fi tetap tidak andal — laporkan angkanya apa adanya.
 
-**Yang harus dilakukan praktikan:** catat RSSI Wi-Fi gateway di laporan dan isi
-tabel counter per tahap di Bagian 8. Rantai yang bocor di satu hop dengan sebab
-yang dapat ditunjuk bernilai lebih tinggi daripada demo mulus tanpa data.
+**Yang harus dilakukan praktikan:** catat RSSI Wi-Fi gateway di laporan dan isi tabel counter per tahap di Bagian 8. Rantai yang bocor di satu hop dengan sebab yang dapat ditunjuk bernilai lebih tinggi daripada demo mulus tanpa data.
 
 **Perbaikan kode yang lahir dari uji ini**
 
@@ -404,8 +346,7 @@ yang dapat ditunjuk bernilai lebih tinggi daripada demo mulus tanpa data.
 | 5 m, garis pandang | | | |
 | 5 m + penghalang dinding | | | |
 
-Latency end-to-end: cap waktu `TX via Thread` pada H2 versus kemunculan pesan
-di `mosquitto_sub` (gunakan `mosquitto_sub -F '%t %p'` atau timestamp terminal).
+Latency end-to-end: cap waktu `TX via Thread` pada H2 versus kemunculan pesan di `mosquitto_sub` (gunakan `mosquitto_sub -F '%t %p'` atau timestamp terminal).
 
 **Tabel counter per tahap — inti modul ini.** Amati 2 menit (≈ 40 pesan):
 

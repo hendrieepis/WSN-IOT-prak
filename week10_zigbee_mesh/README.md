@@ -21,12 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-M06 sudah memperkenalkan hop — tetapi jalurnya ditulis sendiri di dalam kode.
-Di sini jalur ditentukan **stack**: end device memilih parent terbaik sendiri,
-dan router meneruskan trafik tanpa satu baris kode penerusan pun di sketch.
-Membandingkan dua pendekatan ini (relay manual M06 vs routing otomatis M10)
-adalah inti analisis modul ini, dan bekalnya dipakai lagi saat Thread
-melakukan hal serupa di atas IPv6 (M12).
+M06 sudah memperkenalkan hop — tetapi jalurnya ditulis sendiri di dalam kode. Di sini jalur ditentukan **stack**: end device memilih parent terbaik sendiri, dan router meneruskan trafik tanpa satu baris kode penerusan pun di sketch. Membandingkan dua pendekatan ini (relay manual M06 vs routing otomatis M10) adalah inti analisis modul ini, dan bekalnya dipakai lagi saat Thread melakukan hal serupa di atas IPv6 (M12).
 
 | | Cakupan |
 |---|---|
@@ -44,10 +39,7 @@ melakukan hal serupa di atas IPv6 (M12).
 | **10 (ini)** | **Router meneruskan trafik — jangkauan melampaui satu hop** |
 | 11 | Pindah ke Thread: IPv6 di atas radio 802.15.4 yang sama |
 
-**Kontrak data lab ini.** Ukur **latency 1 hop dan 2 hop** pada modul ini.
-Angka itu adalah pembanding langsung untuk latency relay manual M06 dan untuk
-mesh Thread M12 — tiga cara berbeda menyelesaikan masalah yang sama, di radio
-yang sama.
+**Kontrak data lab ini.** Ukur **latency 1 hop dan 2 hop** pada modul ini. Angka itu adalah pembanding langsung untuk latency relay manual M06 dan untuk mesh Thread M12 — tiga cara berbeda menyelesaikan masalah yang sama, di radio yang sama.
 
 ## 3 · Capaian Pembelajaran
 
@@ -67,9 +59,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(algoritma routing AODV Zigbee, tabel routing, many-to-one routing) ada di buku
-teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (algoritma routing AODV Zigbee, tabel routing, many-to-one routing) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -81,11 +71,7 @@ teori terpisah.*
 | Orphan | Status ZED yang kehilangan parent dan belum menemukan pengganti. |
 | Endpoint/Cluster | EP 5 (switch), EP 10 (router light), EP 11 (ED light), semua pada cluster On/Off. |
 
-**Router bukan sekadar "node yang juga menyala".** Perbedaan sesungguhnya:
-router **selalu mendengarkan** (tidak tidur) dan menyimpan tabel routing.
-Itulah mengapa ZR memakai firmware ZCZR (lebih besar, partisi berbeda) dan
-mengapa ZR tidak cocok untuk node baterai. Catat konsekuensi daya ini — ia
-menjadi salah satu argumen di M16.
+**Router bukan sekadar "node yang juga menyala".** Perbedaan sesungguhnya: router **selalu mendengarkan** (tidak tidur) dan menyimpan tabel routing. Itulah mengapa ZR memakai firmware ZCZR (lebih besar, partisi berbeda) dan mengapa ZR tidak cocok untuk node baterai. Catat konsekuensi daya ini — ia menjadi salah satu argumen di M16.
 
 **Sekuens protokol yang diamati**
 
@@ -115,13 +101,9 @@ menjadi salah satu argumen di M16.
 | RouterLight | ESP32-H2 DevKitM-1 | `router` | ZR + light (ZCZR) | EP 10 |
 | EndLight | ESP32-H2 DevKitM-1 | `enddevice` | ZED + light (ED) | EP 11 |
 
-Ketiganya **ESP32-H2 DevKitM-1**. Router memakai firmware ZCZR
-(`partitions_zczr.csv`) sedangkan end device memakai ED (`partitions_ed.csv`) —
-satu-satunya perbedaan perangkat keras adalah peran yang diberikan, bukan chip.
+Ketiganya **ESP32-H2 DevKitM-1**. Router memakai firmware ZCZR (`partitions_zczr.csv`) sedangkan end device memakai ED (`partitions_ed.csv`) — satu-satunya perbedaan perangkat keras adalah peran yang diberikan, bukan chip.
 
-**Rencana penempatan:** ZC — jarak — ZR — jarak — ZED, dalam satu garis.
-Formasi meja (semua < 1 m) hanya untuk pemanasan; ia **tidak** membuktikan
-multi-hop.
+**Rencana penempatan:** ZC — jarak — ZR — jarak — ZED, dalam satu garis. Formasi meja (semua < 1 m) hanya untuk pemanasan; ia **tidak** membuktikan multi-hop.
 
 ## 6 · Persiapan
 
@@ -172,8 +154,7 @@ pio run -d week10_zigbee_mesh -e enddevice   -t upload    # dalam 180 s
 
 ### EXP-01 — Join Bertingkat
 
-Nyalakan coordinator, lalu router, lalu end device (semua dalam window
-180 detik). Router join langsung ke ZC; end device memilih parent terbaik.
+Nyalakan coordinator, lalu router, lalu end device (semua dalam window 180 detik). Router join langsung ke ZC; end device memilih parent terbaik.
 
 ```
  [ZC on] ──► open 180 s ──► [ZR join ke ZC] ──► [ZED join (parent = ZR/ZC)]
@@ -188,15 +169,11 @@ Nyalakan coordinator, lalu router, lalu end device (semua dalam window
 | Total device ter-bind di ZC | |
 | Role yang dicetak Router / ZED | |
 
-> **CHECKPOINT** — Router mencetak `role=ROUTER` dan end device mencetak
-> `role=END_DEVICE`. Jika router mencetak `END_DEVICE`, `build_flags`-nya
-> salah — perbaiki sebelum lanjut, karena tanpa ZR tidak ada hop kedua.
+> **CHECKPOINT** — Router mencetak `role=ROUTER` dan end device mencetak `role=END_DEVICE`. Jika router mencetak `END_DEVICE`, `build_flags`-nya salah — perbaiki sebelum lanjut, karena tanpa ZR tidak ada hop kedua.
 
 ### EXP-02 — Kontrol Multi-Hop
 
-Coordinator menunggu binding (plus 8 detik tambahan), mencetak daftar device,
-lalu men-toggle semua device tiap 5 detik. Perintah ke EndLight diteruskan
-router bila ZED memilih ZR sebagai parent.
+Coordinator menunggu binding (plus 8 detik tambahan), mencetak daftar device, lalu men-toggle semua device tiap 5 detik. Perintah ke EndLight diteruskan router bila ZED memilih ZR sebagai parent.
 
 ```
  [ZC] ──── ON/OFF (5 s) ───► [ZR: RouterLight ON/OFF]
@@ -231,15 +208,9 @@ EndLight ON
 EndLight OFF
 ```
 
-**Buka abstraksinya** — cari di `src/router/main.cpp` baris kode yang
-**meneruskan** perintah ke end device. Baris itu tidak akan ditemukan: penerusan
-dikerjakan stack Zigbee, bukan aplikasi. Bandingkan dengan `src/nodeb/main.cpp`
-di Modul 06, tempat penerusan ditulis eksplisit. Tuliskan perbandingan itu —
-ia adalah jawaban pertanyaan analisis nomor 5.
+**Buka abstraksinya** — cari di `src/router/main.cpp` baris kode yang **meneruskan** perintah ke end device. Baris itu tidak akan ditemukan: penerusan dikerjakan stack Zigbee, bukan aplikasi. Bandingkan dengan `src/nodeb/main.cpp` di Modul 06, tempat penerusan ditulis eksplisit. Tuliskan perbandingan itu — ia adalah jawaban pertanyaan analisis nomor 5.
 
-> **CHECKPOINT** — Dua baris `-> 0x....` muncul tiap siklus dan kedua LED
-> berubah. Jika EndLight tidak ikut berubah padahal ter-bind, dekatkan dulu
-> semuanya (formasi meja) sebelum mencoba formasi garis.
+> **CHECKPOINT** — Dua baris `-> 0x....` muncul tiap siklus dan kedua LED berubah. Jika EndLight tidak ikut berubah padahal ter-bind, dekatkan dulu semuanya (formasi meja) sebelum mencoba formasi garis.
 
 ### EXP-03 — Varian Topologi (inti modul)
 
@@ -258,14 +229,11 @@ ia adalah jawaban pertanyaan analisis nomor 5.
 | Perilaku ZED saat ZR dimatikan | |
 | Waktu pemulihan setelah ZR hidup lagi | |
 
-> **CHECKPOINT** — Tersedia **dua angka latency** dari dua formasi berbeda,
-> bukan satu. Tanpa keduanya, klaim "multi-hop berhasil" tidak bisa dibuktikan.
+> **CHECKPOINT** — Tersedia **dua angka latency** dari dua formasi berbeda, bukan satu. Tanpa keduanya, klaim "multi-hop berhasil" tidak bisa dibuktikan.
 
 ### Verifikasi hardware (log referensi)
 
-Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu; ketiga
-board berdekatan, jadi ZED kemungkinan besar memilih ZC sebagai parent —
-1 hop), capture 80 detik.
+Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (flash di-erase lebih dulu; ketiga board berdekatan, jadi ZED kemungkinan besar memilih ZC sebagai parent — 1 hop), capture 80 detik.
 
 ```
 # Coordinator (ESP32-H2, ZCZR)
@@ -290,8 +258,7 @@ board berdekatan, jadi ZED kemungkinan besar memilih ZC sebagai parent —
 | Perintah dikirim per light | 15 |
 | Aksi terjadi di RouterLight / EndLight | 15 / 15 (0 % loss) |
 
-Formasi meja (semua node < 1 m) **belum membuktikan** routing multi-hop — untuk
-itu jalankan EXP-03 formasi garis dan matikan jalur langsung ZC ↔ ZED.
+Formasi meja (semua node < 1 m) **belum membuktikan** routing multi-hop — untuk itu jalankan EXP-03 formasi garis dan matikan jalur langsung ZC ↔ ZED.
 
 ## 8 · Pengukuran
 

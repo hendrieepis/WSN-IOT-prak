@@ -21,11 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-Modul 02 memindahkan *string bebas* lewat dua characteristic. Modul ini
-menaikkan satu tingkat abstraksi: characteristic tidak lagi sekadar pipa, tetapi
-**mewakili keadaan perangkat** — `CHAR_COUNTER` adalah nilai yang bisa dibaca
-kapan saja, `CHAR_CMD` adalah kanal perintah. Inilah pola *sensor + aktuator*
-yang nanti muncul lagi sebagai atribut Zigbee (M08) dan topic MQTT (M14).
+Modul 02 memindahkan *string bebas* lewat dua characteristic. Modul ini menaikkan satu tingkat abstraksi: characteristic tidak lagi sekadar pipa, tetapi **mewakili keadaan perangkat** — `CHAR_COUNTER` adalah nilai yang bisa dibaca kapan saja, `CHAR_CMD` adalah kanal perintah. Inilah pola *sensor + aktuator* yang nanti muncul lagi sebagai atribut Zigbee (M08) dan topic MQTT (M14).
 
 | | Cakupan |
 |---|---|
@@ -44,10 +40,7 @@ yang nanti muncul lagi sebagai atribut Zigbee (M08) dan topic MQTT (M14).
 | 05 | Lebih dari dua node |
 | 06 | Relay A→B→C |
 
-**Kontrak data lab ini.** Pemisahan **kanal data** (`CHAR_COUNTER`) dan **kanal
-perintah** (`CHAR_CMD`) adalah pola yang dipertahankan sampai modul terakhir:
-Zigbee memisahkannya jadi cluster/endpoint, MQTT memisahkannya jadi
-`praktikum/h2/telemetri` dan `praktikum/h2/perintah`.
+**Kontrak data lab ini.** Pemisahan **kanal data** (`CHAR_COUNTER`) dan **kanal perintah** (`CHAR_CMD`) adalah pola yang dipertahankan sampai modul terakhir: Zigbee memisahkannya jadi cluster/endpoint, MQTT memisahkannya jadi `praktikum/h2/telemetri` dan `praktikum/h2/perintah`.
 
 ## 3 · Capaian Pembelajaran
 
@@ -67,9 +60,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(model atribut GATT, ATT MTU, hubungan dengan Bluetooth SIG profile) ada di buku
-teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (model atribut GATT, ATT MTU, hubungan dengan Bluetooth SIG profile) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -81,13 +72,9 @@ teori terpisah.*
 | `readValue()` | Permintaan baca dari client; server menjawab dengan nilai terkini. |
 | Handle / UUID | Alamat characteristic di dalam service; UUID dipakai untuk mencarinya. |
 
-**Mengapa counter, bukan sensor?** Counter naik 1 tiap 1000 ms secara pasti,
-jadi nilai yang hilang atau read yang gagal langsung terlihat sebagai lompatan
-angka. Sensor asli akan menyembunyikan kesalahan di balik fluktuasi nilai.
+**Mengapa counter, bukan sensor?** Counter naik 1 tiap 1000 ms secara pasti, jadi nilai yang hilang atau read yang gagal langsung terlihat sebagai lompatan angka. Sensor asli akan menyembunyikan kesalahan di balik fluktuasi nilai.
 
-**Mengapa server hanya menaikkan counter saat ada client?** Agar nilai counter
-merepresentasikan **lama koneksi**, bukan lama board menyala — periksa
-`src/server/main.cpp` dan tunjukkan baris yang menegakkan aturan ini.
+**Mengapa server hanya menaikkan counter saat ada client?** Agar nilai counter merepresentasikan **lama koneksi**, bukan lama board menyala — periksa `src/server/main.cpp` dan tunjukkan baris yang menegakkan aturan ini.
 
 **Sekuens protokol yang diamati**
 
@@ -119,8 +106,7 @@ Server                                        Client
 | Server | ESP32-H2 DevKitM-1 | `server` | GATT Server (`GATT_SERVER`) | counter++ tiap 1000 ms |
 | Client | ESP32-H2 DevKitM-1 | `client` | GATT Client (`GATT_CLIENT`) | read tiap 2000 ms, write `ON` tiap 5000 ms |
 
-Kedua peran berjalan di **ESP32-H2** memakai radio Bluetooth LE; ESP32-C6 baru
-dipakai mulai Modul 13 (gateway Wi-Fi).
+Kedua peran berjalan di **ESP32-H2** memakai radio Bluetooth LE; ESP32-C6 baru dipakai mulai Modul 13 (gateway Wi-Fi).
 
 **Address map**
 
@@ -175,9 +161,7 @@ pio run -d week03_ble_client_server -e client -t upload -t monitor
 
 ### EXP-01 — Service Discovery
 
-Client scan, connect, lalu mencari service dan kedua characteristic berdasarkan
-UUID. Catat apa yang terjadi jika UUID tidak ditemukan (lihat penanganan
-`nullptr` di `src/client/main.cpp`).
+Client scan, connect, lalu mencari service dan kedua characteristic berdasarkan UUID. Catat apa yang terjadi jika UUID tidak ditemukan (lihat penanganan `nullptr` di `src/client/main.cpp`).
 
 **Data capture**
 
@@ -188,21 +172,13 @@ UUID. Catat apa yang terjadi jika UUID tidak ditemukan (lihat penanganan
 | Characteristic ditemukan (jumlah & UUID) | |
 | Waktu scan → `Koneksi berhasil` (s) | |
 
-**Buka abstraksinya** — buka `NODE`/`GATT_SERVER` dengan nRF Connect dan lihat
-daftar characteristic beserta property-nya (`READ`, `WRITE`). Cocokkan tiap
-baris di aplikasi dengan baris `createCharacteristic(...)` di
-`src/server/main.cpp`. Property yang muncul di aplikasi **berasal dari argumen
-kedua** fungsi itu — ubah salah satunya jadi `NIMBLE_PROPERTY::READ` saja lalu
-amati apa yang hilang di aplikasi.
+**Buka abstraksinya** — buka `NODE`/`GATT_SERVER` dengan nRF Connect dan lihat daftar characteristic beserta property-nya (`READ`, `WRITE`). Cocokkan tiap baris di aplikasi dengan baris `createCharacteristic(...)` di `src/server/main.cpp`. Property yang muncul di aplikasi **berasal dari argumen kedua** fungsi itu — ubah salah satunya jadi `NIMBLE_PROPERTY::READ` saja lalu amati apa yang hilang di aplikasi.
 
-> **CHECKPOINT** — Client mencetak `Koneksi berhasil`. Jika muncul
-> `Characteristic tidak ditemukan`, berarti UUID di client dan server berbeda —
-> samakan dulu sebelum lanjut.
+> **CHECKPOINT** — Client mencetak `Koneksi berhasil`. Jika muncul `Characteristic tidak ditemukan`, berarti UUID di client dan server berbeda — samakan dulu sebelum lanjut.
 
 ### EXP-02 — Read: Client Menarik Data
 
-Server menaikkan counter tiap 1000 ms **hanya saat ada client terhubung**.
-Client membaca tiap 2000 ms.
+Server menaikkan counter tiap 1000 ms **hanya saat ada client terhubung**. Client membaca tiap 2000 ms.
 
 **Expected output — Server**
 
@@ -225,9 +201,7 @@ READ counter = 4
 READ counter = 6
 ```
 
-> **CHECKPOINT** — Selisih dua `READ counter` berturut-turut adalah **2**
-> (interval read 2000 ms ÷ interval counter 1000 ms). Jika selisihnya tidak
-> konsisten, ada read yang gagal — catat kejadiannya sebagai data pengukuran.
+> **CHECKPOINT** — Selisih dua `READ counter` berturut-turut adalah **2** (interval read 2000 ms ÷ interval counter 1000 ms). Jika selisihnya tidak konsisten, ada read yang gagal — catat kejadiannya sebagai data pengukuran.
 
 ### EXP-03 — Write: Client Mengirim Perintah
 
@@ -250,9 +224,7 @@ Client: WRITE "ON" ────────► Server: "Perintah dari client: ON
 | Perintah yang dikirim client | ON |
 | Jumlah transaksi radio per menit (read + write) | |
 
-> **CHECKPOINT** — Baris `Perintah dari client: ON` muncul di server kira-kira
-> tiap 5 detik, dan **di antara** dua baris itu ada 2–3 baris `READ counter`
-> di client. Urutan inilah bukti dua kanal berjalan independen.
+> **CHECKPOINT** — Baris `Perintah dari client: ON` muncul di server kira-kira tiap 5 detik, dan **di antara** dua baris itu ada 2–3 baris `READ counter` di client. Urutan inilah bukti dua kanal berjalan independen.
 
 ### Verifikasi hardware (log referensi)
 
@@ -295,9 +267,7 @@ RSSI dibaca dari log client sendiri (`pClient->getRssi()`).
 | 10 m | | | | |
 | 15 m | | | | |
 
-**Metrik turunan yang wajib dihitung:** jumlah transaksi radio per menit pada
-skema polling ini. Angka ini akan dibandingkan langsung dengan skema notify
-Modul 04.
+**Metrik turunan yang wajib dihitung:** jumlah transaksi radio per menit pada skema polling ini. Angka ini akan dibandingkan langsung dengan skema notify Modul 04.
 
 ## 9 · Analisis
 

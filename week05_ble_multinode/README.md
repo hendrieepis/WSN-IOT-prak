@@ -21,12 +21,7 @@
 
 ## 2 · Keterkaitan Antar-Modul
 
-Empat modul pertama hanya pernah menangani **satu** lawan bicara. Di sini
-jumlah node menjadi variabel — dan bersamanya muncul pertanyaan khas WSN:
-apakah pusat jaringan sanggup melayani semua node, dan bagaimana cara
-membedakan sumber tiap pesan. Jawaban modul ini (satu objek client per node,
-laju per node dihitung terpisah) adalah versi sederhana dari binding table
-Zigbee (M09) dan mesh Thread (M12).
+Empat modul pertama hanya pernah menangani **satu** lawan bicara. Di sini jumlah node menjadi variabel — dan bersamanya muncul pertanyaan khas WSN: apakah pusat jaringan sanggup melayani semua node, dan bagaimana cara membedakan sumber tiap pesan. Jawaban modul ini (satu objek client per node, laju per node dihitung terpisah) adalah versi sederhana dari binding table Zigbee (M09) dan mesh Thread (M12).
 
 | | Cakupan |
 |---|---|
@@ -45,10 +40,7 @@ Zigbee (M09) dan mesh Thread (M12).
 | **05 (ini)** | **Jumlah node jadi variabel — satu pusat, banyak sumber** |
 | 06 | Node ketiga dipakai sebagai relay, bukan cabang |
 
-**Kontrak data lab ini.** Setiap peripheral memberi **prefiks identitas** pada
-payloadnya (`A:n`, `B:n`). Tanpa penanda sumber, pesan dari banyak node tidak
-bisa dipisahkan di pusat — masalah yang persis sama muncul lagi di M09
-(`short addr`), M12 (`NODE_ID`), dan M15 (`node2` pada payload MQTT).
+**Kontrak data lab ini.** Setiap peripheral memberi **prefiks identitas** pada payloadnya (`A:n`, `B:n`). Tanpa penanda sumber, pesan dari banyak node tidak bisa dipisahkan di pusat — masalah yang persis sama muncul lagi di M09 (`short addr`), M12 (`NODE_ID`), dan M15 (`node2` pada payload MQTT).
 
 ## 3 · Capaian Pembelajaran
 
@@ -68,9 +60,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(penjadwalan connection event multi-link, batas jumlah koneksi NimBLE) ada di
-buku teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (penjadwalan connection event multi-link, batas jumlah koneksi NimBLE) ada di buku teori terpisah.*
 
 | Istilah | Definisi kerja di lab ini |
 |---|---|
@@ -81,11 +71,7 @@ buku teori terpisah.*
 | Notify | Peripheral mendorong data ke central setelah di-subscribe. |
 | Time-sharing radio | Satu radio melayani dua koneksi bergantian — sumber utama penurunan laju bila node bertambah banyak. |
 
-**Mengapa interval A dan B sengaja dibedakan?** Jika keduanya sama, log central
-akan berselang-seling rapi sehingga "central melayani dua node dengan benar"
-tidak dapat dibedakan dari "central hanya mencatat bergantian". Interval 2 s dan
-3 s menghasilkan pola tak beraturan yang hanya cocok bila kedua aliran memang
-independen.
+**Mengapa interval A dan B sengaja dibedakan?** Jika keduanya sama, log central akan berselang-seling rapi sehingga "central melayani dua node dengan benar" tidak dapat dibedakan dari "central hanya mencatat bergantian". Interval 2 s dan 3 s menghasilkan pola tak beraturan yang hanya cocok bila kedua aliran memang independen.
 
 **Sekuens protokol yang diamati**
 
@@ -124,8 +110,7 @@ independen.
 | Node A | ESP32-H2 DevKitM-1 | `nodea` | Peripheral `MULTI_NODE_A` | `A:n` tiap 2000 ms |
 | Node B | ESP32-H2 DevKitM-1 | `nodeb` | Peripheral `MULTI_NODE_B` | `B:n` tiap 3000 ms |
 
-Ketiga peran memakai board yang sama, **ESP32-H2 DevKitM-1**, dengan radio
-Bluetooth LE. ESP32-C6 tidak dipakai pada modul ini.
+Ketiga peran memakai board yang sama, **ESP32-H2 DevKitM-1**, dengan radio Bluetooth LE. ESP32-C6 tidak dipakai pada modul ini.
 
 ## 6 · Persiapan
 
@@ -139,8 +124,7 @@ Bluetooth LE. ESP32-C6 tidak dipakai pada modul ini.
 | 4 | Library NimBLE-Arduino | `h2zero/NimBLE-Arduino@^2.2.3` via `lib_deps` | — |
 | 5 | Ruang uji | jarak awal ±1 m antar board, bebas logam di dekat antena | — |
 
-Bila port USB kurang dari tiga, monitor boleh dibuka bergantian — tetapi
-minimal central harus terus termonitor selama pengukuran.
+Bila port USB kurang dari tiga, monitor boleh dibuka bergantian — tetapi minimal central harus terus termonitor selama pengukuran.
 
 **platformio.ini — pin port agar tidak salah flash**
 
@@ -169,8 +153,7 @@ monitor_port = /dev/ttyACM2
 - ☐ Serial Monitor 115200 baud siap (3 terminal).
 - ☐ Penempatan tiga perangkat direncanakan (jarak awal ±1 m).
 
-**Deploy** — flash **peripheral dulu**, central belakangan, agar saat central
-melakukan scan 5 detik keduanya sudah mengudara:
+**Deploy** — flash **peripheral dulu**, central belakangan, agar saat central melakukan scan 5 detik keduanya sudah mengudara:
 
 ```bash
 pio run -d week05_ble_multinode -e nodea   -t upload
@@ -182,8 +165,7 @@ pio run -d week05_ble_multinode -e central -t upload -t monitor
 
 ### EXP-01 — Menyalakan Dua Peripheral
 
-Unggah firmware peripheral ke dua board, verifikasi keduanya advertise dan
-menunggu central.
+Unggah firmware peripheral ke dua board, verifikasi keduanya advertise dan menunggu central.
 
 ```
  +-----+  advertise    (udara)   advertise  +-----+
@@ -201,16 +183,11 @@ menunggu central.
 | Interval kirim A (ms) | |
 | Interval kirim B (ms) | |
 
-> **CHECKPOINT** — Kedua peripheral mencetak `Menunggu central...` dan belum
-> mencetak `Notify:` sama sekali. Jika sudah ada `Notify:` padahal central
-> belum menyala, berarti node mengirim tanpa penerima — periksa syarat
-> `deviceConnected` di kodenya.
+> **CHECKPOINT** — Kedua peripheral mencetak `Menunggu central...` dan belum mencetak `Notify:` sama sekali. Jika sudah ada `Notify:` padahal central belum menyala, berarti node mengirim tanpa penerima — periksa syarat `deviceConnected` di kodenya.
 
 ### EXP-02 — Dua Koneksi & Subscribe
 
-Unggah environment `central` ke board ketiga. Central melakukan active scan
-5 detik, menemukan `MULTI_NODE_A` dan `MULTI_NODE_B`, lalu membuka dua koneksi
-dan subscribe notify pada masing-masing.
+Unggah environment `central` ke board ketiga. Central melakukan active scan 5 detik, menemukan `MULTI_NODE_A` dan `MULTI_NODE_B`, lalu membuka dua koneksi dan subscribe notify pada masing-masing.
 
 ```
  scan 5 s ──► temukan A ──► connect A ──► subscribe A
@@ -245,24 +222,13 @@ Notify: A:1
 Notify: A:2
 ```
 
-**Buka abstraksinya** — di `src/central/main.cpp`, cari **berapa objek
-`NimBLEClient` yang dibuat** dan bagaimana callback notify tahu pesan ini
-datang dari A atau dari B. Jawabannya bukan dari isi payload — payload hanya
-kebetulan diberi prefiks. Telusuri hingga menemukan mekanisme sebenarnya, lalu
-jawab: jika kedua node mengirim payload identik `"data"`, apakah central masih
-bisa membedakannya?
+**Buka abstraksinya** — di `src/central/main.cpp`, cari **berapa objek `NimBLEClient` yang dibuat** dan bagaimana callback notify tahu pesan ini datang dari A atau dari B. Jawabannya bukan dari isi payload — payload hanya kebetulan diberi prefiks. Telusuri hingga menemukan mekanisme sebenarnya, lalu jawab: jika kedua node mengirim payload identik `"data"`, apakah central masih bisa membedakannya?
 
-> **CHECKPOINT** — Central mencetak `Koneksi ke kedua node selesai` dan setelah
-> itu muncul baris `[NodeA]` **dan** `[NodeB]` bergantian tak beraturan. Jika
-> hanya satu label yang pernah muncul, koneksi kedua gagal — ulangi scan dengan
-> mereset central (peripheral tetap menyala).
+> **CHECKPOINT** — Central mencetak `Koneksi ke kedua node selesai` dan setelah itu muncul baris `[NodeA]` **dan** `[NodeB]` bergantian tak beraturan. Jika hanya satu label yang pernah muncul, koneksi kedua gagal — ulangi scan dengan mereset central (peripheral tetap menyala).
 
 ### EXP-03 — Laju & Ketahanan
 
-Biarkan sistem berjalan 2–3 menit, ukur laju pesan tiap node, lalu uji
-ketahanan: reset (atau cabut USB) Node B, amati `NodeB terputus` di central dan
-`Central terputus, advertise ulang` di Node B, lalu nyalakan kembali dan
-verifikasi pemulihan.
+Biarkan sistem berjalan 2–3 menit, ukur laju pesan tiap node, lalu uji ketahanan: reset (atau cabut USB) Node B, amati `NodeB terputus` di central dan `Central terputus, advertise ulang` di Node B, lalu nyalakan kembali dan verifikasi pemulihan.
 
 **Data capture**
 
@@ -274,9 +240,7 @@ verifikasi pemulihan.
 | Perilaku central saat Node B reset | |
 | Apakah koneksi B pulih otomatis? | |
 
-> **CHECKPOINT** — Saat Node B dimatikan, aliran `[NodeA]` **tidak boleh**
-> ikut berhenti. Jika ikut berhenti, central kehilangan kedua koneksi — itu
-> temuan penting, catat dan jelaskan di analisis.
+> **CHECKPOINT** — Saat Node B dimatikan, aliran `[NodeA]` **tidak boleh** ikut berhenti. Jika ikut berhenti, central kehilangan kedua koneksi — itu temuan penting, catat dan jelaskan di analisis.
 
 ### Verifikasi hardware (log referensi)
 
@@ -304,13 +268,11 @@ Dijalankan pada 3 × **ESP32-H2 DevKitM-1** (jarak ±20 cm), capture 30 detik.
 | Laju Node A | 2,00 s per pesan → 30 pesan/menit |
 | Laju Node B | 3,00 s per pesan → 20 pesan/menit |
 
-Dua koneksi simultan tidak menggeser interval kedua node — pada beban ringan
-ini central masih mampu melayani keduanya tanpa kehilangan pesan.
+Dua koneksi simultan tidak menggeser interval kedua node — pada beban ringan ini central masih mampu melayani keduanya tanpa kehilangan pesan.
 
 ## 8 · Pengukuran
 
-Ukur **per node**, jangan digabung. Ini inti modul: dua node pada satu central
-tidak selalu terdegradasi bersamaan.
+Ukur **per node**, jangan digabung. Ini inti modul: dua node pada satu central tidak selalu terdegradasi bersamaan.
 
 | Jarak (A dan B sama jauh) | RSSI A | RSSI B | Pesan A /60 s (harapan 30) | Pesan B /60 s (harapan 20) | Loss A (%) | Loss B (%) |
 |---|---|---|---|---|---|---|

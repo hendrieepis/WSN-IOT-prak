@@ -19,18 +19,11 @@
 | Level | Project |
 | Instrumen | 2 × Serial Monitor 115200 + `mosquitto_sub` + data Modul 05–15 |
 
-> **Yang dinilai bukan "sistem menyala".** Yang dinilai adalah kemampuan
-> membuktikan, dengan angka hasil pengukuran sendiri, protokol mana yang
-> paling sesuai untuk sebuah kasus — dan mempertahankan rekomendasi itu saat
-> ditanya balik.
+> **Yang dinilai bukan "sistem menyala".** Yang dinilai adalah kemampuan membuktikan, dengan angka hasil pengukuran sendiri, protokol mana yang paling sesuai untuk sebuah kasus — dan mempertahankan rekomendasi itu saat ditanya balik.
 
 ## 2 · Keterkaitan Antar-Modul
 
-Ini adalah modul **panen**. Lima belas modul sebelumnya menghasilkan angka; di
-sini angka-angka itu dikumpulkan menjadi satu tabel pembanding. Modul ini
-membangun pipeline **BLE → gateway C6 → MQTT** sebagai pasangan yang setara
-dengan pipeline Thread di M15 — dengan payload, interval, gateway, dan broker
-yang **sama persis**, sehingga hanya protokol hop pertama yang menjadi variabel.
+Ini adalah modul **panen**. Lima belas modul sebelumnya menghasilkan angka; di sini angka-angka itu dikumpulkan menjadi satu tabel pembanding. Modul ini membangun pipeline **BLE → gateway C6 → MQTT** sebagai pasangan yang setara dengan pipeline Thread di M15 — dengan payload, interval, gateway, dan broker yang **sama persis**, sehingga hanya protokol hop pertama yang menjadi variabel.
 
 | | Cakupan |
 |---|---|
@@ -60,10 +53,7 @@ yang **sama persis**, sehingga hanya protokol hop pertama yang menjadi variabel.
 | Jarak & penghalang | **dikontrol** | 1 m / 5 m / 5 m + dinding |
 | **Protokol hop pertama** | **variabel bebas** | BLE (modul ini) vs Thread (M15) vs Zigbee (M08–10) |
 
-Angka yang diukur pada kondisi berbeda **tidak boleh** dimasukkan ke tabel
-pembanding. Jika data M15 diambil pada interval 3 detik sementara modul ini
-2 detik, ulangi salah satunya — atau nyatakan perbedaan itu secara eksplisit
-sebagai keterbatasan.
+Angka yang diukur pada kondisi berbeda **tidak boleh** dimasukkan ke tabel pembanding. Jika data M15 diambil pada interval 3 detik sementara modul ini 2 detik, ulangi salah satunya — atau nyatakan perbedaan itu secara eksplisit sebagai keterbatasan.
 
 ## 3 · Capaian Pembelajaran
 
@@ -83,9 +73,7 @@ Setelah menyelesaikan modul ini, mahasiswa mampu:
 
 ## 4 · Dasar Teori (secukupnya)
 
-Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam
-(model konsumsi daya, analisis kapasitas kanal, metodologi benchmark jaringan)
-ada di buku teori terpisah.*
+Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (model konsumsi daya, analisis kapasitas kanal, metodologi benchmark jaringan) ada di buku teori terpisah.*
 
 | Protokol / Istilah | Karakteristik kerja |
 |---|---|
@@ -106,9 +94,7 @@ ada di buku teori terpisah.*
 | Packet loss | Berapa banyak yang tidak sampai sama sekali? |
 | Throughput | Berapa banyak yang bisa lewat per satuan waktu? |
 
-Protokol bisa unggul di satu metrik dan kalah di lainnya — itu justru inti
-pekerjaan modul ini. Rekomendasi yang baik menyebut **metrik mana** yang
-menentukan untuk kasus yang dibahas.
+Protokol bisa unggul di satu metrik dan kalah di lainnya — itu justru inti pekerjaan modul ini. Rekomendasi yang baik menyebut **metrik mana** yang menentukan untuk kasus yang dibahas.
 
 **Sekuens protokol yang diamati**
 
@@ -140,13 +126,9 @@ menentukan untuk kasus yang dibahas.
 | Gateway | **ESP32-C6** DevKitC-1 | `gateway` | BLE client `CMP_GATEWAY` + Wi-Fi/MQTT publisher |
 | Konsumen | PC/laptop | — | `mosquitto_sub`, verifikasi independen |
 
-Perhatikan: **gateway-nya sama** dengan M15 (ESP32-C6), **broker dan topic-nya
-sama**, yang berbeda hanya hop pertama — BLE di sini, Thread di M15. Itulah
-sebabnya kedua hasil bisa diletakkan berdampingan.
+Perhatikan: **gateway-nya sama** dengan M15 (ESP32-C6), **broker dan topic-nya sama**, yang berbeda hanya hop pertama — BLE di sini, Thread di M15. Itulah sebabnya kedua hasil bisa diletakkan berdampingan.
 
-UUID penting: service `4fafc201-1fb5-459e-8fcc-c5c9c331914b`, characteristic
-telemetri `beb5483e-36e1-4688-b7f5-ea07361b26b2` — sama dengan characteristic
-telemetri Modul 04, jadi sensor M04 bisa dipakai ulang di sini bila perlu.
+UUID penting: service `4fafc201-1fb5-459e-8fcc-c5c9c331914b`, characteristic telemetri `beb5483e-36e1-4688-b7f5-ea07361b26b2` — sama dengan characteristic telemetri Modul 04, jadi sensor M04 bisa dipakai ulang di sini bila perlu.
 
 ## 6 · Persiapan
 
@@ -186,8 +168,7 @@ pio run -d week16_comparative -e gateway -t upload -t monitor        # terminal 
 
 ### EXP-01 — Sensor BLE & Advertising
 
-Deploy firmware `sensor` ke H2. NimBLE membuat server GATT dengan characteristic
-NOTIFY lalu mengadvertise nama `CMP_SENSOR`. Gateway belum dinyalakan.
+Deploy firmware `sensor` ke H2. NimBLE membuat server GATT dengan characteristic NOTIFY lalu mengadvertise nama `CMP_SENSOR`. Gateway belum dinyalakan.
 
 ```
 [H2] NimBLE init "CMP_SENSOR" ──► createService ──► characteristic NOTIFY
@@ -204,14 +185,11 @@ NOTIFY lalu mengadvertise nama `CMP_SENSOR`. Gateway belum dinyalakan.
 | Properti characteristic | |
 | Status serial saat advertising | |
 
-> **CHECKPOINT** — H2 mencetak `Menunggu gateway...` dan belum mengirim notify
-> apa pun. Ini kondisi awal yang benar sebelum gateway dinyalakan.
+> **CHECKPOINT** — H2 mencetak `Menunggu gateway...` dan belum mengirim notify apa pun. Ini kondisi awal yang benar sebelum gateway dinyalakan.
 
 ### EXP-02 — Gateway: Scan, Connect, Subscribe
 
-Deploy firmware `gateway` ke C6. Gateway konek Wi-Fi, inisialisasi BLE sebagai
-`CMP_GATEWAY`, active scan 5 detik, berhenti saat menemukan `CMP_SENSOR`, lalu
-connect dan subscribe notify.
+Deploy firmware `gateway` ke C6. Gateway konek Wi-Fi, inisialisasi BLE sebagai `CMP_GATEWAY`, active scan 5 detik, berhenti saat menemukan `CMP_SENSOR`, lalu connect dan subscribe notify.
 
 ```
 [C6] WiFi.begin ──► NimBLE init ──► scan(5s) ──► "Sensor BLE ditemukan"
@@ -243,20 +221,13 @@ RX BLE: suhu:25.1
 Publish MQTT [praktikum/h2/telemetri]: suhu:25.1
 ```
 
-**Buka abstraksinya** — perhatikan bahwa gateway C6 di modul ini menjalankan
-**BLE + Wi-Fi**, sedangkan gateway C6 di M15 menjalankan **Thread + Wi-Fi**.
-Bandingkan ukuran firmware keduanya dari ringkasan `pio run`. Lalu jawab: mana
-yang lebih besar, dan apa artinya untuk perangkat gateway dengan flash terbatas?
-Ini adalah metrik kelima yang jarang diukur orang, tetapi nyata biayanya.
+**Buka abstraksinya** — perhatikan bahwa gateway C6 di modul ini menjalankan **BLE + Wi-Fi**, sedangkan gateway C6 di M15 menjalankan **Thread + Wi-Fi**. Bandingkan ukuran firmware keduanya dari ringkasan `pio run`. Lalu jawab: mana yang lebih besar, dan apa artinya untuk perangkat gateway dengan flash terbatas? Ini adalah metrik kelima yang jarang diukur orang, tetapi nyata biayanya.
 
-> **CHECKPOINT** — Untuk **satu** nilai suhu yang sama, tiga baris berikut
-> harus dapat ditunjuk: `Notify:` di H2, `RX BLE:` di C6, dan `Publish MQTT` di C6. Persis
-> seperti M15 — struktur pengamatannya sengaja dibuat identik.
+> **CHECKPOINT** — Untuk **satu** nilai suhu yang sama, tiga baris berikut harus dapat ditunjuk: `Notify:` di H2, `RX BLE:` di C6, dan `Publish MQTT` di C6. Persis seperti M15 — struktur pengamatannya sengaja dibuat identik.
 
 ### EXP-03 — Verifikasi End-to-End & Variasi
 
-Jalankan `mosquitto_sub -h test.mosquitto.org -t "praktikum/h2/telemetri" -v`
-dan pastikan tiap ± 2 detik muncul `praktikum/h2/telemetri suhu:25.1`.
+Jalankan `mosquitto_sub -h test.mosquitto.org -t "praktikum/h2/telemetri" -v` dan pastikan tiap ± 2 detik muncul `praktikum/h2/telemetri suhu:25.1`.
 
 Variasi wajib:
 
@@ -274,15 +245,11 @@ Variasi wajib:
 | RSSI BLE (dari `getRssi()` di C6) | |
 | Perilaku saat sensor reset | |
 
-> **CHECKPOINT** — Tersedia **tiga baris data BLE** (1 m, 5 m, 5 m + dinding)
-> dengan kondisi yang dapat dibuktikan sama dengan data M15. Tanpa itu, tabel
-> perbandingan di Bagian 8 tidak sah — dan itulah yang paling sering membuat
-> laporan modul ini gugur.
+> **CHECKPOINT** — Tersedia **tiga baris data BLE** (1 m, 5 m, 5 m + dinding) dengan kondisi yang dapat dibuktikan sama dengan data M15. Tanpa itu, tabel perbandingan di Bagian 8 tidak sah — dan itulah yang paling sering membuat laporan modul ini gugur.
 
 ### Verifikasi hardware (log referensi)
 
-Dijalankan pada **ESP32-H2 DevKitM-1** + **ESP32-C6 DevKitC-1** asli, broker
-lokal (`tools/mqtt_broker.py`), jarak ±20 cm, capture 60 detik.
+Dijalankan pada **ESP32-H2 DevKitM-1** + **ESP32-C6 DevKitC-1** asli, broker lokal (`tools/mqtt_broker.py`), jarak ±20 cm, capture 60 detik.
 
 ```
 # H2 (env sensor)              # C6 (env gateway)               # Broker
@@ -303,32 +270,20 @@ lokal (`tools/mqtt_broker.py`), jarak ±20 cm, capture 60 detik.
 | Publish MQTT tiba di broker | 47/47 — diverifikasi dari log broker, bukan dari log gateway |
 | BLE + Wi-Fi + MQTT jalan bersamaan di satu C6 | ✅ stabil |
 
-**Pengukuran pembanding langsung BLE vs Thread** — pipeline M16 dan M15 diukur
-pada AP, jarak, dan broker yang sama persis, masing-masing 100 detik:
+**Pengukuran pembanding langsung BLE vs Thread** — pipeline M16 dan M15 diukur pada AP, jarak, dan broker yang sama persis, masing-masing 100 detik:
 
 | Pipeline | Modul | Hop sensor | Hop Wi-Fi/MQTT | End-to-end |
 |---|---|---|---|---|
 | BLE → C6 → MQTT | M16 (ini) | 47/48 (98 %) | 47/47 (100 %) | **98 %** |
 | Thread → C6 → MQTT | M15 | 30/39 (77 %) | 2/7 (29 %) | **5 %** |
 
-Pada jaringan lain (AP kanal 12) M15 mencapai 36 % dan M16 82 % — urutannya
-tetap sama, selisihnya tetap besar.
+Pada jaringan lain (AP kanal 12) M15 mencapai 36 % dan M16 82 % — urutannya tetap sama, selisihnya tetap besar.
 
-Yang membedakan bukan protokol di atas kertas, melainkan **biaya koeksistensi
-radio pada satu chip satu antena**: BLE duty-cycled sehingga berbagi antena
-dengan Wi-Fi nyaris gratis; 802.15.4 pada peran Router selalu RX sehingga
-menekan airtime Wi-Fi sampai TCP tidak lewat.
+Yang membedakan bukan protokol di atas kertas, melainkan **biaya koeksistensi radio pada satu chip satu antena**: BLE duty-cycled sehingga berbagi antena dengan Wi-Fi nyaris gratis; 802.15.4 pada peran Router selalu RX sehingga menekan airtime Wi-Fi sampai TCP tidak lewat.
 
-> Masukkan temuan ini ke analisis nomor 4 dan ke kolom "kondisi ukur" tabel
-> perbandingan. Kesimpulan yang tepat bukan "Thread lebih buruk dari BLE",
-> melainkan "pada gateway satu-chip, Thread + Wi-Fi berbagi radio jauh lebih
-> mahal daripada BLE + Wi-Fi" — gateway dua-chip atau border router khusus
-> akan mengubah angka ini sepenuhnya.
+> Masukkan temuan ini ke analisis nomor 4 dan ke kolom "kondisi ukur" tabel perbandingan. Kesimpulan yang tepat bukan "Thread lebih buruk dari BLE", melainkan "pada gateway satu-chip, Thread + Wi-Fi berbagi radio jauh lebih mahal daripada BLE + Wi-Fi" — gateway dua-chip atau border router khusus akan mengubah angka ini sepenuhnya.
 
-> **Jangan percaya `publish()` yang mengembalikan `true`.** Pada run M15 di atas,
-> gateway mencetak 7 baris `Publish MQTT [...]` sementara broker hanya menerima
-> 2. Pada QoS 0 itu wajar: `publish()` hanya menulis ke buffer socket. Kolom
-> "Broker menerima" pada tabel hasil pengukuran **wajib** diisi dari log broker/subscriber.
+> **Jangan percaya `publish()` yang mengembalikan `true`.** Pada run M15 di atas, gateway mencetak 7 baris `Publish MQTT [...]` sementara broker hanya menerima 2. Pada QoS 0 itu wajar: `publish()` hanya menulis ke buffer socket. Kolom "Broker menerima" pada tabel hasil pengukuran **wajib** diisi dari log broker/subscriber.
 
 **Perbaikan kode yang lahir dari uji ini**
 
@@ -347,8 +302,7 @@ menekan airtime Wi-Fi sampai TCP tidak lewat.
 | 5 m | | | |
 | 5 m + dinding | | | |
 
-**Tabel perbandingan protokol — deliverable utama modul ini.**
-Setiap sel wajib disertai asal datanya:
+**Tabel perbandingan protokol — deliverable utama modul ini.** Setiap sel wajib disertai asal datanya:
 
 | Protokol | Sumber data | Kondisi ukur | RSSI (dBm) | Latency (ms) | Packet loss (%) | Throughput (pesan/menit) |
 |---|---|---|---|---|---|---|
@@ -357,13 +311,9 @@ Setiap sel wajib disertai asal datanya:
 | Zigbee (hop sensor) | M08–M10 | | | | | |
 | 802.15.4 raw (baseline) | M07 | | | | | |
 
-> Kolom **"Kondisi ukur"** wajib diisi (jarak, interval, ada/tidaknya
-> penghalang, tanggal). Sel yang kondisinya berbeda dari baris lain harus
-> ditandai dan disebut sebagai keterbatasan di Bagian 9 — bukan disembunyikan.
+> Kolom **"Kondisi ukur"** wajib diisi (jarak, interval, ada/tidaknya penghalang, tanggal). Sel yang kondisinya berbeda dari baris lain harus ditandai dan disebut sebagai keterbatasan di Bagian 9 — bukan disembunyikan.
 >
-> Zigbee tidak punya pipeline MQTT di lab ini, jadi angkanya adalah **latency
-> hop sensor saja**, bukan end-to-end. Menuliskannya sebagai end-to-end adalah
-> kesalahan yang akan langsung terlihat saat sidang.
+> Zigbee tidak punya pipeline MQTT di lab ini, jadi angkanya adalah **latency hop sensor saja**, bukan end-to-end. Menuliskannya sebagai end-to-end adalah kesalahan yang akan langsung terlihat saat sidang.
 
 **Metrik pendukung (opsional tapi bernilai)**
 

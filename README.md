@@ -16,15 +16,9 @@
 
 ## Tentang lab ini
 
-Ini bukan kumpulan tutorial Arduino. Ini buku kerja laboratorium: setiap
-minggu adalah satu **misi rekayasa** dengan target sukses terukur, prosedur
-eksperimen, dan data yang harus dikumpulkan sendiri.
+Ini bukan kumpulan tutorial Arduino. Ini buku kerja laboratorium: setiap minggu adalah satu **misi rekayasa** dengan target sukses terukur, prosedur eksperimen, dan data yang harus dikumpulkan sendiri.
 
-Fokusnya **protokol komunikasi** — dari Bluetooth Low Energy, IEEE 802.15.4,
-Zigbee, Thread, hingga integrasi Wi-Fi/MQTT — di atas board ESP32-H2 dan
-ESP32-C6. Kompetensi dibangun bertahap: point-to-point → client-server →
-multi-node → mesh, pada tiga keluarga protokol, lalu ditutup dengan integrasi
-end-to-end ke Internet dan proyek perbandingan protokol berbasis data.
+Fokusnya **protokol komunikasi** — dari Bluetooth Low Energy, IEEE 802.15.4, Zigbee, Thread, hingga integrasi Wi-Fi/MQTT — di atas board ESP32-H2 dan ESP32-C6. Kompetensi dibangun bertahap: point-to-point → client-server → multi-node → mesh, pada tiga keluarga protokol, lalu ditutup dengan integrasi end-to-end ke Internet dan proyek perbandingan protokol berbasis data.
 
 ## Struktur setiap modul
 
@@ -47,23 +41,15 @@ Seluruh 16 modul memakai format yang sama, 12 bagian:
 
 Tiga hal yang membedakan format ini dari panduan praktikum biasa:
 
-- **CHECKPOINT di tengah percobaan.** Mahasiswa memverifikasi progres sebelum
-  lanjut, bukan baru ketahuan salah di akhir sesi.
-- **"Buka abstraksinya".** Satu kotak per modul yang menyuruh mahasiswa
-  membongkar satu baris kode yang tampak sepele (mis. mengomentari `subscribe()`
-  lalu melihat notify berhenti) — menghubungkan API dengan apa yang sebenarnya
-  terjadi di udara.
-- **Teori dibatasi.** Panduan ini menjawab **"bagaimana"**; pembahasan mendalam
-  ("mengapa") ada di buku teori terpisah. Tiap Bagian 4 menyebut batas itu
-  secara eksplisit.
+- **CHECKPOINT di tengah percobaan.** Mahasiswa memverifikasi progres sebelum lanjut, bukan baru ketahuan salah di akhir sesi.
+- **"Buka abstraksinya".** Satu kotak per modul yang menyuruh mahasiswa membongkar satu baris kode yang tampak sepele (mis. mengomentari `subscribe()` lalu melihat notify berhenti) — menghubungkan API dengan apa yang sebenarnya terjadi di udara.
+- **Teori dibatasi.** Panduan ini menjawab **"bagaimana"**; pembahasan mendalam ("mengapa") ada di buku teori terpisah. Tiap Bagian 4 menyebut batas itu secara eksplisit.
 
 ## Keterkaitan antar-modul
 
-IoT adalah stack berlapis, jadi modulnya bukan pulau-pulau terpisah. Dua
-mekanisme dipakai untuk mengikatnya.
+IoT adalah stack berlapis, jadi modulnya bukan pulau-pulau terpisah. Dua mekanisme dipakai untuk mengikatnya.
 
-**1. Rantai prasyarat.** Tiap modul menyatakan apa yang harus sudah dikuasai,
-apa yang ditambahkannya, dan modul mana yang akan memakainya lagi:
+**1. Rantai prasyarat.** Tiap modul menyatakan apa yang harus sudah dikuasai, apa yang ditambahkannya, dan modul mana yang akan memakainya lagi:
 
 ```
 M01 tautan ─► M02 payload ─► M03 state+perintah ─► M04 telemetry ─► M05 multi-node ─► M06 hop
@@ -84,8 +70,7 @@ M01 tautan ─► M02 payload ─► M03 state+perintah ─► M04 telemetry ─
                                                     M16 benchmark komparatif
 ```
 
-**2. Kontrak data yang konsisten.** Beberapa keputusan sengaja dipertahankan
-lintas modul supaya datanya bisa dibandingkan di M16:
+**2. Kontrak data yang konsisten.** Beberapa keputusan sengaja dipertahankan lintas modul supaya datanya bisa dibandingkan di M16:
 
 | Kontrak | Diperkenalkan | Dipakai lagi di |
 |---|---|---|
@@ -99,11 +84,7 @@ lintas modul supaya datanya bisa dibandingkan di M16:
 | Topic MQTT `praktikum/h2/telemetri` | M14 | M15, M16 |
 | Variabel kontrol benchmark (payload, interval, gateway, broker) | M15 | M16 |
 
-Konsekuensinya: **angka pengukuran modul awal dipakai lagi di modul akhir.**
-Transaksi/menit M03 dibandingkan dengan M04; latency relay M06 dengan routing
-M10 dan mesh M12; latency per hop M11 dan M14 dijumlahkan lalu dicek terhadap
-latency end-to-end M15. Mahasiswa yang membuang data modul lama akan kesulitan
-di M16 — dan itu memang disengaja.
+Konsekuensinya: **angka pengukuran modul awal dipakai lagi di modul akhir.** Transaksi/menit M03 dibandingkan dengan M04; latency relay M06 dengan routing M10 dan mesh M12; latency per hop M11 dan M14 dijumlahkan lalu dicek terhadap latency end-to-end M15. Mahasiswa yang membuang data modul lama akan kesulitan di M16 — dan itu memang disengaja.
 
 ## Capaian pembelajaran
 
@@ -173,16 +154,9 @@ Setelah menyelesaikan seluruh modul, praktikan mampu:
 | 15 | `week15_e2e_iot` | Build an End-to-End IoT System | H2 → Thread → C6 → MQTT | H2 + C6 | Advanced |
 | 16 | `week16_comparative` | Prove Your Protocol | BLE/Zigbee/Thread → MQTT | H2 + C6 | Project |
 
-> **MODUL 00A dan 00B adalah warm-up** yang dikerjakan sebelum M01. Keduanya
-> tidak memuat protokol komunikasi; fungsinya memastikan toolchain, board, dan
-> rantai build–flash–monitor sudah terbukti bekerja, sehingga kegagalan pada
-> modul komunikasi tidak lagi bercampur dengan masalah dasar.
+> **MODUL 00A dan 00B adalah warm-up** yang dikerjakan sebelum M01. Keduanya tidak memuat protokol komunikasi; fungsinya memastikan toolchain, board, dan rantai build–flash–monitor sudah terbukti bekerja, sehingga kegagalan pada modul komunikasi tidak lagi bercampur dengan masalah dasar.
 
-> **MODUL 05B adalah mini project**, bukan modul inti — 16 modul utama tetap
-> 01–16. Isinya menerapkan topologi bintang M05 pada kasus nyata: dua smart
-> sensor bukaan (jendela dan pintu, tombol BOOT sebagai proximity switch
-> simulasi) melapor ke satu hub. Di sinilah trafik berubah dari periodik
-> menjadi *event-driven*.
+> **MODUL 05B adalah mini project**, bukan modul inti — 16 modul utama tetap 01–16. Isinya menerapkan topologi bintang M05 pada kasus nyata: dua smart sensor bukaan (jendela dan pintu, tombol BOOT sebagai proximity switch simulasi) melapor ke satu hub. Di sinilah trafik berubah dari periodik menjadi *event-driven*.
 
 **MODULE 15 — rantai sistem end-to-end:**
 
@@ -190,15 +164,11 @@ Setelah menyelesaikan seluruh modul, praktikan mampu:
 H2 → Thread → C6 → Wi-Fi → MQTT → Dashboard
 ```
 
-> **MODULE 16 bukan sekadar demo.** Praktikan harus membuktikan dengan data
-> protokol mana yang paling sesuai untuk skenario IoT tertentu.
+> **MODULE 16 bukan sekadar demo.** Praktikan harus membuktikan dengan data protokol mana yang paling sesuai untuk skenario IoT tertentu.
 
 ## Status verifikasi perangkat keras
 
-Modul 02–16 sudah dikompilasi **dan** dijalankan di perangkat nyata
-(2 × ESP32-H2 DevKitM-1 + 1 × ESP32-C6 DevKitC-1, capture Serial Monitor
-otomatis per modul). Log referensi hasil uji ada di bagian "Verifikasi
-hardware" pada README masing-masing modul.
+Modul 02–16 sudah dikompilasi **dan** dijalankan di perangkat nyata (2 × ESP32-H2 DevKitM-1 + 1 × ESP32-C6 DevKitC-1, capture Serial Monitor otomatis per modul). Log referensi hasil uji ada di bagian "Verifikasi hardware" pada README masing-masing modul.
 
 | Modul | Build | Uji perangkat | Board dipakai | Catatan |
 |---|---|---|---|---|
@@ -228,16 +198,9 @@ hardware" pada README masing-masing modul.
 | 07 | Panjang frame salah | byte `Len` kini menghitung 2 byte FCS |
 | 11, 12, 13, 15 | Node attach tetapi tidak ada paket multicast yang tiba | prefix mesh-local dipaksa sama (`otThreadSetMeshLocalPrefix()`), dataset selalu di-commit ulang |
 
-**Koeksistensi Wi-Fi + 802.15.4 pada ESP32-C6 (Modul 13 & 15).** Menjalankan
-Thread dan Wi-Fi bersamaan pada satu chip butuh tiga hal yang tidak ada di kode
-awal: **urutan inisialisasi** (Wi-Fi disambungkan di antara `OThread.begin()` dan
-`OThread.start()`), **prioritas radio**
-(`esp_coex_preference_set(ESP_COEX_PREFER_WIFI)`), dan **timer retry MQTT yang
-terpisah** dari timer retry Wi-Fi. Tanpa itu semua, C6 mendapat IP yang benar
-tetapi seluruh TCP keluar gagal.
+**Koeksistensi Wi-Fi + 802.15.4 pada ESP32-C6 (Modul 13 & 15).** Menjalankan Thread dan Wi-Fi bersamaan pada satu chip butuh tiga hal yang tidak ada di kode awal: **urutan inisialisasi** (Wi-Fi disambungkan di antara `OThread.begin()` dan `OThread.start()`), **prioritas radio** (`esp_coex_preference_set(ESP_COEX_PREFER_WIFI)`), dan **timer retry MQTT yang terpisah** dari timer retry Wi-Fi. Tanpa itu semua, C6 mendapat IP yang benar tetapi seluruh TCP keluar gagal.
 
-Setelah diperbaiki, rantai penuh Modul 13 dan 15 terbukti jalan — tetapi hop
-Wi-Fi tetap tidak andal. Diuji pada tiga AP:
+Setelah diperbaiki, rantai penuh Modul 13 dan 15 terbukti jalan — tetapi hop Wi-Fi tetap tidak andal. Diuji pada tiga AP:
 
 | AP uji | Kanal Wi-Fi | RSSI | M15 end-to-end |
 |---|---|---|---|
@@ -245,22 +208,16 @@ Wi-Fi tetap tidak andal. Diuji pada tiga AP:
 | AP-2 | 12 | −81 dBm | 36 % |
 | AP-3 | 9 | −71 dBm | 5 % |
 
-Sinyal terkuat justru bukan yang terbaik, dan mengganti channel 802.15.4
-(15 → 25 → 11) tidak menolong — jadi ini bukan soal link budget melainkan
-pembagian airtime satu antena. Pembanding yang menentukan, pada AP dan jarak
-yang sama:
+Sinyal terkuat justru bukan yang terbaik, dan mengganti channel 802.15.4 (15 → 25 → 11) tidak menolong — jadi ini bukan soal link budget melainkan pembagian airtime satu antena. Pembanding yang menentukan, pada AP dan jarak yang sama:
 
 | Pipeline | Modul | Hop sensor | Hop Wi-Fi/MQTT | End-to-end |
 |---|---|---|---|---|
 | BLE → C6 → MQTT | 16 | 47/48 (98 %) | 47/47 (100 %) | **98 %** |
 | Thread → C6 → MQTT | 15 | 30/39 (77 %) | 2/7 (29 %) | **5 %** |
 
-BLE + Wi-Fi nyaris tanpa ongkos koeksistensi; Thread + Wi-Fi sangat mahal.
-Angka ini jadi bahan utama analisis Modul 16.
+BLE + Wi-Fi nyaris tanpa ongkos koeksistensi; Thread + Wi-Fi sangat mahal. Angka ini jadi bahan utama analisis Modul 16.
 
-**Catatan metodologi yang lahir dari sini:** `mqtt.publish()` mengembalikan
-`true` bukan bukti pesan sampai (QoS 0 hanya menulis ke buffer socket). Semua
-tabel "broker menerima" di lab ini wajib diisi dari log broker/subscriber.
+**Catatan metodologi yang lahir dari sini:** `mqtt.publish()` mengembalikan `true` bukan bukti pesan sampai (QoS 0 hanya menulis ke buffer socket). Semua tabel "broker menerima" di lab ini wajib diisi dari log broker/subscriber.
 
 **Perbaikan kode tambahan dari uji ESP32-C6**
 
@@ -277,8 +234,7 @@ tabel "broker menerima" di lab ini wajib diisi dari log broker/subscriber.
 | 15, 16 | Retry MQTT ikut terkunci jeda retry Wi-Fi (20 s) padahal Wi-Fi sehat | timer `WIFI_RETRY_MS` dan `MQTT_RETRY_MS` dipisah |
 | 15 | `Publish MQTT [...]` dicetak walau broker tidak terhubung — laporan palsu | publish hanya bila `mqtt.connected()`, gagal dicetak apa adanya |
 
-**Perkakas pendukung** (`tools/`) — lahir karena jaringan uji memblokir port
-1883 dan 80 keluar:
+**Perkakas pendukung** (`tools/`) — lahir karena jaringan uji memblokir port 1883 dan 80 keluar:
 
 | Berkas | Guna |
 |---|---|
@@ -298,21 +254,13 @@ tabel "broker menerima" di lab ini wajib diisi dari log broker/subscriber.
 
 ## Perangkat lunak
 
-- PlatformIO dengan platform **pioarduino** `espressif32` 55.03.311 (Arduino core
-  **3.3.11**, ESP-IDF 5.5.5). Platform resmi `platformio/espressif32` **tidak
-  menyediakan board ESP32-H2**, sehingga tiap `platformio.ini` memakai URL rilis
-  pioarduino secara eksplisit. Toolchain terunduh otomatis pada build pertama.
-- Modul 13, 15, dan 16 memakai `board_build.partitions = huge_app.csv` pada
-  gateway ESP32-C6 — firmware Thread/BLE + Wi-Fi + MQTT/HTTP melebihi partisi
-  app default 1,25 MB.
-- Zigbee dan OpenThread **bawaan** Arduino core 3.x; mode Zigbee diset lewat
-  `build_flags` (`-DZIGBEE_MODE_ED`, `-DZIGBEE_MODE_ZCZR`).
-- Modul 07 dan 11–13 memakai API ESP-IDF (`esp_ieee802154.h`, `OThread`) yang
-  dapat dipanggil langsung dari Arduino core 3.x.
+- PlatformIO dengan platform **pioarduino** `espressif32` 55.03.311 (Arduino core **3.3.11**, ESP-IDF 5.5.5). Platform resmi `platformio/espressif32` **tidak menyediakan board ESP32-H2**, sehingga tiap `platformio.ini` memakai URL rilis pioarduino secara eksplisit. Toolchain terunduh otomatis pada build pertama.
+- Modul 13, 15, dan 16 memakai `board_build.partitions = huge_app.csv` pada gateway ESP32-C6 — firmware Thread/BLE + Wi-Fi + MQTT/HTTP melebihi partisi app default 1,25 MB.
+- Zigbee dan OpenThread **bawaan** Arduino core 3.x; mode Zigbee diset lewat `build_flags` (`-DZIGBEE_MODE_ED`, `-DZIGBEE_MODE_ZCZR`).
+- Modul 07 dan 11–13 memakai API ESP-IDF (`esp_ieee802154.h`, `OThread`) yang dapat dipanggil langsung dari Arduino core 3.x.
 - Serial Monitor 115200 baud.
 - Library: NimBLE-Arduino (BLE), PubSubClient (MQTT).
-- Perkakas lokal di `tools/` bila jaringan memblokir broker/HTTP publik —
-  lihat `tools/README.md`.
+- Perkakas lokal di `tools/` bila jaringan memblokir broker/HTTP publik — lihat `tools/README.md`.
 
 **Deploy per modul**
 
@@ -328,8 +276,7 @@ pio run -d week02_ble_p2p_data -e node2 -t upload
 2. Antena board tidak ditempelkan ke permukaan logam saat pengukuran.
 3. Gunakan daya dari PC/laptop; hindari power bank bila tidak perlu.
 4. Data pengukuran wajib hasil eksperimen sendiri — bukan salinan kelompok lain.
-5. Laporan dan analisis ditulis dengan bahasa sendiri; copy-paste teori/kode
-   tanpa pemahaman dinilai nol pada bagian analisis.
+5. Laporan dan analisis ditulis dengan bahasa sendiri; copy-paste teori/kode tanpa pemahaman dinilai nol pada bagian analisis.
 
 ## Sistem penilaian
 
@@ -344,16 +291,8 @@ pio run -d week02_ble_p2p_data -e node2 -t upload
 
 Catatan penilaian:
 
-- **Capaian pembelajaran (Bagian 3) adalah rubriknya.** Tiap capaian ditulis
-  agar bisa dinilai lulus/tidak dari bukti yang dilampirkan, bukan dari kesan.
-- **Angka tanpa asal-usul dianggap tidak ada.** Setiap sel tabel pengukuran
-  harus bisa ditunjuk log atau kondisi ukurnya — ini yang diuji habis-habisan
-  di Modul 16.
-- **Challenge dinilai dari kode yang berubah**, bukan dari penjelasan tentang
-  kode yang tidak diubah.
+- **Capaian pembelajaran (Bagian 3) adalah rubriknya.** Tiap capaian ditulis agar bisa dinilai lulus/tidak dari bukti yang dilampirkan, bukan dari kesan.
+- **Angka tanpa asal-usul dianggap tidak ada.** Setiap sel tabel pengukuran harus bisa ditunjuk log atau kondisi ukurnya — ini yang diuji habis-habisan di Modul 16.
+- **Challenge dinilai dari kode yang berubah**, bukan dari penjelasan tentang kode yang tidak diubah.
 
-> Setiap modul berada di folder `weekNN_nama` berisi `platformio.ini`, kode
-> sumber per peran (role), dan `README.md` dengan 12 bagian: Informasi Modul →
-> Keterkaitan Antar-Modul → Capaian Pembelajaran → Dasar Teori → Topologi →
-> Persiapan → Percobaan → Pengukuran → Analisis → Concept Check → Challenge →
-> Laporan.
+> Setiap modul berada di folder `weekNN_nama` berisi `platformio.ini`, kode sumber per peran (role), dan `README.md` dengan 12 bagian: Informasi Modul → Keterkaitan Antar-Modul → Capaian Pembelajaran → Dasar Teori → Topologi → Persiapan → Percobaan → Pengukuran → Analisis → Concept Check → Challenge → Laporan.

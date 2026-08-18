@@ -104,6 +104,58 @@ Kesimpulan yang benar **bukan** "Thread lebih buruk dari BLE", melainkan:
 arsitektur gateway **satu-chip satu-antena tidak cocok untuk Thread + Wi-Fi**.
 Border router dua-chip akan mengubah angka ini sepenuhnya.
 
+## 5b · Kenapa BLE + Wi-Fi tidak masalah padahal sama-sama 2,4 GHz?
+
+Frekuensi yang sama bukan masalahnya — yang menentukan adalah **pola penggunaan
+radio (duty cycle)**, bukan pita frekuensinya.
+
+**Thread (802.15.4) — radio "selalu menyala" (always RX).**
+Peran Leader/Router di Thread wajib mendengarkan terus-menerus, karena harus
+mem-forward paket untuk node lain di mesh. Radio 802.15.4 meminta antena hampir
+tanpa jeda → arbiter koeksistensi nyaris tidak punya slot untuk Wi-Fi → TCP
+keluar mati.
+
+**BLE — radio "bangun sebentar, tidur lama" (duty-cycled).**
+BLE berbasis *connection event* terjadwal: radio bangun hanya saat slot koneksi
+(mis. tiap 30–50 ms selama beberapa ratus µs, cukup untuk satu paket kecil),
+lalu tidur sampai slot berikutnya. Di sela-sela itu antena bebas dipakai Wi-Fi.
+
+Analoginya, dua orang berbagi satu telepon:
+
+| | BLE | Thread |
+|---|---|---|
+| Pola pakai | telpon sebentar, taruh (terjadwal) | pegang telepon terus, takut ketinggalan panggilan |
+| Slot untuk Wi-Fi | banyak (sisa waktu luang) | hampir tidak ada |
+
+Wi-Fi sendiri juga bursty (radio aktif hanya saat ada paket), sehingga pasangan
+BLE + Wi-Fi saling bergantian dengan mudah — itulah kenapa Week 16 mencapai
+100 % publish.
+
+Catatan menarik: kalau node Thread memakai peran **Sleepy End Device (SED)**
+yang juga duty-cycled, ia seharusnya bisa hidup berdampingan dengan Wi-Fi.
+Masalahnya gateway/leader **tidak boleh** SED — ia harus selalu RX untuk
+melayani mesh. Inilah alasan arsitektur yang benar untuk Thread + Wi-Fi adalah
+**dua chip terpisah** (border router khusus), sehingga tidak perlu rebutan antena.
+
+**Kesimpulan kunci.** Masalahnya bukan "Thread" secara umum, melainkan **peran
+yang dipaksa topologi mesh**: gateway harus Leader/Router (tidak boleh SED),
+sehingga radio 802.15.4 wajib always-RX dan antena hampir tak pernah bebas untuk
+Wi-Fi. Rantai sebab-akibatnya:
+
+```
+topologi mesh (Thread/Zigbee)
+  → gateway harus Leader/Router (bukan SED)
+  → radio 802.15.4 wajib always-RX
+  → antena hampir tak pernah bebas untuk Wi-Fi
+  → TCP keluar gagal (HTTP -1 / MQTT rc=-2)
+```
+
+Bukti pendukungnya konsisten: BLE yang **bukan mesh** (connection-based,
+duty-cycled) berbagi antena nyaris gratis (98 %), dan SED yang juga duty-cycled
+seharusnya bisa — tetapi gateway tak boleh SED. Konsekuensinya, Zigbee
+Coordinator maupun Thread Leader akan kena masalah koeksistensi yang sama karena
+perannya selalu-RX.
+
 ## 6 · Yang bisa dicoba bila menjumpai kegagalan ini
 
 1. **HTTP (Week 13)** — tambahkan retry `http.POST()` beberapa kali per telemetri;

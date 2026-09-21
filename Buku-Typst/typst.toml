@@ -1,0 +1,7 @@
+[package]
+name = "buku-praktikum-wsn-iot"
+version = "1.0.0"
+entrypoint = "main.typ"
+authors = ["Akhmad Hendriawan"]
+license = "CC-BY-NC-ND-4.0"
+description = "Petunjuk Praktikum Wireless Sensor Network & Internet of Things (ESP32-H2/C6) — konversi README modul ke Typst"

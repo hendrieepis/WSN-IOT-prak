@@ -1,5 +1,5 @@
 // ============================================================================
-// Modul 00A — Blinky ESP32-H2 (Warm-up)
+// Lampiran D — Modul 00A: Blinky ESP32-H2 (Warm-up)
 // Sumber: week00_blinky/README.md; listing kode dibaca langsung dari salinan
 //         berkas sumber di assets/code/week00_blinky/.
 // ============================================================================

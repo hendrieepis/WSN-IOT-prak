@@ -7,6 +7,7 @@
 #import "@preview/orange-book:0.7.1": chapter
 #import "../lib/callouts.typ": penting, peringatan, tip, catatan, checkpoint, buka-abstraksi, pengantar, tujuan-prak, identitas-modul
 #import "../lib/helpers.typ": gbr, tbl, th, isian, kode, kode-berkas, sumber-kode, gh, gh-folder, keluaran, diagram, checklist
+#import "../config.typ": edisi_buku
 
 #chapter("Modul 14 — MQTT: Publish dan Subscribe", l: "bab:modul-14")
 
@@ -429,8 +430,9 @@ uji.
   1883 keluar diblokir). Gejalanya: `Gagal (rc=-2)` disertai
   `hostByName(): DNS Failed` dan `Host is unreachable`. Solusinya ada di
   `tools/README.md` --- jalankan broker lokal dan arahkan `MQTT_BROKER` ke IP
-  laptop. Berkas broker lokal itu dimuat lengkap pada
-  @bab:lampiran-perkakas.
+  laptop.
+  #if edisi_buku == "dosen" [Berkas broker lokal itu dimuat lengkap pada
+  @bab:lampiran-perkakas.]
 ]
 
 *Perbaikan kode yang lahir dari uji ini*

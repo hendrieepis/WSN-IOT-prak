@@ -1,7 +1,7 @@
 // ============================================================================
 // Pendahuluan — konversi dari README.md pada akar repositori WSN-IOT-prak.
 //
-// Bab ini sengaja tidak diberi nomor agar Modul 00A tetap menjadi modul
+// Bab ini sengaja tidak diberi nomor agar Modul 01 tetap menjadi bab
 // pertama. Seluruh isi dibungkus dalam satu blok konten sehingga aturan
 // `set` di bawah (penomoran heading dan figure) hanya berlaku di bab ini.
 // ============================================================================
@@ -234,7 +234,9 @@ Setelah menyelesaikan seluruh modul, praktikan mampu:
   *Modul 00A dan 00B adalah warm-up* yang dikerjakan sebelum M01. Keduanya
   tidak memuat protokol komunikasi; fungsinya memastikan toolchain, board, dan
   rantai build--flash--monitor sudah terbukti bekerja, sehingga kegagalan pada
-  modul komunikasi tidak lagi bercampur dengan masalah dasar.
+  modul komunikasi tidak lagi bercampur dengan masalah dasar. Karena bukan
+  modul inti, keduanya dimuat di bagian lampiran (@bab:modul-00a[Lampiran]
+  untuk Modul 00A dan @bab:modul-00b[Lampiran] untuk Modul 00B).
 ]
 
 #catatan[

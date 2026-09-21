@@ -1,5 +1,5 @@
 // ============================================================================
-// Modul 00B — Tombol BOOT → LED (Warm-up)
+// Lampiran E — Modul 00B: Tombol BOOT → LED (Warm-up)
 // Sumber: week00_btn/README.md; listing kode dibaca langsung dari salinan
 //         berkas sumber di assets/code/week00_btn/.
 // ============================================================================

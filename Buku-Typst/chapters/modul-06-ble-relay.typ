@@ -7,6 +7,7 @@
 #import "@preview/orange-book:0.7.1": chapter
 #import "../lib/callouts.typ": penting, peringatan, tip, catatan, checkpoint, buka-abstraksi, pengantar, tujuan-prak, identitas-modul
 #import "../lib/helpers.typ": gbr, tbl, th, isian, kode, kode-berkas, sumber-kode, gh, gh-folder, keluaran, diagram, checklist
+#import "../config.typ": edisi_buku
 
 #chapter("Modul 06 — Relay Multi-Hop di atas BLE", l: "bab:modul-06")
 
@@ -341,9 +342,12 @@ node dan verifikasi jejak pesan per hop.
   `Menunggu relay (Node B)...`, `Node B terhubung`, `Kirim ke B: A:1`, dan
   seterusnya.
 
-/ Node B: `Node B (relay) starting...`, `Node A ditemukan`,
-  `Terhubung ke Node A`, `Koneksi ke A berhasil`, `Node C terhubung`,
-  `Terima dari A: A:1 (diteruskan)`, `Teruskan ke C: A:1`, dan seterusnya.
+/ Node B: `Node B (relay) starting...`, `Menunggu A dan C...`,
+  `Node A ditemukan`, `Node C terhubung`, `Terhubung ke Node A`,
+  `Koneksi ke A berhasil`, `Terima dari A: A:1 (diteruskan)`,
+  `Teruskan ke C: A:1`, dan seterusnya. Node C dapat tersambung ke B sebelum
+  B selesai tersambung ke A, sehingga `Node C terhubung` bisa muncul lebih
+  dulu.
 
 / Node C: `Node C (penerima akhir) starting...`, `Scanning Node B...`,
   `Node B ditemukan`, `Terhubung ke Node B`, `Koneksi ke B berhasil`,
@@ -414,6 +418,114 @@ Dijalankan pada 3 × *ESP32-H2 DevKitM-1* dalam satu garis, capture 40 detik.
   [Hasil verifikasi hardware Modul 06],
   "tbl:m06-verifikasi",
 )
+
+
+// Log serial lengkap dari week06_ble_mesh/logserial.md. Hanya dicetak pada
+// edisi dosen agar tidak disalin mahasiswa sebagai hasil laporan
+// (lihat config.typ).
+#if edisi_buku == "dosen" [
+  === Log Serial Terverifikasi
+
+  Log serial lengkap hasil uji pada board nyata, bukan contoh. Bagian ini
+  hanya dicetak pada edisi dosen.
+
+  Hasil aktual dari board nyata. Baud 115200, tiga board ESP32-H2. Topologi: A → B → C (B sebagai relay).
+
+  *Board & Port*
+
+  #tbl(
+    table(
+      columns: (auto, 1fr, auto, auto),
+      align: (left, left, left, left),
+      inset: (x: 0.6em, y: 0.45em),
+      stroke: 0.5pt + luma(170),
+      table.header(th[Node], th[Peran], th[Identitas radio], th[Port serial (UART)]),
+      [NodeA], [Sumber pesan (server)], [`MESH_NODE_A`], [`/dev/ttyACM0`],
+      [NodeB], [Relay (client ke A + server ke C)], [`MESH_NODE_B`], [`/dev/ttyACM2`],
+      [NodeC], [Penerima akhir (client ke B)], [`MESH_NODE_C`], [`/dev/ttyACM4`],
+    ),
+    [Board dan port pada rekaman log serial Modul 06],
+    "tbl:m06-log-1",
+  )
+
+  *NodeA — `/dev/ttyACM0`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Node A (sumber pesan) starting...
+Menunggu relay (Node B)...
+Node B terhubung
+Kirim ke B: A:1
+Kirim ke B: A:2
+Kirim ke B: A:3
+Kirim ke B: A:4
+Kirim ke B: A:5")
+
+  *NodeB — `/dev/ttyACM2`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Node B (relay) starting...
+Menunggu A dan C...
+Node A ditemukan
+Node C terhubung
+Terhubung ke Node A
+Koneksi ke A berhasil
+Terima dari A: A:1 (diteruskan)
+Teruskan ke C: A:1
+Terima dari A: A:2 (diteruskan)
+Teruskan ke C: A:2
+Terima dari A: A:3 (diteruskan)
+Teruskan ke C: A:3
+Terima dari A: A:4 (diteruskan)
+Teruskan ke C: A:4
+Terima dari A: A:5 (diteruskan)
+Teruskan ke C: A:5", pecah: true)
+
+  *NodeC — `/dev/ttyACM4`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Node C (penerima akhir) starting...
+Scanning Node B...
+Node B ditemukan
+Terhubung ke Node B
+Koneksi ke B berhasil
+Pesan tiba (via A -> B -> C): A:1
+Pesan tiba (via A -> B -> C): A:2
+Pesan tiba (via A -> B -> C): A:3
+Pesan tiba (via A -> B -> C): A:4
+Pesan tiba (via A -> B -> C): A:5")
+
+  *Catatan*
+
+  - NodeA mengirim `A:<n>` tiap 4 detik ke NodeB (notify).
+  - NodeB menerima dari A (`Terima dari A`), lalu meneruskannya apa adanya ke NodeC (`Teruskan ke C`) — payload tidak diubah (_transparent forwarding_).
+  - NodeC menerima pesan hasil dua hop dan mencetak `Pesan tiba (via A -> B -> C)`.
+  - NodeB berperan ganda: client ke A sekaligus server untuk C, sehingga `Node C terhubung` bisa muncul sebelum `Terhubung ke Node A` (dua peran berjalan paralel).
+  - Baris `ESP-ROM:…` s/d `entry …` adalah log ROM boot, keluar sekali saat reset.
+]
 
 == Pengukuran
 

@@ -7,6 +7,7 @@
 #import "@preview/orange-book:0.7.1": chapter
 #import "../lib/callouts.typ": penting, peringatan, tip, catatan, checkpoint, buka-abstraksi, pengantar, tujuan-prak, identitas-modul
 #import "../lib/helpers.typ": gbr, tbl, th, isian, kode, kode-berkas, sumber-kode, gh, gh-folder, keluaran, diagram, checklist
+#import "../config.typ": edisi_buku
 
 #chapter("Modul 10 — Zigbee Mesh: Routing Multi-Hop", l: "bab:modul-10")
 
@@ -314,20 +315,24 @@ bila ZED memilih ZR sebagai parent.
 
 #keluaran("Menunggu router & end device ter-binding...
 Total device ter-bind: 2
- - endpoint 10, short addr 0xAAAA
- - endpoint 11, short addr 0xBBBB
--> 0xAAAA ON
--> 0xBBBB ON")
+ - endpoint 10, short addr 0xFFFF
+ - endpoint 11, short addr 0xE04F
+-> 0xFFFF ON
+-> 0xE04F ON
+-> 0xFFFF OFF
+-> 0xE04F OFF")
 
 *Expected output --- Router*
 
-#keluaran("Router tergabung (role=ROUTER).
+#keluaran("Router menunggu join ke network...
+Router tergabung (role=ROUTER).
 RouterLight ON
 RouterLight OFF")
 
 *Expected output --- End device*
 
-#keluaran("End device tergabung (role=END_DEVICE).
+#keluaran("End device menunggu join (bisa lewat router)...
+End device tergabung (role=END_DEVICE).
 EndLight ON
 EndLight OFF")
 
@@ -418,6 +423,132 @@ board berdekatan, jadi ZED kemungkinan besar memilih ZC sebagai parent, yaitu
 Formasi meja (semua node kurang dari 1 m) *belum membuktikan* routing
 multi-hop. Untuk itu jalankan EXP-03 formasi garis dan matikan jalur langsung
 ZC ke ZED.
+
+
+// Log serial lengkap dari week10_zigbee_mesh/logserial.md. Hanya dicetak pada
+// edisi dosen agar tidak disalin mahasiswa sebagai hasil laporan
+// (lihat config.typ).
+#if edisi_buku == "dosen" [
+  === Log Serial Terverifikasi
+
+  Log serial lengkap hasil uji pada board nyata, bukan contoh. Bagian ini
+  hanya dicetak pada edisi dosen.
+
+  Hasil aktual dari board nyata. Baud 115200, tiga board ESP32-H2. Flash di-`erase` penuh sebelum upload agar state network Zigbee bersih.
+
+  *Board & Port*
+
+  #tbl(
+    table(
+      columns: (auto, 1fr, auto, auto),
+      align: (left, left, left, left),
+      inset: (x: 0.6em, y: 0.45em),
+      stroke: 0.5pt + luma(170),
+      table.header(th[Node], th[Peran], th[Endpoint], th[Port serial (UART)]),
+      [Coordinator], [Zigbee Coordinator (ZCZR) — switch], [5], [`/dev/ttyACM0`],
+      [Router], [Zigbee Router (ZCZR) — light + relay], [10], [`/dev/ttyACM2`],
+      [End Device], [Zigbee End Device (ED) — light], [11], [`/dev/ttyACM4`],
+    ),
+    [Board dan port pada rekaman log serial Modul 10],
+    "tbl:m10-log-1",
+  )
+
+  *Coordinator — `/dev/ttyACM0`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Menunggu router & end device ter-binding...
+Total device ter-bind: 2
+ - endpoint 10, short addr 0xFFFF
+ - endpoint 11, short addr 0xE04F
+-> 0xFFFF ON
+-> 0xE04F ON
+-> 0xFFFF OFF
+-> 0xE04F OFF
+-> 0xFFFF ON
+-> 0xE04F ON
+-> 0xFFFF OFF
+-> 0xE04F OFF
+-> 0xFFFF ON
+-> 0xE04F ON
+-> 0xFFFF OFF
+-> 0xE04F OFF
+-> 0xFFFF ON
+-> 0xE04F ON
+-> 0xFFFF OFF
+-> 0xE04F OFF
+-> 0xFFFF ON
+-> 0xE04F ON
+-> 0xFFFF OFF
+-> 0xE04F OFF
+-> 0xFFFF ON
+-> 0xE04F ON", pecah: true)
+
+  *Router — `/dev/ttyACM2`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Router menunggu join ke network...
+Router tergabung (role=ROUTER).
+RouterLight ON
+RouterLight OFF
+RouterLight ON
+RouterLight OFF
+RouterLight ON
+RouterLight OFF
+RouterLight ON
+RouterLight OFF
+RouterLight ON
+RouterLight OFF
+RouterLight ON", pecah: true)
+
+  *End Device — `/dev/ttyACM4`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+End device menunggu join (bisa lewat router)...
+End device tergabung (role=END_DEVICE).
+EndLight ON
+EndLight OFF
+EndLight ON
+EndLight OFF
+EndLight ON
+EndLight OFF
+EndLight ON
+EndLight OFF
+EndLight ON
+EndLight OFF
+EndLight ON", pecah: true)
+
+  *Catatan*
+
+  - Tiga peran berbeda dalam satu network: Coordinator (pembentuk network), Router (menyimpan + meneruskan trafik), End Device (child yang bisa join lewat router).
+  - `getBoundDevices()` melaporkan 2 device: endpoint 10 (Router, tercetak `0xFFFF` karena binding table belum mencatat short address) dan endpoint 11 (End Device, `0xE04F`).
+  - Coordinator men-toggle kedua lampu serentak tiap 5 detik; Router mencetak `RouterLight ON/OFF`, End Device mencetak `EndLight ON/OFF`.
+  - Kedua perangkat join ke network yang sama dan merespons perintah, menandakan jalur mesh (lewat router) berfungsi.
+  - Baris `ESP-ROM:…` s/d `entry …` adalah log ROM boot, keluar sekali saat reset.
+]
 
 == Pengukuran
 

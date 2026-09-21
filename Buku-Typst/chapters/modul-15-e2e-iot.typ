@@ -7,6 +7,7 @@
 #import "@preview/orange-book:0.7.1": chapter
 #import "../lib/callouts.typ": penting, peringatan, tip, catatan, checkpoint, buka-abstraksi, pengantar, tujuan-prak, identitas-modul
 #import "../lib/helpers.typ": gbr, tbl, th, isian, kode, kode-berkas, sumber-kode, gh, gh-folder, keluaran, diagram, checklist
+#import "../config.typ": edisi_buku
 
 #chapter("Modul 15 — Pipeline IoT End-to-End", l: "bab:modul-15")
 
@@ -350,19 +351,37 @@ mem-publish payload yang sama ke broker.
 
 #keluaran("Sensor H2 (Thread node) starting...
 Menunggu join ke gateway (C6)...
-Attached as: child
+Attached as: Child
 TX via Thread: suhu:25.2")
 
 *Expected output --- C6*
 
-#keluaran("Konek Wi-Fi NAMA_WIFI....
-Wi-Fi OK, IP: 192.168.x.x
-MQTT terhubung
+#keluaran("Konek Wi-Fi SprH-3......
+Wi-Fi OK, IP: 192.168.1.39 | RSSI: -67 dBm
+coex preference = WIFI (err=0)
 Menunggu attach Thread...
-Thread attached as: leader
+Thread attached as: Leader
+Default netif dikembalikan ke Wi-Fi STA (err=0)
+Konek MQTT 192.168.1.5:1884 ...
+Gagal (rc=-2)
+Konek MQTT 192.168.1.5:1884 ...
+Gagal (rc=-2)
+Konek MQTT 192.168.1.5:1884 ...
+Gagal (rc=-2)
+MQTT belum terhubung. Lanjut; dicoba ulang di loop().
 Gateway siap (H2 -> Thread -> C6 -> MQTT).
-RX via Thread: suhu:25.2
-Publish MQTT [praktikum/h2/telemetri]: suhu:25.2")
+MQTT gagal (rc=-2), coba lagi 4 detik
+SIM sensor (Thread): suhu:25.8
+Publish MQTT GAGAL (mqtt=-2): suhu:25.8")
+
+#catatan[
+  Log di atas direkam *tanpa board H2*: baris `SIM sensor (Thread): ...`
+  berasal dari simulasi sensor di firmware gateway. Bila board H2 terpasang,
+  baris `RX via Thread: suhu:...` ikut muncul. Pada rekaman ini hop MQTT gagal
+  total (`rc=-2`, koneksi TCP keluar tidak terbentuk), sehingga setiap nilai
+  dicetak `Publish MQTT GAGAL`. Saat MQTT tersambung, baris yang sama menjadi
+  `Publish MQTT [praktikum/h2/telemetri]: suhu:...`.
+]
 
 #checkpoint[
   Untuk *satu* nilai suhu yang sama (misalnya `25.2`), tiga baris log
@@ -567,6 +586,92 @@ tanpa data.
   [Perbaikan kode hasil pengujian perangkat nyata Modul 15],
   "tbl:m15-perbaikan",
 )
+
+
+// Log serial lengkap dari week15_e2e_iot/logserial.md. Hanya dicetak pada
+// edisi dosen agar tidak disalin mahasiswa sebagai hasil laporan
+// (lihat config.typ).
+#if edisi_buku == "dosen" [
+  === Log Serial Terverifikasi
+
+  Log serial lengkap hasil uji pada board nyata, bukan contoh. Bagian ini
+  hanya dicetak pada edisi dosen.
+
+  Hasil aktual dari board nyata ESP32-C6. Baud 115200. Sensor H2 *disimulasikan* di dalam firmware gateway (tidak ada board H2 fisik).
+
+  *Board & Port*
+
+  #tbl(
+    table(
+      columns: (auto, auto, 1fr, auto),
+      align: (left, left, left, left),
+      inset: (x: 0.6em, y: 0.45em),
+      stroke: 0.5pt + luma(170),
+      table.header(th[Node], th[Board], th[Peran], th[Port serial (UART)]),
+      [Gateway], [ESP32-C6 DevKitC-1], [Thread Leader + Wi-Fi STA + MQTT publisher], [`/dev/ttyACM6`],
+    ),
+    [Board dan port pada rekaman log serial Modul 15],
+    "tbl:m15-log-1",
+  )
+
+  Konfigurasi: Wi-Fi `SprH-3`, broker MQTT lokal `192.168.1.5:1884` (Mosquitto), topic `praktikum/h2/telemetri`, client ID `esp32c6-gateway`, Thread `ESP_OT_E2E`.
+
+  *Gateway (C6) — `/dev/ttyACM6`*
+
+  #keluaran("ESP-ROM:esp32c6-20220919
+Build:Sep 19 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:2
+load:0x40875730,len:0x1278
+load:0x4086b910,len:0xc58
+load:0x4086e610,len:0x31c0
+entry 0x4086b910
+Konek Wi-Fi SprH-3......
+Wi-Fi OK, IP: 192.168.1.39 | RSSI: -67 dBm
+coex preference = WIFI (err=0)
+Menunggu attach Thread...
+Thread attached as: Leader
+Default netif dikembalikan ke Wi-Fi STA (err=0)
+Konek MQTT 192.168.1.5:1884 ...
+Gagal (rc=-2)
+Konek MQTT 192.168.1.5:1884 ...
+Gagal (rc=-2)
+Konek MQTT 192.168.1.5:1884 ...
+Gagal (rc=-2)
+MQTT belum terhubung. Lanjut; dicoba ulang di loop().
+Gateway siap (H2 -> Thread -> C6 -> MQTT).
+MQTT gagal (rc=-2), coba lagi 4 detik
+SIM sensor (Thread): suhu:25.8
+Publish MQTT GAGAL (mqtt=-2): suhu:25.8
+MQTT gagal (rc=-2), coba lagi 4 detik
+SIM sensor (Thread): suhu:26.6
+Publish MQTT GAGAL (mqtt=-2): suhu:26.6
+MQTT gagal (rc=-2), coba lagi 4 detik
+SIM sensor (Thread): suhu:27.0
+Publish MQTT GAGAL (mqtt=-2): suhu:27.0
+MQTT gagal (rc=-2), coba lagi 4 detik
+SIM sensor (Thread): suhu:27.3
+Publish MQTT GAGAL (mqtt=-2): suhu:27.3
+MQTT gagal (rc=-4), coba lagi 4 detik
+SIM sensor (Thread): suhu:26.3
+Publish MQTT GAGAL (mqtt=-4): suhu:26.3", pecah: true)
+
+  *Verifikasi dari sisi broker (PC)*
+
+  `mosquitto_sub -h 192.168.1.5 -p 1884 -t "praktikum/h2/telemetri" -v`:
+
+  #keluaran("(0 pesan diterima selama pengamatan)")
+
+  *Catatan*
+
+  - Gateway menjalankan *tiga stack* di satu chip: Thread, Wi-Fi, dan MQTT.
+  - Thread dan Wi-Fi masing-masing sehat: attach sebagai *Leader* dan Wi-Fi memperoleh IP `192.168.1.39` (RSSI −67 dBm).
+  - *Hop Wi-Fi/MQTT gagal total* di jaringan `SprH-3`: `mqtt.connect()` terus gagal `rc=-2` (koneksi TCP keluar tidak terbentuk) meskipun prioritas radio sudah diberikan ke Wi-Fi (`esp_coex_preference_set(ESP_COEX_PREFER_WIFI)`). Ini persis kasus "AP-1" pada log referensi README (0 % end-to-end), bukan kegagalan konfigurasi.
+  - Sensor *disimulasikan* (`SIM sensor (Thread): suhu:XX.X`); karena MQTT tidak pernah terhubung, tiap publish dicetak `Publish MQTT GAGAL (mqtt=-2)`.
+  - Pembanding penting (modul 16): pipeline *BLE* + Wi-Fi + MQTT pada gateway satu-chip yang sama nyaris tanpa ongkos koeksistensi, sedangkan *Thread* + Wi-Fi sangat mahal — lihat log week16.
+  - Baris `ESP-ROM:esp32c6-…` s/d `entry …` adalah log ROM boot, keluar sekali saat reset.
+]
 
 == Pengukuran
 

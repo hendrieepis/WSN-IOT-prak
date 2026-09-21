@@ -7,6 +7,7 @@
 #import "@preview/orange-book:0.7.1": chapter
 #import "../lib/callouts.typ": penting, peringatan, tip, catatan, checkpoint, buka-abstraksi, pengantar, tujuan-prak, identitas-modul
 #import "../lib/helpers.typ": gbr, tbl, th, isian, kode, kode-berkas, sumber-kode, gh, gh-folder, keluaran, diagram, checklist
+#import "../config.typ": edisi_buku
 
 #chapter("Modul 02 — Pertukaran Data Dua Arah via BLE", l: "bab:modul-02")
 
@@ -332,8 +333,10 @@ Setelah terhubung, Node1 mengirim notify setiap 2000 ms.
 #keluaran("Node1 (BLE Server) starting...
 Menunggu koneksi dari Node2...
 Client terhubung
-TX ke Node2: Hello dari Node1 (2043)
-TX ke Node2: Hello dari Node1 (4047)")
+TX ke Node2: Hello dari Node1 (2005)
+RX dari Node2: Halo dari Node2 (3001)
+TX ke Node2: Hello dari Node1 (4006)
+TX ke Node2: Hello dari Node1 (6007)")
 
 *Expected output --- Node2 (Client)*
 
@@ -342,8 +345,11 @@ Scanning Node1...
 Node1 ditemukan
 Terhubung ke Node1
 Koneksi berhasil
-RX dari Node1: Hello dari Node1 (2043)
-RX dari Node1: Hello dari Node1 (4047)")
+RX dari Node1: Hello dari Node1 (2005)
+RX dari Node1: Halo dari Node2 (3001)
+TX ke Node1: Halo dari Node2 (3001)
+RX dari Node1: Hello dari Node1 (4006)
+RX dari Node1: Hello dari Node1 (6007)")
 
 #checkpoint[
   Baris `RX dari Node1` muncul di Node2 dengan jarak ±2 detik dan nilai
@@ -358,20 +364,28 @@ Node2 menulis ke characteristic RX tiap 3000 ms. Server menerima (`onWrite`),
 mencetak, lalu meng-echo balik lewat notify pada characteristic TX.
 
 #diagram(```
-Node2 ── WRITE "Halo dari Node2 (6051)" ──► Node1 CHAR_RX
+Node2 ── WRITE "Halo dari Node2 (6002)" ──► Node1 CHAR_RX
 Node1 ── print "RX dari Node2: ..."
-Node1 ── NOTIFY (echo) ──► Node2 print "RX dari Node1: Halo dari Node2 (6051)"
+Node1 ── NOTIFY (echo) ──► Node2 print "RX dari Node1: Halo dari Node2 (6002)"
 ```.text)
 
 *Expected output --- Node1*
 
-#keluaran("RX dari Node2: Halo dari Node2 (6051)
-TX ke Node2: Halo dari Node2 (6051)")
+#keluaran("TX ke Node2: Hello dari Node1 (6007)
+RX dari Node2: Halo dari Node2 (6002)
+TX ke Node2: Hello dari Node1 (8008)")
+
+Echo tidak dicetak sebagai baris `TX` tersendiri di Node1: `onWrite()` hanya
+mencetak `RX dari Node2: ...`, lalu langsung meneruskannya lewat notify.
 
 *Expected output --- Node2*
 
-#keluaran("TX ke Node1: Halo dari Node2 (6051)
-RX dari Node1: Halo dari Node2 (6051)")
+#keluaran("RX dari Node1: Halo dari Node2 (6002)
+TX ke Node1: Halo dari Node2 (6002)")
+
+Baris echo `RX dari Node1` tercetak *sebelum* `TX ke Node1` karena Node2 baru
+mencetak `TX` setelah `writeValue()` selesai, sedangkan notify echo dari Node1
+sudah tiba lebih dulu.
 
 *Data capture*
 
@@ -428,6 +442,106 @@ Modul ini sudah dijalankan pada 2 × *ESP32-H2 DevKitM-1* (jarak ±20 cm, captur
   [Hasil verifikasi hardware Modul 02],
   "tbl:m02-verifikasi",
 )
+
+
+// Log serial lengkap dari week02_ble_p2p_data/logserial.md. Hanya dicetak pada
+// edisi dosen agar tidak disalin mahasiswa sebagai hasil laporan
+// (lihat config.typ).
+#if edisi_buku == "dosen" [
+  === Log Serial Terverifikasi
+
+  Log serial lengkap hasil uji pada board nyata, bukan contoh. Bagian ini
+  hanya dicetak pada edisi dosen.
+
+  Hasil aktual dari board nyata. Baud 115200, dua board ESP32-H2.
+
+  *Board & Port*
+
+  #tbl(
+    table(
+      columns: (auto, 1fr, auto, auto),
+      align: (left, left, left, left),
+      inset: (x: 0.6em, y: 0.45em),
+      stroke: 0.5pt + luma(170),
+      table.header(th[Node], th[Peran], th[Identitas radio], th[Port serial (UART)]),
+      [Node1], [BLE Server (notify + write)], [`NODE1_H2`], [`/dev/ttyACM0`],
+      [Node2], [BLE Client (scan + subscribe)], [`NODE2_H2`], [`/dev/ttyACM2`],
+    ),
+    [Board dan port pada rekaman log serial Modul 02],
+    "tbl:m02-log-1",
+  )
+
+  *Node1 — `/dev/ttyACM0`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Node1 (BLE Server) starting...
+Menunggu koneksi dari Node2...
+Client terhubung
+TX ke Node2: Hello dari Node1 (2005)
+RX dari Node2: Halo dari Node2 (3001)
+TX ke Node2: Hello dari Node1 (4006)
+TX ke Node2: Hello dari Node1 (6007)
+RX dari Node2: Halo dari Node2 (6002)
+TX ke Node2: Hello dari Node1 (8008)
+RX dari Node2: Halo dari Node2 (9003)
+TX ke Node2: Hello dari Node1 (10009)
+TX ke Node2: Hello dari Node1 (12010)
+RX dari Node2: Halo dari Node2 (12004)
+TX ke Node2: Hello dari Node1 (14011)
+RX dari Node2: Halo dari Node2 (15005)
+TX ke Node2: Hello dari Node1 (16012)", pecah: true)
+
+  *Node2 — `/dev/ttyACM2`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Node2 (BLE Client) starting...
+Scanning Node1...
+Node1 ditemukan
+Terhubung ke Node1
+Koneksi berhasil
+RX dari Node1: Hello dari Node1 (2005)
+RX dari Node1: Halo dari Node2 (3001)
+TX ke Node1: Halo dari Node2 (3001)
+RX dari Node1: Hello dari Node1 (4006)
+RX dari Node1: Hello dari Node1 (6007)
+RX dari Node1: Halo dari Node2 (6002)
+TX ke Node1: Halo dari Node2 (6002)
+RX dari Node1: Hello dari Node1 (8008)
+RX dari Node1: Halo dari Node2 (9003)
+TX ke Node1: Halo dari Node2 (9003)
+RX dari Node1: Hello dari Node1 (10009)
+RX dari Node1: Hello dari Node1 (12010)
+RX dari Node1: Halo dari Node2 (12004)
+TX ke Node1: Halo dari Node2 (12004)
+RX dari Node1: Hello dari Node1 (14011)
+RX dari Node1: Halo dari Node2 (15005)
+TX ke Node1: Halo dari Node2 (15005)
+RX dari Node1: Hello dari Node1 (16012)", pecah: true)
+
+  *Catatan*
+
+  - Node1 mengirim `Hello dari Node1 (ms)` tiap 2 detik via notify (CHAR\_TX).
+  - Node2 mengirim `Halo dari Node2 (ms)` tiap 3 detik via write (CHAR\_RX).
+  - Pesan dari Node2 diterima Node1 (`RX dari Node2`), lalu digemakan balik lewat notify sehingga Node2 melihatnya lagi sebagai `RX dari Node1: Halo dari Node2 (...)`.
+  - Angka dalam kurung adalah nilai `millis()` saat pesan dibuat (bukan counter urut).
+  - Baris `ESP-ROM:…` s/d `entry …` adalah log ROM boot, keluar sekali saat reset.
+]
 
 == Pengukuran
 

@@ -7,6 +7,7 @@
 #import "@preview/orange-book:0.7.1": chapter
 #import "../lib/callouts.typ": penting, peringatan, tip, catatan, checkpoint, buka-abstraksi, pengantar, tujuan-prak, identitas-modul
 #import "../lib/helpers.typ": gbr, tbl, th, isian, kode, kode-berkas, sumber-kode, gh, gh-folder, keluaran, diagram, checklist
+#import "../config.typ": edisi_buku
 
 #chapter("Modul 07 — IEEE 802.15.4 Raw Frame (P2P)", l: "bab:modul-07")
 
@@ -546,6 +547,105 @@ Dijalankan pada 2 × *ESP32-H2 DevKitM-1*, capture 25 detik.
   [Hasil verifikasi hardware Modul 07],
   "tbl:m07-verifikasi",
 )
+
+
+// Log serial lengkap dari week07_802154_p2p/logserial.md. Hanya dicetak pada
+// edisi dosen agar tidak disalin mahasiswa sebagai hasil laporan
+// (lihat config.typ).
+#if edisi_buku == "dosen" [
+  === Log Serial Terverifikasi
+
+  Log serial lengkap hasil uji pada board nyata, bukan contoh. Bagian ini
+  hanya dicetak pada edisi dosen.
+
+  Hasil aktual dari board nyata. Baud 115200, dua board ESP32-H2.
+
+  *Board & Port*
+
+  #tbl(
+    table(
+      columns: (auto, 1fr, auto, auto),
+      align: (left, left, left, left),
+      inset: (x: 0.6em, y: 0.45em),
+      stroke: 0.5pt + luma(170),
+      table.header(th[Node], th[Peran], th[short addr], th[Port serial (UART)]),
+      [Node1], [Sender (kirim PING)], [`0x0001`], [`/dev/ttyACM0`],
+      [Node2], [Receiver (balas PONG)], [`0x0002`], [`/dev/ttyACM2`],
+    ),
+    [Board dan port pada rekaman log serial Modul 07],
+    "tbl:m07-log-1",
+  )
+
+  Channel 15, PAN ID `0xCAFE`.
+
+  *Node1 — `/dev/ttyACM0`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Node1 (802.15.4 sender) starting...
+Channel 15, PAN 0xCAFE, short addr 0x0001
+TX ke 0x0002: PING 1
+RX dari 0x0002: PONG 1
+TX ke 0x0002: PING 2
+RX dari 0x0002: PONG 2
+TX ke 0x0002: PING 3
+RX dari 0x0002: PONG 3
+TX ke 0x0002: PING 4
+RX dari 0x0002: PONG 4
+TX ke 0x0002: PING 5
+RX dari 0x0002: PONG 5
+TX ke 0x0002: PING 6
+RX dari 0x0002: PONG 6
+TX ke 0x0002: PING 7
+RX dari 0x0002: PONG 7
+TX ke 0x0002: PING 8
+RX dari 0x0002: PONG 8", pecah: true)
+
+  *Node2 — `/dev/ttyACM2`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xd (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Node2 (802.15.4 receiver) starting...
+Channel 15, PAN 0xCAFE, short addr 0x0002
+RX dari 0x0001: PING 1
+TX balasan ke 0x0001: PONG 1
+RX dari 0x0001: PING 2
+TX balasan ke 0x0001: PONG 2
+RX dari 0x0001: PING 3
+TX balasan ke 0x0001: PONG 3
+RX dari 0x0001: PING 4
+TX balasan ke 0x0001: PONG 4
+RX dari 0x0001: PING 5
+TX balasan ke 0x0001: PONG 5
+RX dari 0x0001: PING 6
+TX balasan ke 0x0001: PONG 6
+RX dari 0x0001: PING 7
+TX balasan ke 0x0001: PONG 7
+RX dari 0x0001: PING 8
+TX balasan ke 0x0001: PONG 8", pecah: true)
+
+  *Catatan*
+
+  - Node1 mengirim frame 802.15.4 (raw, tanpa stack Zigbee/Thread) berisi `PING n` tiap 2 detik ke short address `0x0002`.
+  - Node2 menerima, lalu membalas `PONG n` ke `0x0001`.
+  - FCS dihitung otomatis oleh hardware; pada sisi RX dua byte FCS diganti RSSI+LQI.
+  - Komunikasi dua arah terbukti dari sisi Node1 (`RX dari 0x0002: PONG n`) dan sisi Node2 (`RX dari 0x0001: PING n`).
+  - Baris `ESP-ROM:…` s/d `entry …` adalah log ROM boot, keluar sekali saat reset.
+]
 
 == Pengukuran
 

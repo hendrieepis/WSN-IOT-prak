@@ -7,6 +7,7 @@
 #import "@preview/orange-book:0.7.1": chapter
 #import "../lib/callouts.typ": penting, peringatan, tip, catatan, checkpoint, buka-abstraksi, pengantar, tujuan-prak, identitas-modul
 #import "../lib/helpers.typ": gbr, tbl, th, isian, kode, kode-berkas, sumber-kode, gh, gh-folder, keluaran, diagram, checklist
+#import "../config.typ": edisi_buku
 
 #chapter(
   "Modul 13 — Gateway Thread ke Wi-Fi (H2 + C6)",
@@ -400,18 +401,35 @@ pengirim* (`fdde:ad00:...`), bukan alamat grup `ff03::abcd` yang dituju.
 
 #keluaran("Sensor H2 (Thread node) starting...
 Menunggu join ke gateway (C6)...
-Attached as: child
+Attached as: Child
 TX via Thread: suhu:25.4
 TX via Thread: suhu:26.1")
 
 *Expected output --- C6*
 
-#keluaran("Konek Wi-Fi NAMA_WIFI....
-Wi-Fi OK, IP: 192.168.x.x
+#keluaran("Konek Wi-Fi SprH-3........
+Wi-Fi OK, IP: 192.168.1.39 | RSSI: -67 dBm
+coex preference = WIFI (err=0)
 Menunggu attach Thread...
-Thread attached as: leader
+Thread attached as: Leader
+Default netif dikembalikan ke Wi-Fi STA (err=0)
 Gateway siap (Thread -> Wi-Fi).
-RX via Thread [fdde:ad00:beef:0:xxxx:xxxx:xxxx:xxxx]: suhu:25.4")
+SIM sensor (Thread): suhu:24.5
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1
+SIM sensor (Thread): suhu:24.9
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1
+SIM sensor (Thread): suhu:23.0
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP 200")
+
+#catatan[
+  Log di atas direkam *tanpa board H2*. Baris `SIM sensor (Thread): ...`
+  berasal dari simulasi sensor di firmware gateway (`readSensor()`), yang
+  memanggil jalur `forwardToWifi()` yang sama dengan data Thread asli. Bila
+  board H2 terpasang, baris `RX via Thread [fdde:ad00:beef:0:...]: suhu:...`
+  ikut muncul di antaranya. `HTTP -1` berarti koneksi TCP ke server gagal
+  terbentuk; pada rekaman ini hanya satu POST yang lolos (`HTTP 200`) karena
+  Thread dan Wi-Fi berebut airtime satu radio 2,4 GHz.
+]
 
 #buka-abstraksi[
   Perhatikan urutan di `setup()` gateway: `OThread.begin()` dulu, lalu Wi-Fi,
@@ -611,6 +629,85 @@ nomor 1.
 
 Membalik langkah 1 dan 3 membuat board *panic*; menaruh langkah 3 setelah
 langkah 4 membuat Wi-Fi *tidak pernah* asosiasi.
+
+
+// Log serial lengkap dari week13_thread_wifi_gateway/logserial.md. Hanya dicetak pada
+// edisi dosen agar tidak disalin mahasiswa sebagai hasil laporan
+// (lihat config.typ).
+#if edisi_buku == "dosen" [
+  === Log Serial Terverifikasi
+
+  Log serial lengkap hasil uji pada board nyata, bukan contoh. Bagian ini
+  hanya dicetak pada edisi dosen.
+
+  Hasil aktual dari board nyata ESP32-C6. Baud 115200. Sensor H2 *disimulasikan* di dalam firmware gateway (tidak ada board H2 fisik).
+
+  *Board & Port*
+
+  #tbl(
+    table(
+      columns: (auto, auto, 1fr, auto),
+      align: (left, left, left, left),
+      inset: (x: 0.6em, y: 0.45em),
+      stroke: 0.5pt + luma(170),
+      table.header(th[Node], th[Board], th[Peran], th[Port serial (UART)]),
+      [Gateway], [ESP32-C6 DevKitC-1], [Thread Leader + Wi-Fi STA, forward ke HTTP], [`/dev/ttyACM6`],
+    ),
+    [Board dan port pada rekaman log serial Modul 13],
+    "tbl:m13-log-1",
+  )
+
+  Konfigurasi: Wi-Fi `SprH-3`, server HTTP lokal `http://192.168.1.5:8080/post` (`tools/http_sink.py`), Thread `ESP_OT_GW` ch 15 PAN 0xABCD.
+
+  *Gateway (C6) — `/dev/ttyACM6`*
+
+  #keluaran("ESP-ROM:esp32c6-20220919
+Build:Sep 19 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:2
+load:0x40875730,len:0x1278
+load:0x4086b910,len:0xc58
+load:0x4086e610,len:0x31c0
+entry 0x4086b910
+Konek Wi-Fi SprH-3........
+Wi-Fi OK, IP: 192.168.1.39 | RSSI: -67 dBm
+coex preference = WIFI (err=0)
+Menunggu attach Thread...
+Thread attached as: Leader
+Default netif dikembalikan ke Wi-Fi STA (err=0)
+Gateway siap (Thread -> Wi-Fi).
+SIM sensor (Thread): suhu:24.5
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1
+SIM sensor (Thread): suhu:24.9
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1
+SIM sensor (Thread): suhu:24.2
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1
+SIM sensor (Thread): suhu:23.4
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1
+SIM sensor (Thread): suhu:23.4
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1
+SIM sensor (Thread): suhu:22.8
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1
+SIM sensor (Thread): suhu:23.0
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP 200
+SIM sensor (Thread): suhu:22.9
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1", pecah: true)
+
+  *Server HTTP (PC) — `tools/http_sink.py`*
+
+  #keluaran("[   0.000] http_sink siap di 0.0.0.0:8080 (POST -> HTTP 200)
+[ 480.308] #1    POST /post from 192.168.1.39  ->  {\"sensor\":\"h2\",\"data\":\"suhu:23.1\"}")
+
+  *Catatan*
+
+  - Thread + Wi-Fi berjalan bersamaan di satu antena 2,4 GHz (koeksistensi). Urutan inisialisasi yang benar (Thread begin → Wi-Fi connect → coex prefer WIFI → Thread start) sudah diterapkan; board tidak panic dan Wi-Fi berhasil asosiasi.
+  - Gateway attach sebagai *Leader* (jaringan `ESP_OT_GW` dibentuk sendiri).
+  - *Hop Wi-Fi adalah yang paling rapuh*: mayoritas POST gagal dengan `HTTP -1` (koneksi TCP gagal terbentuk akibat pembagian airtime Thread+Wi-Fi), tetapi sesekali POST berhasil sampai di server (`HTTP 200`, terbukti `#1 POST ... suhu:23.1` di http\_sink). Ini sesuai dokumentasi README: hop Wi-Fi menghasilkan loss terbesar.
+  - *Mengapa hanya \~1 POST yang sesekali lolos*: keberhasilan bersifat probabilistik — hanya saat Wi-Fi kebetulan memenangkan perebutan airtime tepat pada momen TCP connect, satu POST berhasil (`suhu:23.0 -> HTTP 200`) sebelum percobaan berikutnya gagal `-1` lagi.
+  - Sensor *disimulasikan* (`SIM sensor (Thread): suhu:XX.X`) memanggil jalur `forwardToWifi()` yang sama dengan jalur `RX via Thread` asli.
+  - Baris `ESP-ROM:esp32c6-…` s/d `entry …` adalah log ROM boot, keluar sekali saat reset.
+]
 
 == Pengukuran
 

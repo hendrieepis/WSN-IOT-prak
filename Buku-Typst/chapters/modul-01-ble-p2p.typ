@@ -7,6 +7,7 @@
 #import "@preview/orange-book:0.7.1": chapter
 #import "../lib/callouts.typ": penting, peringatan, tip, catatan, checkpoint, buka-abstraksi, pengantar, tujuan-prak, identitas-modul
 #import "../lib/helpers.typ": gbr, tbl, th, isian, kode, kode-berkas, sumber-kode, gh, gh-folder, keluaran, diagram, checklist
+#import "../config.typ": edisi_buku
 
 #chapter("Modul 01 — Komunikasi BLE Point-to-Point", l: "bab:modul-01")
 
@@ -340,6 +341,8 @@ Scan ──► Node1 ditemukan ──► Connect ──► Service check ──�
 #keluaran("Node1 (BLE Peripheral) starting...
 Advertise sebagai NODE1_H2, menunggu Node2...
 Node2 terhubung (link P2P aktif)
+Status: H2 <-> H2 terhubung
+Status: H2 <-> H2 terhubung
 Status: H2 <-> H2 terhubung")
 
 *Expected output --- Node2 (`NODE2_H2`)*
@@ -349,11 +352,97 @@ Scanning Node1...
 Node1 ditemukan
 Terhubung ke Node1
 Koneksi berhasil
-Status: H2 <-> H2 terhubung | RSSI: -57 dBm")
+Status: H2 <-> H2 terhubung
+Status: H2 <-> H2 terhubung
+Status: H2 <-> H2 terhubung")
 
 #checkpoint[
-  Kedua node mencetak baris `Status: ... terhubung` berulang tiap 5 detik, dan
-  baris Node2 menyertakan nilai RSSI.
+  Kedua node mencetak baris `Status: ... terhubung` berulang tiap 5 detik.
+  Nilai RSSI baru ikut tercetak setelah modifikasi pada bagian Pengukuran
+  diterapkan.
+]
+
+// Log hasil pengukuran nyata hanya dicetak pada edisi dosen, supaya tidak
+// disalin mahasiswa sebagai hasil laporan (lihat config.typ).
+#if edisi_buku == "dosen" [
+  *Log serial terverifikasi*
+
+  Log berikut adalah hasil aktual dari dua board ESP32-H2 nyata, bukan contoh,
+  direkam pada 115200 baud dengan firmware `week01_ble_p2p` tanpa modifikasi.
+  Identitas tiap node pada sesi rekaman tersebut dirangkum pada
+  @tbl:m01-log-node.
+
+  #tbl(
+    table(
+      columns: (auto, 1fr, auto),
+      align: (left, left, left),
+      inset: (x: 0.6em, y: 0.5em),
+      stroke: 0.5pt + luma(170),
+      table.header(th[Node], th[Peran], th[Identitas radio]),
+      [Node1], [BLE Peripheral (advertise)], [`NODE1_H2`],
+      [Node2], [BLE Central (scan + connect)], [`NODE2_H2`],
+    ),
+    [Node pada sesi rekaman log serial Modul 01],
+    "tbl:m01-log-node",
+  )
+
+  _Node1 (`NODE1_H2`)_
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Node1 (BLE Peripheral) starting...
+Advertise sebagai NODE1_H2, menunggu Node2...
+Node2 terhubung (link P2P aktif)
+Status: H2 <-> H2 terhubung
+Status: H2 <-> H2 terhubung
+Status: H2 <-> H2 terhubung")
+
+  _Node2 (`NODE2_H2`)_
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Node2 (BLE Central) starting...
+Scanning Node1...
+Node1 ditemukan
+Terhubung ke Node1
+Koneksi berhasil
+Status: H2 <-> H2 terhubung
+Status: H2 <-> H2 terhubung
+Status: H2 <-> H2 terhubung")
+
+  Sembilan baris pertama, dari `ESP-ROM:...` sampai `entry ...`, adalah log ROM
+  boot ESP32-H2. Log ini keluar sekali setiap reset dan bukan bagian dari
+  program aplikasi. Urutan kejadian yang terbaca dari kedua log:
+
+  + Node1 boot, lalu advertise `NODE1_H2` beserta Service UUID.
+  + Node2 boot, lalu menjalankan active scan selama 5 detik.
+  + Node2 menemukan `NODE1_H2` dan mencetak `Node1 ditemukan`.
+  + Node2 melakukan connect. Node1 mencetak `Node2 terhubung (link P2P aktif)`,
+    sedangkan Node2 mencetak `Terhubung ke Node1`.
+  + Node2 memverifikasi Service UUID `4fafc201-...`, lalu mencetak
+    `Koneksi berhasil`.
+  + Kedua node mencetak heartbeat `Status: H2 <-> H2 terhubung` tiap 5 detik.
+
+  #catatan[
+    Heartbeat Node2 pada log terverifikasi belum memuat RSSI karena firmware
+    dasar hanya mencetak `Status: H2 <-> H2 terhubung`. Akhiran
+    `| RSSI: ... dBm` baru muncul setelah modifikasi @lst:m01-rssi pada bagian
+    Pengukuran diterapkan.
+  ]
 ]
 
 === EXP-03 --- Ketahanan Tautan

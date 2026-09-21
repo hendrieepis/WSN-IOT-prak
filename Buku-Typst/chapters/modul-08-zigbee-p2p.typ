@@ -7,6 +7,7 @@
 #import "@preview/orange-book:0.7.1": chapter
 #import "../lib/callouts.typ": penting, peringatan, tip, catatan, checkpoint, buka-abstraksi, pengantar, tujuan-prak, identitas-modul
 #import "../lib/helpers.typ": gbr, tbl, th, isian, kode, kode-berkas, sumber-kode, gh, gh-folder, keluaran, diagram, checklist
+#import "../config.typ": edisi_buku
 
 #chapter("Modul 08 — Zigbee P2P: Join dan Binding", l: "bab:modul-08")
 
@@ -351,10 +352,14 @@ proses join lalu binding, dan verifikasi RGB bawaan berkedip ON/OFF tiap
 *Expected output --- Coordinator*
 
 #keluaran("Menunggu end device ter-binding...
-................
 End device ter-binding!
 Perintah: Lampu ON
+Perintah: Lampu OFF
+Perintah: Lampu ON
 Perintah: Lampu OFF")
+
+Bila binding berlangsung lambat, baris titik-titik (`....`) tercetak di bawah
+`Menunggu end device ter-binding...` selama menunggu.
 
 #catatan[
   Baris `Lampu sekarang: ...` berasal dari callback `onLightStateChange()`,
@@ -442,6 +447,93 @@ ada sisa jaringan Zigbee lama di NVS), capture 70 detik.
   [Hasil verifikasi hardware Modul 08],
   "tbl:m08-verifikasi",
 )
+
+
+// Log serial lengkap dari week08_zigbee_p2p/logserial.md. Hanya dicetak pada
+// edisi dosen agar tidak disalin mahasiswa sebagai hasil laporan
+// (lihat config.typ).
+#if edisi_buku == "dosen" [
+  === Log Serial Terverifikasi
+
+  Log serial lengkap hasil uji pada board nyata, bukan contoh. Bagian ini
+  hanya dicetak pada edisi dosen.
+
+  Hasil aktual dari board nyata. Baud 115200, dua board ESP32-H2. Flash di-`erase` penuh sebelum upload agar state network Zigbee bersih.
+
+  *Board & Port*
+
+  #tbl(
+    table(
+      columns: (auto, 1fr, auto, auto),
+      align: (left, left, left, left),
+      inset: (x: 0.6em, y: 0.45em),
+      stroke: 0.5pt + luma(170),
+      table.header(th[Node], th[Peran], th[Endpoint], th[Port serial (UART)]),
+      [Coordinator], [Zigbee Coordinator (ZCZR) — switch], [5], [`/dev/ttyACM0`],
+      [End Device], [Zigbee End Device (ED) — light], [10], [`/dev/ttyACM2`],
+    ),
+    [Board dan port pada rekaman log serial Modul 08],
+    "tbl:m08-log-1",
+  )
+
+  *Coordinator — `/dev/ttyACM0`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Menunggu end device ter-binding...
+End device ter-binding!
+Perintah: Lampu ON
+Perintah: Lampu OFF
+Perintah: Lampu ON
+Perintah: Lampu OFF
+Perintah: Lampu ON
+Perintah: Lampu OFF
+Perintah: Lampu ON
+Perintah: Lampu OFF
+Perintah: Lampu ON
+Perintah: Lampu OFF
+Perintah: Lampu ON", pecah: true)
+
+  *End Device — `/dev/ttyACM2`*
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Menunggu bergabung ke network koordinator...
+Berhasil bergabung ke network!
+Lampu ON
+Lampu OFF
+Lampu ON
+Lampu OFF
+Lampu ON
+Lampu OFF
+Lampu ON
+Lampu OFF
+Lampu ON
+Lampu OFF
+Lampu ON", pecah: true)
+
+  *Catatan*
+
+  - Coordinator membentuk network Zigbee (ZCZR) dan membuka network 180 detik (`setRebootOpenNetwork`) agar end device bisa join.
+  - End device melakukan join, lalu auto-bind (find-and-bind) ke switch.
+  - Setelah binding, coordinator men-toggle lampu tiap 5 detik (`Perintah: Lampu ON/OFF`); end device menerima perintah dan mencetak `Lampu ON/OFF` sesuai status.
+  - Binding selesai sangat cepat (baris titik `Menunggu…` tidak sempat tercetak banyak) karena end device sudah join + bind dalam satu window.
+  - Baris `ESP-ROM:…` s/d `entry …` adalah log ROM boot, keluar sekali saat reset.
+]
 
 == Pengukuran
 

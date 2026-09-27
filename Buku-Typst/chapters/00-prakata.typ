@@ -7,7 +7,7 @@
 // ============================================================================
 
 #import "../lib/callouts.typ": penting, catatan
-#import "../lib/helpers.typ": tbl, th, diagram, keluaran, kode-berkas, sumber-kode, gh, gh-folder, REPO
+#import "../lib/helpers.typ": tbl, th, diagram, keluaran, kode-berkas, sumber-kode, gh, gh-folder, REPO, tampil-tautan
 
 #[
 #set heading(numbering: none)
@@ -492,6 +492,8 @@ Listing-listing itu dibaca langsung dari salinan berkas aslinya saat buku
 dibangun, sehingga isinya dijamin identik dengan yang dijalankan di perangkat
 --- tidak ada transkripsi manual yang bisa menyimpang.
 
+// Tautan repositori hanya dicetak pada edisi dosen (config.typ).
+#if tampil-tautan [
 Meski begitu, mengetik ulang kode dari halaman cetak bukan cara yang
 dianjurkan. Salinan daring seluruh kode tersedia pada repositori praktikum, dan
 setiap bab memuat kotak *KODE SUMBER* berisi tautan ke folder modul beserta
@@ -527,6 +529,7 @@ tombol _Code_ pada halaman GitHub, lalu mengekstraknya ke folder kerja.
   berlaku --- kode di sana diperbarui mengikuti hasil pengujian perangkat
   terbaru. Cantumkan _commit_ yang dipakai pada bagian konfigurasi laporan agar
   hasil pengukuran dapat ditelusuri kembali.
+]
 ]
 
 == Aturan Laboratorium dan Keselamatan

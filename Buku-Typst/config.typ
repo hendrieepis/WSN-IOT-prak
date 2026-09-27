@@ -10,8 +10,13 @@
 //
 //    "dosen"     -> (default) seluruh isi ditampilkan, termasuk
 //                   Lampiran A (Tanya Jawab/FAQ) dan Lampiran C
-//                   (Perkakas Pendukung).
-//    "mahasiswa" -> Lampiran A dan Lampiran C disembunyikan.
+//                   (Perkakas Pendukung), serta tautan GitHub ke setiap
+//                   berkas kode (kotak KODE SUMBER di tiap bab, baris
+//                   tautan di bawah tiap listing, dan bagian repositori
+//                   pada Pendahuluan).
+//    "mahasiswa" -> Lampiran A, Lampiran C, dan seluruh tautan GitHub
+//                   disembunyikan. Listing kode tetap dimuat lengkap
+//                   sehingga buku berdiri sendiri.
 
 #let edisi_buku = "dosen"
 
@@ -27,9 +32,9 @@
 }
 
 // Lampiran yang dicetak di Bagian Pelengkap (dipanggil main.typ lewat
-// `#lampiran`). Lampiran A dan C hanya muncul pada edisi dosen. Modul
+// `#lampiran()`). Lampiran A dan C hanya muncul pada edisi dosen. Modul
 // warm-up 00A dan 00B dimuat sebagai lampiran terakhir.
-#let lampiran = {
+#let lampiran() = {
   if edisi_buku == "dosen" {
     include "chapters/lampiran-a-faq.typ"
   }

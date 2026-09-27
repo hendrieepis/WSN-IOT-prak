@@ -4,6 +4,15 @@
 // caption, daftar gambar/tabel, dan referensi silang dihasilkan otomatis.
 // ============================================================================
 
+#import "../config.typ": edisi_buku
+
+/// Tautan GitHub ke kode sumber hanya dicetak pada edisi dosen. Pada edisi
+/// mahasiswa buku tetap berdiri sendiri karena seluruh listing dimuat lengkap.
+#let tampil-tautan = edisi_buku == "dosen"
+
+/// Alamat repositori kode sumber praktikum.
+#let REPO = "https://github.com/hendrieepis/WSN-IOT-prak"
+
 /// Gambar dengan caption dan label wajib.
 /// `w` adalah lebar relatif terhadap lebar teks.
 #let gbr(berkas, caption, label-name, w: 80%) = [
@@ -30,22 +39,35 @@
 /// `pecah` dibiarkan `false` supaya listing pendek tidak terbelah dua halaman;
 /// setel `true` hanya untuk listing yang memang lebih panjang dari satu
 /// halaman, agar isinya tidak menembus tepi bawah.
-#let kode(isi, caption, label-name, bahasa: "cpp", pecah: false) = [
+/// `tautan` (jalur relatif terhadap akar repositori) menambahkan baris tautan
+/// GitHub di bawah listing; baris ini hanya muncul pada edisi dosen.
+#let kode(isi, caption, label-name, bahasa: "cpp", pecah: false, tautan: none) = [
   #show figure: set block(breakable: pecah)
   #figure(
-    block(
-      width: 100%,
-      breakable: pecah,
-      inset: (x: 0.8em, y: 0.7em),
-      fill: luma(247),
-      stroke: (left: 2.5pt + luma(180), rest: none),
-      {
-        set align(left)
-        set text(size: 0.78em)
-        set par(justify: false, leading: 0.55em)
-        raw(isi, lang: bahasa, block: true)
-      },
-    ),
+    {
+      block(
+        width: 100%,
+        breakable: pecah,
+        inset: (x: 0.8em, y: 0.7em),
+        fill: luma(247),
+        stroke: (left: 2.5pt + luma(180), rest: none),
+        {
+          set align(left)
+          set text(size: 0.78em)
+          set par(justify: false, leading: 0.55em)
+          raw(isi, lang: bahasa, block: true)
+        },
+      )
+      if tautan != none and tampil-tautan {
+        v(-0.6em)
+        block(width: 100%, above: 0em, {
+          set align(right)
+          set text(size: 0.72em, fill: luma(90))
+          link(REPO + "/blob/main/" + tautan,
+               [GitHub: #raw(REPO + "/blob/main/" + tautan)])
+        })
+      }
+    },
     caption: caption,
   ) #label(label-name)
 ]
@@ -71,15 +93,12 @@
     ext
   }
   kode(read("../assets/code/" + berkas), caption, label-name,
-       bahasa: lang, pecah: pecah)
+       bahasa: lang, pecah: pecah, tautan: berkas)
 }
 
 // ---------------------------------------------------------------------------
 // Rujukan ke repositori kode praktikum
 // ---------------------------------------------------------------------------
-
-/// Alamat repositori kode sumber praktikum.
-#let REPO = "https://github.com/hendrieepis/WSN-IOT-prak"
 
 /// Tautan ke satu berkas di repositori, ditampilkan sebagai jalur relatifnya.
 #let gh(jalur) = link(REPO + "/blob/main/" + jalur, raw(jalur))
@@ -89,8 +108,9 @@
 
 /// Kotak rujukan kode sumber, dipasang di awal bagian "Kode Program" tiap bab.
 /// Seluruh berkas modul dimuat lengkap di buku; kotak ini menunjuk salinan
-/// daringnya agar kode dapat diunduh tanpa mengetik ulang.
-#let sumber-kode(folder, berkas) = {
+/// daringnya agar kode dapat diunduh tanpa mengetik ulang. Kotak ini hanya
+/// dicetak pada edisi dosen (lihat `edisi_buku` di config.typ).
+#let sumber-kode(folder, berkas) = if tampil-tautan {
   let w = rgb("#334155")
   set par(first-line-indent: 0em, justify: false)
   block(

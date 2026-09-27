@@ -137,4 +137,4 @@
 
 // Daftar lampiran (dan lampiran mana yang tampil per edisi) diatur di
 // config.typ.
-#lampiran
+#lampiran()

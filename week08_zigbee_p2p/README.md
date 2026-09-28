@@ -60,6 +60,37 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (ZDO, AP
 
 **Join ≠ binding.** Join membuat perangkat menjadi **anggota jaringan** (punya alamat, punya kunci). Binding membuat satu endpoint **tahu harus mengirim ke endpoint mana**. Perangkat bisa sudah join tetapi belum ter-binding — dan perintahnya tidak akan sampai ke mana pun. Dua tahap ini muncul sebagai dua baris log yang berbeda; pastikan keduanya dapat ditunjuk.
 
+**Dari XBee ke ESP32-H2: di mana MY, SH, dan SL?** Kalau sebelumnya Anda belajar komunikasi dengan modul XBee, semua konsep alamat di sana tetap berlaku — hanya cara mengaksesnya yang berbeda. Di XBee, parameter dibaca dan diatur dengan perintah AT (`ATMY`, `ATSH`, ...) lewat XCTU atau terminal. Di ESP32-H2, nilai yang sama dibaca dari stack ESP-Zigbee oleh kode, lalu dicetak fungsi `printNetworkInfo()`:
+
+```
+  Short address  : 0x7EC7                    ← MY  (alamat logika 16-bit)
+  IEEE address   : 74:4D:BD:FF:FE:61:E8:C1   ← SH + SL (alamat fisik 64-bit)
+                   └── SH ───┘ └── SL ───┘
+                   0x744DBDFF  0xFE61E8C1
+```
+
+| XBee (AT) | Arti | Di ESP32-H2 / log modul ini | Catatan |
+|---|---|---|---|
+| **MY** | Alamat **logika** 16-bit (network address) | `Short address` — `esp_zb_get_short_address()` | Di Zigbee **dibagikan coordinator saat join**, hanya bisa dibaca; coordinator selalu `0x0000`. Bisa berubah bila node join ulang. |
+| **SH** | 32 bit **atas** alamat **fisik** 64-bit | 4 byte pertama `IEEE address` — `esp_zb_get_long_address()` | Ditanam pabrik, tetap, unik sedunia — sama seperti nomor di label XBee. |
+| **SL** | 32 bit **bawah** alamat fisik 64-bit | 4 byte terakhir `IEEE address` | |
+| **CH** | Channel operasi | `Channel` — `esp_zb_get_current_channel()` | XBee menulisnya heksadesimal: channel 18 = `0x12`. |
+| **SC** | Daftar channel yang boleh di-scan | `Zigbee.setPrimaryChannelMask()` | Default semua channel 11–26. |
+| **ID** | Extended PAN ID yang **diminta** | tidak diatur di kode modul ini | ID = 0 di XBee berarti "coordinator yang memilih"; di sini coordinator memakai IEEE address-nya sendiri. |
+| **OP** | Extended PAN ID 64-bit yang **dipakai** | `Extended PAN ID` — `esp_zb_get_extended_pan_id()` | |
+| **OI** | PAN ID 16-bit yang **dipakai** | `PAN ID` — `esp_zb_get_pan_id()` | Dipilih acak oleh coordinator saat membentuk network. |
+| **CE** | Coordinator Enable (peran node) | build flag `ZIGBEE_MODE_ZCZR` / `ZIGBEE_MODE_ED` + `Zigbee.begin(ZIGBEE_COORDINATOR)` | Di ESP32 peran dipilih saat **build**, bukan lewat perintah AT. |
+| **NJ** | Lama network terbuka untuk join | `Zigbee.setRebootOpenNetwork(180)` | Sama-sama dalam detik. |
+| **AI** | Status asosiasi (0 = sudah join) | `Zigbee.connected()` | |
+| **DH / DL** | Alamat 64-bit **tujuan** (mode transparan) | **tidak ada padanan langsung** — tujuan ditentukan **binding table** | Lihat penjelasan di bawah. |
+| endpoint `0xE8` (DE/SE) | Endpoint data transparan Digi | Endpoint 5 (switch) dan 10 (light) | Zigbee standar memakai endpoint + cluster (On/Off = `0x0006`), bukan satu endpoint data umum. |
+
+Tiga perbedaan yang paling sering membingungkan:
+
+1. **MY tidak Anda isi sendiri.** Pada XBee 802.15.4 (Series 1) dan pada M07, alamat 16-bit ditentukan pengguna (`0x0001`, `0x0002`). Pada Zigbee — baik XBee Zigbee (Series 2/3) maupun ESP32-H2 — alamat 16-bit **diberikan coordinator** saat join. Karena bisa berubah, alamat yang pasti untuk mengenali satu perangkat adalah **SH+SL (IEEE address)**, bukan MY.
+2. **Tidak ada DH/DL.** Di XBee mode transparan, Anda menulis alamat tujuan ke DH/DL lalu semua data serial terkirim ke sana. Di Zigbee standar, switch mengirim *command* `On`/`Off` ke **endpoint** yang tercatat di **binding table** — isinya diisi otomatis oleh find-and-bind. Karena itu log coordinator mencetak `End device ter-binding!`, bukan alamat tujuan.
+3. **Yang dikirim bukan byte mentah, melainkan command cluster.** XBee transparan meneruskan byte apa pun yang masuk ke UART-nya. `lightOn()` mengirim command ZCL `On` pada cluster On/Off, dan penerimanya harus endpoint yang memang mengerti cluster itu (`ZigbeeLight`).
+
 **`ZigbeeSwitch` dan `ZigbeeLight` bukan fitur standar Zigbee.** Keduanya class C++ buatan Espressif di library `Zigbee` Arduino core 3.x, yang membungkus *device type* standar (On/Off Light Switch dan On/Off Light) beserta cluster On/Off, endpoint, dan find-and-bind. Yang standar adalah cluster, device type, dan command-nya (`On`/`Off`/`Toggle`); nama method seperti `bound()`, `allowMultipleBinding()`, dan `onLightStateChange()` adalah API Espressif.
 
 | Class | Mewakili | Yang disembunyikan class ini |
@@ -267,6 +298,8 @@ Lampu ON
 Lampu OFF
 ```
 
+> Padanan XBee: `Short address` = **MY**, `IEEE address` = **SH + SL**, `Channel` = **CH**, `PAN ID` = **OI**, `Extended PAN ID` = **OP** (lihat tabel "Dari XBee ke ESP32-H2" di Dasar Teori).
+>
 > Bandingkan info network kedua board: **Channel, PAN ID, dan Extended PAN ID harus sama** — itulah bukti end device bergabung ke network coordinator ini, bukan network lain. Short address coordinator selalu `0x0000`; short address end device dibagikan coordinator saat join. Bila tidak diatur di kode, Extended PAN ID diambil dari IEEE address coordinator — terlihat pada log di atas.
 
 > **CHECKPOINT** — Dua hal harus terjadi berurutan: end device mencetak `Berhasil bergabung ke network!` (join), lalu coordinator mencetak `End device ter-binding!` (binding). Jika join berhasil tetapi binding tidak pernah terjadi, perintah tidak akan sampai — jangan lanjut, ulangi dengan menghapus NVS kedua board.

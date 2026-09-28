@@ -181,6 +181,27 @@ pio run -d week13_thread_wifi_gateway -e c6_gateway -t upload -t monitor
 pio run -d week13_thread_wifi_gateway -e h2_node    -t upload
 ```
 
+**Memantau gateway dan node sensor dari satu komputer.** `pio device monitor` hanya membuka satu port. Skrip `monitor_serial.py` membuka port UART kedua board sekaligus, menampilkannya dalam satu jendela dengan timestamp bersama, lalu saat berhenti mencetak **tabel loss per hop** yang dibutuhkan bagian Pengukuran: hop Thread (`TX via Thread` di H2 → `RX via Thread` di C6), hop Wi-Fi (pesan diteruskan → `HTTP 200`, dipisah antara telemetri asli dan `SIM sensor`), dan end-to-end — ditambah RSSI Wi-Fi, sebaran kode HTTP, dan lama tiap POST:
+
+```bash
+python week13_thread_wifi_gateway/monitor_serial.py --port COM9 --port COM5          # Windows: C6 di COM9
+python week13_thread_wifi_gateway/monitor_serial.py --duration 120 --log sesi1.txt
+python3 week13_thread_wifi_gateway/monitor_serial.py --port /dev/ttyACM6 --port /dev/ttyACM0   # Linux
+```
+
+ESP32-C6 dan ESP32-H2 lab ini sama-sama memakai jembatan CH343, jadi tanpa `--port` skrip membuka **semua** port CH343 yang tercolok — sebut port-nya bila ada board lain yang tidak ingin ikut di-reset. Peran dikenali dari isi log (`Konek Wi-Fi ...` / `Gateway siap` = Gateway, `Sensor H2 ...` / `TX via Thread` = SensorH2). Gateway saja juga bisa dipantau; hop Wi-Fi tetap dihitung dari `SIM sensor`. Jalankan `http_sink.py` bersamaan dan bandingkan jumlah POST yang masuk di sana dengan jumlah HTTP 2xx di ringkasan. Tutup dulu `pio device monitor` — satu port tidak bisa dibuka dua program sekaligus. Butuh `pyserial`, yang sudah ikut terpasang bersama PlatformIO. Contoh bentuk ringkasannya (angka ilustrasi):
+
+```
+Hop                                   dikirim  diterima    loss
+----------------------------------------------------------------
+Thread  (H2 TX -> C6 RX)                   10         9    10.0%
+Wi-Fi   (C6 -> server, telemetri)           9         4    55.6%
+Wi-Fi   (C6 -> server, SIM sensor)          5         0   100.0%
+End-to-end (H2 TX -> HTTP 2xx)             10         4    60.0%
+
+Kode HTTP: -1: 10x, 200: 4x
+```
+
 ## 6 · Percobaan
 
 ### EXP-01 — Menyalakan Jaringan Thread

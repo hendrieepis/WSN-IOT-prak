@@ -167,6 +167,28 @@ pio run -d week08_zigbee_p2p -e coordinator -t upload -t monitor
 pio run -d week08_zigbee_p2p -e enddevice   -t upload    # jangan lewat 180 s
 ```
 
+**Memantau kedua board dari satu komputer.** `pio device monitor` hanya membuka satu port. Skrip `monitor_serial.py` membuka semua port UART CH343 sekaligus, menampilkan coordinator dan end device dalam satu jendela dengan timestamp bersama, lalu saat berhenti mencetak ringkasan: waktu join/binding sejak boot, perintah terkirim, aksi terlaksana, loss, siklus per menit, dan selisih perintah → aksi:
+
+```bash
+python week08_zigbee_p2p/monitor_serial.py                       # deteksi port otomatis, Ctrl-C untuk berhenti
+python week08_zigbee_p2p/monitor_serial.py --duration 120 --log sesi1.txt
+python week08_zigbee_p2p/monitor_serial.py --port COM5 --port COM11                   # Windows
+python3 week08_zigbee_p2p/monitor_serial.py --port /dev/ttyACM0 --port /dev/ttyACM2   # Linux
+```
+
+Firmware modul ini tidak mencetak nama node, jadi peran dikenali dari isi log (`Menunggu end device ...` = Coordinator, `Menunggu bergabung ...` = EndDevice); urutan port tidak perlu diingat. Tiap board di-reset sekali saat port dibuka agar waktu join dan binding terukur dari boot — reset coordinator sekaligus membuka network lagi 180 s, dan keanggotaan end device tetap tersimpan di NVS (untuk join dari nol, erase dulu). Pakai `--no-reset` untuk mengamati tanpa reset. Tutup dulu `pio device monitor` — satu port tidak bisa dibuka dua program sekaligus. Butuh `pyserial`, yang sudah ikut terpasang bersama PlatformIO. Contoh bentuk ringkasannya (angka ilustrasi):
+
+```
+Perintah Coordinator -> EndDevice (COM11)
+------------------------------------------------------------
+  Perintah dikirim (ZC)      : 13  (ON 7, OFF 6)
+  Aksi terlaksana (ED)       : 13
+  Loss                       : 0.0%
+  Selisih perintah -> aksi   : rata2 2 ms (1..3)  — timestamp PC, kasar
+  Siklus ON/OFF per menit    : 12.0  (harapan 12: satu perintah tiap 5 s)
+  Status akhir ZC vs ED      : ON vs ON -> sinkron: ya
+```
+
 ## 6 · Percobaan
 
 ### EXP-01 — Pembentukan Jaringan (Coordinator)

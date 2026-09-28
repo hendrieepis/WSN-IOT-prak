@@ -154,6 +154,25 @@ pio run -d week09_zigbee_multinode -e light1 -t upload      # dalam 180 s
 pio run -d week09_zigbee_multinode -e light2 -t upload      # dalam 180 s
 ```
 
+**Memantau ketiga board dari satu komputer.** `pio device monitor` hanya membuka satu port. Skrip `monitor_serial.py` membuka semua port UART CH343 sekaligus, menampilkan coordinator dan kedua light dalam satu jendela dengan timestamp bersama, lalu saat berhenti mencetak ringkasan: waktu join sejak boot, daftar device ter-bind, dan per light jumlah perintah, aksi terlaksana, loss, serta selisih perintah → aksi:
+
+```bash
+python week09_zigbee_multinode/monitor_serial.py                       # deteksi port otomatis, Ctrl-C untuk berhenti
+python week09_zigbee_multinode/monitor_serial.py --duration 120 --log sesi1.txt
+python week09_zigbee_multinode/monitor_serial.py --port COM5 --port COM11 --port COM13                    # Windows
+python3 week09_zigbee_multinode/monitor_serial.py --port /dev/ttyACM0 --port /dev/ttyACM2 --port /dev/ttyACM4   # Linux
+```
+
+Peran dikenali dari isi log (`Menunggu light ...` = Coordinator, `Light1 ...` / `Light2 ...`), jadi urutan port tidak perlu diingat. Perintah coordinator hanya menyebut short address — yang untuk satu light bisa tercetak `0xFFFF` — sehingga skrip memetakannya ke light lewat urutan daftar `getBoundDevices()` yang dicetak saat boot (endpoint 10 = Light1, endpoint 11 = Light2). Karena itu biarkan board di-reset saat port dibuka (default); reset coordinator sekaligus membuka network lagi 180 s, dan keanggotaan light tetap tersimpan di NVS. Pakai `--no-reset` untuk mengamati tanpa reset. Tutup dulu `pio device monitor` — satu port tidak bisa dibuka dua program sekaligus. Butuh `pyserial`, yang sudah ikut terpasang bersama PlatformIO. Contoh bentuk ringkasannya (angka ilustrasi):
+
+```
+Light     perintah  aksi   loss   perintah->aksi ms rata2 (min..max)  status akhir ZC/light
+--------------------------------------------------------------------------------------------
+Light1          10     9   10.0%        3 (3..3)                       OFF/OFF
+          tanpa aksi: OFF @ 25.0 s
+Light2          10    10    0.0%        2 (2..2)                       OFF/OFF
+```
+
 ## 6 · Percobaan
 
 ### EXP-01 — Pembentukan Jaringan & Join Ganda

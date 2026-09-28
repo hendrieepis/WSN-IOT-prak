@@ -144,6 +144,27 @@ pio run -d week11_thread_p2p -e node1 -t upload
 pio run -d week11_thread_p2p -e node2 -t upload -t monitor
 ```
 
+**Memantau kedua board dari satu komputer.** `pio device monitor` hanya membuka satu port. Skrip `monitor_serial.py` membuka semua port UART CH343 sekaligus, menampilkan Node1 dan Node2 dalam satu jendela dengan timestamp bersama, lalu saat berhenti mencetak ringkasan: peran dan waktu attach sejak boot, Mesh-Local EID tiap node, PING/PONG terkirim dan diterima per arah (loss), serta round-trip PING → PONG di Node2:
+
+```bash
+python week11_thread_p2p/monitor_serial.py                       # deteksi port otomatis, Ctrl-C untuk berhenti
+python week11_thread_p2p/monitor_serial.py --duration 120 --log sesi1.txt
+python week11_thread_p2p/monitor_serial.py --port COM5 --port COM11                    # Windows
+python3 week11_thread_p2p/monitor_serial.py --port /dev/ttyACM0 --port /dev/ttyACM2   # Linux
+```
+
+Nama node dikenali dari banner saat boot, atau dari baris `TX PING` / `TX PONG` bila board tidak di-reset, jadi urutan port tidak perlu diingat. Tiap board di-reset sekali saat port dibuka agar peran, EID, dan waktu attach terekam (pakai `--no-reset` untuk mengamati tanpa reset). Loss hanya menghitung pesan yang dikirim setelah penerimanya siap. Tutup dulu `pio device monitor` — satu port tidak bisa dibuka dua program sekaligus. Butuh `pyserial`, yang sudah ikut terpasang bersama PlatformIO. Contoh bentuk ringkasannya (angka ilustrasi):
+
+```
+Link (pengirim -> penerima)   jenis   kirim  terima    loss
+------------------------------------------------------------
+Node1 -> Node2                PONG        9       8    11.1%
+Node2 -> Node1                PING       10       9    10.0%
+
+Round-trip di Node2: 8/10 PING dijawab PONG (80.0%)
+  RTT PING -> PONG: rata2 30 ms (30..30) — timestamp PC, kasar
+```
+
 ## 6 · Percobaan
 
 ### EXP-01 — Pembentukan Jaringan & Attach

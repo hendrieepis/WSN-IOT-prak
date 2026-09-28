@@ -150,6 +150,24 @@ pio run -d week12_thread_mesh -e node2 -t upload
 pio run -d week12_thread_mesh -e node3 -t upload -t monitor
 ```
 
+**Memantau ketiga board dari satu komputer.** `pio device monitor` hanya membuka satu port. Skrip `monitor_serial.py` membuka semua port UART CH343 sekaligus, menampilkan ketiga node dalam satu jendela dengan timestamp bersama, lalu saat berhenti mencetak ringkasan: peran dan waktu attach sejak boot, EID tiap node, dan matriks per link (pengirim → penerima) berisi pesan terkirim, diterima, loss, selisih TX → RX, serta **jeda terpanjang** tanpa pesan. Jeda terpanjang itulah yang dicari di EXP-03: berapa lama sebuah link terputus saat satu node dicabut sebelum mesh pulih.
+
+```bash
+python week12_thread_mesh/monitor_serial.py                       # deteksi port otomatis, Ctrl-C untuk berhenti
+python week12_thread_mesh/monitor_serial.py --duration 180 --log garis.txt
+python week12_thread_mesh/monitor_serial.py --no-reset            # EXP-03: jalankan dulu, baru cabut node
+python3 week12_thread_mesh/monitor_serial.py --port /dev/ttyACM0 --port /dev/ttyACM2 --port /dev/ttyACM4
+```
+
+Nama node dikenali dari banner saat boot, atau dari baris `TX multicast: NODEn:..` bila board tidak di-reset; EID dipelajari dari baris RX. Pesan dicocokkan lewat nomor urutnya (`NODE2:7` di Node1 dipasangkan dengan TX `NODE2:7` di Node2), dan loss hanya menghitung pesan setelah penerima `Bergabung ke mesh`. Tutup dulu `pio device monitor` — satu port tidak bisa dibuka dua program sekaligus. Butuh `pyserial`, yang sudah ikut terpasang bersama PlatformIO. Contoh bentuk ringkasannya (angka ilustrasi):
+
+```
+Link (pengirim -> penerima)  kirim  terima    loss   TX->RX ms rata2 (min..max)   jeda terpanjang
+--------------------------------------------------------------------------------------------------
+Node1 -> Node2                  12      12     0.0%       20 (20..20)                 5.0 s
+Node3 -> Node1                  12       9    25.0%       20 (20..20)                20.0 s
+```
+
 ## 6 · Percobaan
 
 ### EXP-01 — Pembentukan Mesh & Pemilihan Role

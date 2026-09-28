@@ -138,6 +138,27 @@ pio run -d week10_zigbee_mesh -e router      -t upload    # dalam 180 s
 pio run -d week10_zigbee_mesh -e enddevice   -t upload    # dalam 180 s
 ```
 
+**Memantau ketiga board dari satu komputer.** `pio device monitor` hanya membuka satu port. Skrip `monitor_serial.py` membuka semua port UART CH343 sekaligus, menampilkan coordinator, router, dan end device dalam satu jendela dengan timestamp bersama, lalu saat berhenti mencetak ringkasan: waktu join sejak boot dan role yang dilaporkan (`ROUTER` / `END_DEVICE`), daftar device ter-bind, serta per lampu jumlah perintah, aksi terlaksana, loss, dan selisih perintah → aksi. Jalankan ulang pada formasi meja dan formasi garis untuk membandingkan loss dan selisih waktu End Device:
+
+```bash
+python week10_zigbee_mesh/monitor_serial.py                       # deteksi port otomatis, Ctrl-C untuk berhenti
+python week10_zigbee_mesh/monitor_serial.py --duration 120 --log garis.txt
+python week10_zigbee_mesh/monitor_serial.py --port COM5 --port COM11 --port COM13                    # Windows
+python3 week10_zigbee_mesh/monitor_serial.py --port /dev/ttyACM0 --port /dev/ttyACM2 --port /dev/ttyACM4   # Linux
+```
+
+Peran dikenali dari isi log (`Menunggu router ...` = Coordinator, `Router ...` / `RouterLight` = Router, `End device ...` / `EndLight` = EndDevice), jadi urutan port tidak perlu diingat. Perintah coordinator hanya menyebut short address (router bisa tercetak `0xFFFF`), sehingga skrip memetakannya lewat urutan daftar `getBoundDevices()` yang dicetak saat boot (endpoint 10 = Router, endpoint 11 = EndDevice). Karena itu biarkan board di-reset saat port dibuka (default); keanggotaan tetap tersimpan di NVS. Pakai `--no-reset` untuk mengamati tanpa reset, misalnya saat memindahkan node di tengah percobaan. Tutup dulu `pio device monitor` — satu port tidak bisa dibuka dua program sekaligus. Butuh `pyserial`, yang sudah ikut terpasang bersama PlatformIO. Contoh bentuk ringkasannya (angka ilustrasi):
+
+```
+  Router      COM11             41 baris, boot 1x, tergabung  2.90 s sejak boot, role=ROUTER
+  EndDevice   COM13             41 baris, boot 1x, tergabung  2.90 s sejak boot, role=END_DEVICE
+
+Lampu     perintah  aksi   loss   perintah->aksi ms rata2 (min..max)  status akhir ZC/lampu
+--------------------------------------------------------------------------------------------
+Router          11    11    0.0%        4 (4..4)                       ON/ON
+EndDevice       11    11    0.0%        3 (3..3)                       ON/ON
+```
+
 ## 6 · Percobaan
 
 ### EXP-01 — Join Bertingkat

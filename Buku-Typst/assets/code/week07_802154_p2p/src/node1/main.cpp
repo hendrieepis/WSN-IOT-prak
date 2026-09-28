@@ -52,6 +52,7 @@ void setup() {
   esp_ieee802154_set_panid(PAN_ID);
   esp_ieee802154_set_short_address(MY_ADDR);
   esp_ieee802154_set_extended_address(ext);
+  esp_ieee802154_set_promiscuous(false);  // aktifkan filter PAN ID & alamat di hardware (default driver: true)
   esp_ieee802154_set_rx_when_idle(true);
   esp_ieee802154_receive();  // masuk state RX; tanpa ini radio diam di idle
 

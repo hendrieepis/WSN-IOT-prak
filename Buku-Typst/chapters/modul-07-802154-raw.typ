@@ -81,6 +81,8 @@ Setelah menyelesaikan modul ini, praktikan mampu:
     arah secara terpisah.
   + Membuktikan pengaruh channel dan PAN ID terhadap keterhubungan dengan
     mengubahnya dan mengamati akibatnya.
+  + Membuktikan bahwa penyaringan PAN ID dan alamat tujuan hanya aktif bila
+    promiscuous mode dimatikan dengan `esp_ieee802154_set_promiscuous(false)`.
 ]
 
 *Kriteria keberhasilan*
@@ -89,6 +91,8 @@ Setelah menyelesaikan modul ini, praktikan mampu:
   [Setiap `PING n` dibalas `PONG n` pada jarak dekat, isi payload utuh (bukan
    karakter acak).],
   [Komunikasi terbukti berhenti saat channel salah satu node dibedakan.],
+  [PAN ID berbeda terbukti tersaring hanya bila promiscuous mode dimatikan
+   (EXP-05).],
   [Loss tiap arah terukur terpisah (PING hilang dibanding PONG hilang).],
   [Dump frame heksadesimal dianalisis dan tiap field ditunjuk.],
 ))
@@ -154,7 +158,7 @@ mati. Karena driver ESP-IDF menyalakan promiscuous secara default, tanpa
 `esp_ieee802154_set_promiscuous(false)` dua node dengan PAN ID berbeda tetap
 bisa saling bertukar pesan, dan node lain ikut menerima unicast yang bukan
 untuknya. Perilaku ini berbeda dengan XBee, yang firmware-nya selalu menyaring
-PAN ID dan alamat tujuan.
+PAN ID dan alamat tujuan. Pengaruh baris ini dibuktikan pada EXP-05.
 
 *Sekuens protokol yang diamati*
 
@@ -485,7 +489,7 @@ Perbedaan 04-b dengan 04-d adalah inti yang harus bisa dijelaskan.
 
 / PAN ID beda (04-b): radio memang menerima transmisi di channel yang sama,
   tetapi MAC hardware *menyaring frame* dengan PAN ID asing sebelum sampai ke
-  callback (berlaku karena `setup()` mematikan promiscuous mode). TX di sisi
+  callback (berlaku karena `setup()` mematikan promiscuous mode; lihat EXP-05). TX di sisi
   lain tetap berjalan normal --- komunikasi terlihat "searah hilang".
 
 / Channel beda (04-d): radio tidak berada di frekuensi yang sama, sehingga
@@ -497,17 +501,6 @@ pada `src/node3` (@lst:m07-node3) dengan `MY_ADDR` `0x0003`; tambahkan
 `[env:node3]` di `platformio.ini`, lalu set `PEER_ADDR` Node1 menjadi `0xFFFF`.
 Amati bahwa Node2 dan Node3 menerima frame yang sama, lalu diskusikan apa yang
 hilang dibanding unicast (tidak ada ACK, tidak ada penyaringan alamat tujuan).
-
-*Bonus investigasi --- promiscuous mode.* Pada `setup()` Node2, ubah
-`esp_ieee802154_set_promiscuous(false)` menjadi
-`esp_ieee802154_set_promiscuous(true)` dan biarkan `PAN_ID` Node2 berbeda
-dengan Node1 (`0xBEEF`). Node2 kini mencetak `RX` untuk setiap PING dari PAN
-asing dan membalas PONG --- bukti bahwa penyaringan PAN ID sebelumnya bekerja
-di *hardware MAC*, bukan di kode (callback tidak pernah memeriksa header).
-Amati pula bahwa Node1 tetap *tidak* menerima PONG: PONG membawa Dest PAN
-`0xBEEF`, dan Node1 masih menyaring. Terakhir, hapus baris
-`set_promiscuous(false)` sepenuhnya --- hasilnya sama dengan `true`, karena
-itulah nilai default driver.
 
 *Data capture --- tabel gejala lintas kelompok*
 
@@ -537,6 +530,104 @@ itulah nilai default driver.
   kelompok di ruangan sama menyalakan radio 802.15.4 di channel yang sama,
   gejala yang muncul mirip 04-b --- itu sebabnya tiap kelompok wajib memakai
   channel berbeda.
+]
+
+=== EXP-05 --- Promiscuous Mode: Ada dan Tidaknya Filter MAC
+
+EXP-04 menunjukkan bahwa node dengan PAN ID berbeda tidak saling menerima.
+Penyaringan itu *tidak* terjadi dengan sendirinya: driver ESP-IDF menyalakan
+promiscuous mode secara default, dan filter PAN ID serta alamat tujuan baru
+aktif karena `setup()` memanggil satu baris berikut sebelum
+`esp_ieee802154_set_rx_when_idle(true)`:
+
+```cpp
+esp_ieee802154_set_promiscuous(false);  // aktifkan filter PAN ID & alamat di hardware (default driver: true)
+```
+
+Percobaan ini membuktikan pengaruh baris tersebut. Seperti EXP-04, yang diubah
+hanya satu baris di `setup()`; tiap perubahan diikuti unggah ulang node yang
+bersangkutan. Channel semua node tetap 15.
+
+#tbl(
+  table(
+    columns: (auto, auto, 1.1fr, 1.6fr),
+    align: (left, left, left, left),
+    inset: (x: 0.45em, y: 0.5em),
+    stroke: 0.5pt + luma(170),
+    table.header(th[Uji], th[PAN (Node1 / Node2)], th[Baris promiscuous], th[Gejala yang harus terlihat]),
+    [05-a], [`0xCAFE` / `0xBEEF`], [`false` di semua node (kode asli)],
+    [Node1 tetap cetak `TX`, Node2 *tidak pernah* cetak `RX` --- sama dengan 04-b],
+    [05-b], [`0xCAFE` / `0xBEEF`], [Node2: `true`],
+    [Node2 cetak `RX` untuk setiap PING dan membalas PONG, tetapi Node1 *tidak pernah* cetak `RX`],
+    [05-c], [`0xCAFE` / `0xBEEF`], [Node2: baris *dihapus*],
+    [Sama dengan 05-b --- tanpa baris ini driver memakai nilai default `true`],
+    [05-d], [`0xCAFE` / `0xCAFE`], [Node3: `true` (Node1, Node2: `false`)],
+    [PING--PONG Node1--Node2 tetap jalan, tetapi Node3 *ikut* cetak `RX` untuk unicast yang bukan untuknya dan membalasnya; Node1 menerima PONG *ganda*],
+  ),
+  [Matriks uji promiscuous mode EXP-05],
+  "tbl:m07-exp05",
+)
+
+Ada tiga hal yang harus bisa dijelaskan dari percobaan ini.
+
+/ Filter bekerja di hardware (05-a vs 05-b): kode callback
+  `esp_ieee802154_receive_done()` tidak pernah memeriksa header, sehingga
+  satu-satunya yang membedakan 05-a dan 05-b adalah filter MAC. Begitu
+  promiscuous dinyalakan, PING dari PAN asing langsung sampai ke callback.
+
+/ Penyaringan terjadi di sisi penerima (05-b): PONG dari Node2 membawa Dest
+  PAN `0xBEEF`, sementara Node1 masih memakai `false` sehingga PONG itu
+  dibuang. Komunikasi hanya "tembus" ke arah node yang promiscuous.
+
+/ Filter alamat tujuan ikut mati (05-d): promiscuous tidak hanya mengabaikan
+  PAN ID, tetapi juga alamat tujuan. Node3 menerima PING yang ditujukan ke
+  `0x0002` *dan* PONG yang ditujukan ke `0x0001` --- keduanya bukan untuknya,
+  padahal Node1 tidak mengirim ke `0xFFFF`. Karena buffer penerima hanya satu
+  slot dan PONG datang beberapa milidetik setelah PING, yang tercetak di Node3
+  biasanya `RX ... PONG n` (PING tertimpa). Node3 lalu membalas ke Node1,
+  sehingga Node1 mencetak dua PONG untuk satu PING. Perhatikan bahwa label
+  "`RX dari 0x0002`" di log adalah konstanta `PEER_ADDR`, bukan alamat asal
+  frame yang sebenarnya.
+
+Bandingkan dengan XBee: firmware XBee selalu menyaring PAN ID dan alamat
+tujuan, sehingga perilakunya setara dengan 05-a tanpa perlu diatur. Pada
+ESP32-H2 yang memakai radio 802.15.4 secara langsung, filter itu harus
+dinyalakan sendiri.
+
+*Peringatan.* Jangan menyalakan promiscuous pada Node2 *dan* Node3
+bersamaan. Kedua node akan saling menerima dan membalas setiap PONG, sehingga
+terjadi _reply storm_: Serial Monitor dibanjiri puluhan `RX`/`TX` per detik
+untuk nomor PONG yang sama. Ubah satu node saja pada tiap uji, dan kembalikan
+semua node ke `false` dan `PAN_ID 0xCAFE` setelah selesai.
+
+*Data capture*
+
+#tbl(
+  table(
+    columns: (auto, 1fr, auto, auto, auto, 1.2fr),
+    align: (left, left, left, left, left, left),
+    inset: (x: 0.35em, y: 0.55em),
+    stroke: 0.5pt + luma(170),
+    table.header(
+      th[Uji], th[Konfigurasi], th[RX Node1?], th[RX Node2?],
+      th[RX Node3?], th[Gejala yang diamati],
+    ),
+    [05-a], [PAN beda, `false`], [#isian], [], [], [],
+    [05-b], [PAN beda, Node2 `true`], [#isian], [], [], [],
+    [05-c], [PAN beda, Node2 tanpa baris], [#isian], [], [], [],
+    [05-d], [PAN sama, Node3 `true`], [#isian], [], [], [],
+  ),
+  [Lembar pengamatan EXP-05],
+  "tbl:m07-exp05-capture",
+)
+
+#checkpoint[
+  Praktikan dapat menjelaskan mengapa 05-b menghasilkan komunikasi *satu arah*
+  (Node2 menerima PING, Node1 tidak menerima PONG), dan mengapa 05-c sama
+  dengan 05-b. Jawaban yang benar menyebut bahwa `esp_ieee802154_set_panid()`
+  hanya mengisi register, sedangkan penyaringan baru aktif bila promiscuous
+  dimatikan. Praktikan juga dapat menjelaskan mengapa Node1 menerima PONG ganda
+  pada 05-d.
 ]
 
 == Verifikasi Hardware --- Log Referensi

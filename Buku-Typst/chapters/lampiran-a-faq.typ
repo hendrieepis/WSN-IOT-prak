@@ -500,7 +500,7 @@ Catatan praktis:
   promiscuous mode secara default, sehingga tanpa
   `esp_ieee802154_set_promiscuous(false)` di `setup()` node dengan PAN ID
   berbeda tetap saling menerima --- berbeda dengan XBee yang selalu menyaring.
-+ Bonus investigasi: `esp_ieee802154_set_promiscuous(true)` membuat semua
++ EXP-05 (promiscuous mode): `esp_ieee802154_set_promiscuous(true)` membuat semua
   frame diterima walaupun PAN atau alamatnya berbeda; ini membuktikan
   penyaringan terjadi di *hardware*, bukan di kode.
 

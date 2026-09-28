@@ -252,7 +252,7 @@ Tidak ada library eksternal --- modul ini memanggil API ESP-IDF langsung.
 == Kode Program
 
 #sumber-kode("week07_802154_p2p",
-  ("platformio.ini", "monitor_serial.py", "src/node1/main.cpp",
+  ("platformio.ini", "src/node1/main.cpp",
    "src/node2/main.cpp", "src/node3/main.cpp"))
 
 *Pin port agar tidak salah flash* (@lst:m07-ini-readme).
@@ -305,15 +305,6 @@ dari `SrcAddr` frame, dan hanya membalas frame berisi PING.
   pecah: true,
 )
 
-Skrip `monitor_serial.py` (@lst:m07-monitor) memantau semua node dari satu
-komputer; cara pakainya ada di bagian Build dan Flash.
-
-#kode-berkas("week07_802154_p2p/monitor_serial.py",
-  [`monitor_serial.py` --- pemantau semua node dalam satu sumbu waktu, dengan ringkasan per link],
-  "lst:m07-monitor",
-  pecah: true,
-)
-
 == Build dan Flash
 
 #keluaran("pio device list
@@ -321,7 +312,7 @@ pio run -d week07_802154_p2p -e node1 -t upload
 pio run -d week07_802154_p2p -e node2 -t upload -t monitor")
 
 *Memantau semua node dari satu komputer.* `pio device monitor` hanya membuka
-satu port. Skrip `monitor_serial.py` (@lst:m07-monitor) membuka semua port UART
+satu port. Skrip `monitor_serial.py` (ada di folder `week07_802154_p2p` pada repositori) membuka semua port UART
 CH343 sekaligus, menampilkan ketiga node dalam satu jendela dengan timestamp
 bersama, lalu mencetak ringkasan per link (terkirim, diterima, loss, RSSI, LQI)
 saat berhenti.

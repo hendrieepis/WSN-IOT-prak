@@ -56,7 +56,7 @@ DIM = "\033[2m"
 
 # Format log firmware week08 (lihat src/coordinator dan src/enddevice)
 RE_BOOT = re.compile(r"^ESP-ROM:")
-RE_ZC_WAIT = re.compile(r"^Menunggu end device ter-binding")
+RE_ZC_WAIT = re.compile(r"^(Menunggu end device ter-binding|Network Zigbee terbentuk)")
 RE_ZC_BOUND = re.compile(r"End device ter-binding!")
 RE_ZC_CMD = re.compile(r"^Perintah: Lampu (ON|OFF)")
 RE_ZC_REPORT = re.compile(r"^Lampu sekarang: (ON|OFF)")
@@ -64,6 +64,8 @@ RE_ED_WAIT = re.compile(r"^Menunggu bergabung ke network")
 RE_ED_JOINED = re.compile(r"^Berhasil bergabung ke network!")
 RE_ED_ACTION = re.compile(r"^Lampu (ON|OFF)$")
 RE_FAIL = re.compile(r"Zigbee gagal start!")
+# Blok info network yang dicetak printNetworkInfo() setelah network terbentuk/join
+RE_NET = re.compile(r"^\s+(Channel|PAN ID|Extended PAN ID|Short address|IEEE address)\s*: (\S+)")
 
 # Aksi ED dianggap jawaban suatu perintah bila jatuh dalam jendela ini (detik).
 # Batas bawah negatif karena ZC mencetak "Perintah" SETELAH lightOn()/lightOff()
@@ -88,6 +90,7 @@ class Node:
         self.ready = None         # ZC: waktu ter-binding; ED: waktu bergabung (relatif boot)
         self.events = []          # ZC: (t, "ON"/"OFF") perintah; ED: (t, state) aksi
         self.reports = []         # ZC: laporan balik "Lampu sekarang" (CH-2)
+        self.net = {}             # info network: Channel, PAN ID, Short address, ...
 
 
 def show(node, text, use_color, logfile, stamp=None):
@@ -118,6 +121,10 @@ def parse(node, text, now):
         return
     if RE_FAIL.search(text):
         node.fails += 1
+        return
+    m = RE_NET.match(text)
+    if m:
+        node.net[m.group(1)] = m.group(2)
         return
     if RE_ZC_WAIT.match(text) or RE_ZC_CMD.match(text):
         if node.role is None:
@@ -231,6 +238,16 @@ def summary(nodes, out):
         extra = f", {n.fails}x gagal start" if n.fails else ""
         out(f"  {n.name:<11} {role:<13} {n.port:<14} {n.lines:>4} baris,"
             f" boot {n.boots}x{extra}, {what} {ready} sejak boot")
+        if n.net:
+            out(f"  {'':<11} channel {n.net.get('Channel', '?')}, PAN {n.net.get('PAN ID', '?')},"
+                f" ext PAN {n.net.get('Extended PAN ID', '?')}, short {n.net.get('Short address', '?')}")
+
+    nets = [n for n in nodes if n.role in ("ZC", "ED") and n.net]
+    if len(nets) >= 2:
+        keys = ("Channel", "PAN ID", "Extended PAN ID")
+        same = all(len({n.net.get(k) for n in nets}) == 1 for k in keys)
+        out("  Channel/PAN ID/Extended PAN ID semua node: "
+            + ("sama (satu network)" if same else "BERBEDA — end device bergabung ke network lain?"))
 
     zcs = [n for n in nodes if n.role == "ZC"]
     eds = [n for n in nodes if n.role == "ED"]

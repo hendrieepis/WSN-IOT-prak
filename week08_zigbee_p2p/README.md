@@ -193,19 +193,25 @@ Perintah Coordinator -> EndDevice (COM11)
 
 ### EXP-01 — Pembentukan Jaringan (Coordinator)
 
-Unggah environment `coordinator`, buka Serial Monitor, verifikasi: coordinator membuka network 180 detik dan menunggu binding.
+Unggah environment `coordinator`, buka Serial Monitor, verifikasi: coordinator membentuk network, mencetak parameternya, membuka network 180 detik, lalu menunggu binding.
 
 ```
  boot ──► begin(ZIGBEE_COORDINATOR) OK
+      ──► network terbentuk: cetak channel, PAN ID, alamat
       ──► network terbuka 180 s
       ──► menunggu: . . . . . (titik tiap 500 ms)
 ```
+
+Channel dan PAN ID **tidak ditulis di kode**: coordinator memilih sendiri saat membentuk network (channel dari hasil scan, PAN ID acak), lalu menyimpannya di NVS. Nilainya dibaca dari stack ESP-Zigbee (`esp_zb_get_current_channel()`, `esp_zb_get_pan_id()`, dan seterusnya) di fungsi `printNetworkInfo()`, karena library Arduino hanya menuliskannya ke log debug.
 
 **Data capture**
 
 | Parameter | Hasil |
 |---|---|
 | Pesan awal coordinator | |
+| Channel | |
+| PAN ID / Extended PAN ID | |
+| Short address coordinator | |
 | Lama network terbuka (s) | |
 | Endpoint switch | |
 | Perintah yang dikirim tiap 5 s | |
@@ -224,9 +230,17 @@ Unggah environment `enddevice` ke board kedua **sebelum 180 detik habis**. Amati
  ZC loop 5 s: lightOn() … lightOff() … (bergantian)
 ```
 
-**Expected output — Coordinator**
+**Expected output — Coordinator** (nilai channel, PAN ID, dan alamat dari uji di board; di board Anda akan berbeda)
 
 ```
+Network Zigbee terbentuk:
+  Peran          : Coordinator (ZC)
+  Channel        : 18
+  PAN ID         : 0x4FC6
+  Extended PAN ID: 74:4D:BD:FF:FE:61:E6:2C
+  Short address  : 0x0000
+  IEEE address   : 74:4D:BD:FF:FE:61:E6:2C
+  Endpoint       : 5 (switch)
 Menunggu end device ter-binding...
 ................
 End device ter-binding!
@@ -241,9 +255,19 @@ Perintah: Lampu OFF
 ```
 Menunggu bergabung ke network koordinator...
 Berhasil bergabung ke network!
+Info network:
+  Peran          : End Device (ED)
+  Channel        : 18
+  PAN ID         : 0x4FC6
+  Extended PAN ID: 74:4D:BD:FF:FE:61:E6:2C
+  Short address  : 0x7EC7 (diberikan coordinator)
+  IEEE address   : 74:4D:BD:FF:FE:61:E8:C1
+  Endpoint       : 10 (light)
 Lampu ON
 Lampu OFF
 ```
+
+> Bandingkan info network kedua board: **Channel, PAN ID, dan Extended PAN ID harus sama** — itulah bukti end device bergabung ke network coordinator ini, bukan network lain. Short address coordinator selalu `0x0000`; short address end device dibagikan coordinator saat join. Bila tidak diatur di kode, Extended PAN ID diambil dari IEEE address coordinator — terlihat pada log di atas.
 
 > **CHECKPOINT** — Dua hal harus terjadi berurutan: end device mencetak `Berhasil bergabung ke network!` (join), lalu coordinator mencetak `End device ter-binding!` (binding). Jika join berhasil tetapi binding tidak pernah terjadi, perintah tidak akan sampai — jangan lanjut, ulangi dengan menghapus NVS kedua board.
 

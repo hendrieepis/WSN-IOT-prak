@@ -60,6 +60,25 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (ZDO, AP
 
 **Join ≠ binding.** Join membuat perangkat menjadi **anggota jaringan** (punya alamat, punya kunci). Binding membuat satu endpoint **tahu harus mengirim ke endpoint mana**. Perangkat bisa sudah join tetapi belum ter-binding — dan perintahnya tidak akan sampai ke mana pun. Dua tahap ini muncul sebagai dua baris log yang berbeda; pastikan keduanya dapat ditunjuk.
 
+**`ZigbeeSwitch` dan `ZigbeeLight` bukan fitur standar Zigbee.** Keduanya class C++ buatan Espressif di library `Zigbee` Arduino core 3.x, yang membungkus *device type* standar (On/Off Light Switch dan On/Off Light) beserta cluster On/Off, endpoint, dan find-and-bind. Yang standar adalah cluster, device type, dan command-nya (`On`/`Off`/`Toggle`); nama method seperti `bound()`, `allowMultipleBinding()`, dan `onLightStateChange()` adalah API Espressif.
+
+| Class | Mewakili | Yang disembunyikan class ini |
+|---|---|---|
+| `ZigbeeSwitch` | On/Off Light Switch (cluster On/Off sisi *client*, mengirim command) | Membuat endpoint, mendaftarkan cluster, find-and-bind. `lightOn()` mengirim command ZCL `On` ke tujuan di binding table |
+| `ZigbeeLight` | On/Off Light (cluster On/Off sisi *server*, menerima command) | Menerima command lalu memanggil callback `onLightChange` |
+
+**Class lain di library `Zigbee`.** Semua class endpoint mewarisi `ZigbeeEP` dan dipakai dengan pola yang sama: buat objek dengan nomor endpoint, `setManufacturerAndModel()`, `Zigbee.addEndpoint()`, lalu `Zigbee.begin()`. Objek global `Zigbee` mengelola stack (`begin()`, `connected()`, `setRebootOpenNetwork()`).
+
+| Kategori | Class |
+|---|---|
+| Lampu dan saklar | `ZigbeeLight`, `ZigbeeSwitch`, `ZigbeeColorDimmableLight`, `ZigbeeColorDimmerSwitch` |
+| Sensor | `ZigbeeTempSensor`, `ZigbeeFlowSensor`, `ZigbeePressureSensor`, `ZigbeeOccupancySensor`, `ZigbeeContactSwitch`, `ZigbeeVibrationSensor`, `ZigbeeIlluminanceSensor`, `ZigbeeCarbonDioxideSensor` |
+| Aktuator | `ZigbeePowerOutlet`, `ZigbeeWindowCovering`, `ZigbeeFanControl`, `ZigbeeDoorWindowHandle` |
+| Kontrol dan ukur | `ZigbeeThermostat`, `ZigbeeElectricalMeasurement` |
+| Generik | `ZigbeeAnalog`, `ZigbeeBinary`, `ZigbeeGateway` |
+
+> Daftar ini bergantung pada versi Arduino core; sumber pastinya ada di `libraries/Zigbee/src/ep/` pada repositori `espressif/arduino-esp32`. `ZigbeeTempSensor` paling relevan untuk WSN karena mengirim data sensor lewat attribute reporting, bukan hanya perintah On/Off.
+
 **Sekuens protokol yang diamati**
 
 ```

@@ -12,6 +12,7 @@
 // Buffer hasil terima (diisi ISR, dibaca loop)
 static volatile bool hasRx = false;
 static char rxPayload[64] = {0};
+static volatile uint16_t rxSrc, rxDst, rxDstPan;  // dibaca dari MHR frame yang diterima
 
 // Susun frame: [Len][FC(2)][Seq(1)][DestPAN(2)][DestAddr(2)][SrcPAN(2)][SrcAddr(2)][payload]
 // FCS dihitung hardware otomatis, tetapi 2 byte-nya tetap ikut dihitung pada "Len".
@@ -34,12 +35,25 @@ static uint8_t buildFrame(uint8_t *frame, uint16_t dst, const char *payload) {
 void esp_ieee802154_receive_done(uint8_t *frame, esp_ieee802154_frame_info_t *frame_info) {
   uint8_t len = frame[0];
   uint8_t plen = len - MHR_LEN - FCS_LEN;
-  if (plen > 0 && plen < sizeof(rxPayload)) {
+  // Offset tetap hanya berlaku untuk format buildFrame(): FC 0x8801 (data, addr 16-bit)
+  if (frame[1] == 0x01 && frame[2] == 0x88 && plen > 0 && plen < sizeof(rxPayload)) {
+    rxDstPan = frame[4]  | (frame[5]  << 8);   // dest PAN
+    rxDst    = frame[6]  | (frame[7]  << 8);   // dest addr
+    rxSrc    = frame[10] | (frame[11] << 8);   // src addr: alamat pengirim sebenarnya
     memcpy((void *)rxPayload, &frame[12], plen);
     rxPayload[plen] = '\0';
     hasRx = true;
   }
   esp_ieee802154_receive_handle_done(frame);
+}
+
+// Cetak alamat pengirim dari header frame. Tujuan/PAN ikut dicetak bila frame
+// bukan untuk node ini (broadcast, atau lolos karena promiscuous aktif).
+static void printRx(uint16_t src, uint16_t dst, uint16_t dpan) {
+  if (dst == MY_ADDR && dpan == PAN_ID)
+    Serial.printf("RX dari 0x%04X: %s\n", src, rxPayload);
+  else
+    Serial.printf("RX dari 0x%04X (ke 0x%04X, PAN 0x%04X): %s\n", src, dst, dpan, rxPayload);
 }
 
 void setup() {
@@ -62,7 +76,7 @@ void setup() {
 void loop() {
   if (hasRx) {
     hasRx = false;
-    Serial.printf("RX dari 0x%04X: %s\n", PEER_ADDR, rxPayload);
+    printRx(rxSrc, rxDst, rxDstPan);
   }
 
   static unsigned long last = 0;

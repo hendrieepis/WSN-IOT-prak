@@ -116,6 +116,7 @@ Istilah kerja dirangkum pada @tbl:m07-istilah.
     [Promiscuous mode], [Mode "dengar semua": filter PAN ID dan alamat tujuan di MAC dimatikan, setiap frame dengan FCS valid diteruskan ke callback. Driver ESP-IDF menyalakannya *secara default*, sehingga kode memanggil `esp_ieee802154_set_promiscuous(false)` di `setup()`.],
     [Short address], [Alamat 16-bit node (`0x0001` atau `0x0002`).],
     [Frame / MHR], [Header MAC `[Len][FC(2)][Seq(1)][DestPAN(2)][DestAddr(2)][SrcPAN(2)][SrcAddr(2)][payload]`.],
+    [Alamat pengirim], [Dibaca callback dari `SrcAddr` (`frame[10..11]`, little-endian) --- setara info alamat asal pada frame RX mode API XBee. Log `RX dari 0x....` mencetak alamat ini; bila frame bukan untuk node tersebut (broadcast atau promiscuous), tujuan dan PAN-nya ikut dicetak: `RX dari 0x0001 (ke 0x0002, PAN 0xCAFE)`. Node2 dan Node3 membalas ke alamat ini dan *hanya membalas PING*.],
     [FCS], [Checksum 2 byte; *isinya* dihitung hardware, tetapi *panjangnya tetap ikut* pada byte `Len`.],
     [RX when idle], [Radio kembali ke RX setiap selesai TX atau RX --- bukan pengganti `esp_ieee802154_receive()`.],
     [ISR], [`esp_ieee802154_receive_done()` berjalan di konteks interupsi: salin data, set flag, jangan mencetak.],
@@ -293,7 +294,9 @@ build_src_filter = +<node3/*.cpp>
 )
 
 Berkas `src/node3/main.cpp` (@lst:m07-node3) adalah node ketiga bershort
-address `0x0003` yang dipakai pada uji broadcast EXP-04-e.
+address `0x0003` yang dipakai pada uji broadcast EXP-04-e. Node2 dan Node3
+tidak memakai `PEER_ADDR`: keduanya membalas ke alamat pengirim yang dibaca
+dari `SrcAddr` frame, dan hanya membalas frame berisi PING.
 
 #kode-berkas("week07_802154_p2p/src/node3/main.cpp",
   [`src/node3/main.cpp` --- node ketiga `0x0003` untuk uji broadcast],
@@ -478,8 +481,8 @@ unggah ulang node yang bersangkutan.
     [04-c Channel sama], [`CHANNEL 15`], [`CHANNEL 15`], [PING--PONG normal],
     [04-d Channel beda], [`CHANNEL 15`], [`CHANNEL 20`],
     [Kedua node sunyi di sisi RX --- radio _never heard_ (tuli, tidak mendengar sama sekali)],
-    [04-e Broadcast], [`PEER_ADDR 0xFFFF`], [`PEER_ADDR` apa pun],
-    [Node2 *dan* Node3 (bila ada) menerima frame yang sama],
+    [04-e Broadcast], [`PEER_ADDR 0xFFFF`], [tidak diubah],
+    [Node2 *dan* Node3 menerima frame yang sama (`RX dari 0x0001 (ke 0xFFFF, ...)`); keduanya membalas bersamaan sehingga Node1 hanya menerima PONG dari *salah satu* node],
   ),
   [Matriks uji efek parameter EXP-04],
   "tbl:m07-exp04",
@@ -501,6 +504,15 @@ pada `src/node3` (@lst:m07-node3) dengan `MY_ADDR` `0x0003`; tambahkan
 `[env:node3]` di `platformio.ini`, lalu set `PEER_ADDR` Node1 menjadi `0xFFFF`.
 Amati bahwa Node2 dan Node3 menerima frame yang sama, lalu diskusikan apa yang
 hilang dibanding unicast (tidak ada ACK, tidak ada penyaringan alamat tujuan).
+
+Perhatikan pula *dari alamat mana* PONG di Node1 berasal. Pada uji di
+perangkat (25 detik), Node2 dan Node3 masing-masing menerima 12/12 PING dan
+membalas semuanya, tetapi Node1 hanya mencetak 11 PONG --- *seluruhnya
+`RX dari 0x0003`*. Kedua penerima membalas pada saat yang hampir sama, CCA
+keduanya melihat channel kosong, dan kedua PONG bertabrakan di udara; Node1
+hanya menangkap frame yang lebih kuat (_capture effect_) dan tidak ada ACK yang
+memberi tahu Node2 bahwa PONG-nya hilang. Tanpa pembacaan `SrcAddr`, kehilangan
+ini tidak terlihat sama sekali.
 
 *Data capture --- tabel gejala lintas kelompok*
 
@@ -558,11 +570,11 @@ bersangkutan. Channel semua node tetap 15.
     [05-a], [`0xCAFE` / `0xBEEF`], [`false` di semua node (kode asli)],
     [Node1 tetap cetak `TX`, Node2 *tidak pernah* cetak `RX` --- sama dengan 04-b],
     [05-b], [`0xCAFE` / `0xBEEF`], [Node2: `true`],
-    [Node2 cetak `RX` untuk setiap PING dan membalas PONG, tetapi Node1 *tidak pernah* cetak `RX`],
+    [Node2 cetak `RX dari 0x0001 (ke 0x0002, PAN 0xCAFE)` untuk setiap PING dan membalas PONG, tetapi Node1 *tidak pernah* cetak `RX`],
     [05-c], [`0xCAFE` / `0xBEEF`], [Node2: baris *dihapus*],
     [Sama dengan 05-b --- tanpa baris ini driver memakai nilai default `true`],
     [05-d], [`0xCAFE` / `0xCAFE`], [Node3: `true` (Node1, Node2: `false`)],
-    [PING--PONG Node1--Node2 tetap jalan, tetapi Node3 *ikut* cetak `RX` untuk unicast yang bukan untuknya dan membalasnya; Node1 menerima PONG *ganda*],
+    [Node3 *ikut* cetak `RX` untuk unicast yang bukan untuknya (`ke 0x0002` atau `ke 0x0001`); sebagian PONG di Node1 berasal dari `0x0003`, bukan `0x0002`],
   ),
   [Matriks uji promiscuous mode EXP-05],
   "tbl:m07-exp05",
@@ -571,7 +583,8 @@ bersangkutan. Channel semua node tetap 15.
 Ada tiga hal yang harus bisa dijelaskan dari percobaan ini.
 
 / Filter bekerja di hardware (05-a vs 05-b): kode callback
-  `esp_ieee802154_receive_done()` tidak pernah memeriksa header, sehingga
+  `esp_ieee802154_receive_done()` memang membaca header, tetapi tidak
+  menyaring berdasarkan PAN ID atau alamat tujuan, sehingga
   satu-satunya yang membedakan 05-a dan 05-b adalah filter MAC. Begitu
   promiscuous dinyalakan, PING dari PAN asing langsung sampai ke callback.
 
@@ -582,23 +595,27 @@ Ada tiga hal yang harus bisa dijelaskan dari percobaan ini.
 / Filter alamat tujuan ikut mati (05-d): promiscuous tidak hanya mengabaikan
   PAN ID, tetapi juga alamat tujuan. Node3 menerima PING yang ditujukan ke
   `0x0002` *dan* PONG yang ditujukan ke `0x0001` --- keduanya bukan untuknya,
-  padahal Node1 tidak mengirim ke `0xFFFF`. Karena buffer penerima hanya satu
-  slot dan PONG datang beberapa milidetik setelah PING, yang tercetak di Node3
-  biasanya `RX ... PONG n` (PING tertimpa). Node3 lalu membalas ke Node1,
-  sehingga Node1 mencetak dua PONG untuk satu PING. Perhatikan bahwa label
-  "`RX dari 0x0002`" di log adalah konstanta `PEER_ADDR`, bukan alamat asal
-  frame yang sebenarnya.
+  padahal Node1 tidak mengirim ke `0xFFFF`. Buffer penerima hanya satu slot,
+  sehingga hasilnya bergantung pada siapa yang lebih cepat: (1) bila Node3
+  sempat membaca PING, ia mencetak `RX dari 0x0001 (ke 0x0002, ...)` dan ikut
+  membalas; PONG-nya bertabrakan dengan PONG Node2 dan Node1 mencetak
+  `RX dari 0x0003`; (2) bila PING sudah tertimpa PONG Node2, Node3 mencetak
+  `RX dari 0x0002 (ke 0x0001, ...)` dan diam (PONG tidak dibalas), sehingga
+  Node1 mencetak `RX dari 0x0002`. Pada uji 25 detik: 12 PING, Node1 menerima
+  5 PONG dari `0x0002` dan 7 dari `0x0003`.
 
 Bandingkan dengan XBee: firmware XBee selalu menyaring PAN ID dan alamat
 tujuan, sehingga perilakunya setara dengan 05-a tanpa perlu diatur. Pada
 ESP32-H2 yang memakai radio 802.15.4 secara langsung, filter itu harus
 dinyalakan sendiri.
 
-*Peringatan.* Jangan menyalakan promiscuous pada Node2 *dan* Node3
-bersamaan. Kedua node akan saling menerima dan membalas setiap PONG, sehingga
-terjadi _reply storm_: Serial Monitor dibanjiri puluhan `RX`/`TX` per detik
-untuk nomor PONG yang sama. Ubah satu node saja pada tiap uji, dan kembalikan
-semua node ke `false` dan `PAN_ID 0xCAFE` setelah selesai.
+*Catatan.* Node2 dan Node3 hanya membalas PING, bukan PONG. Tanpa aturan ini,
+node yang promiscuous akan membalas PONG milik node lain dan penerimanya
+membalas balik --- terjadi _reply storm_ (Serial Monitor dibanjiri puluhan
+`RX`/`TX` per detik). Dengan aturan ini, menyalakan promiscuous pada Node2
+*dan* Node3 bersamaan hanya menghasilkan gejala seperti 04-e: keduanya membalas
+tiap PING dan Node1 hanya menerima PONG dari salah satunya. Kembalikan semua
+node ke `false` dan `PAN_ID 0xCAFE` setelah selesai.
 
 *Data capture*
 
@@ -626,8 +643,8 @@ semua node ke `false` dan `PAN_ID 0xCAFE` setelah selesai.
   (Node2 menerima PING, Node1 tidak menerima PONG), dan mengapa 05-c sama
   dengan 05-b. Jawaban yang benar menyebut bahwa `esp_ieee802154_set_panid()`
   hanya mengisi register, sedangkan penyaringan baru aktif bila promiscuous
-  dimatikan. Praktikan juga dapat menjelaskan mengapa Node1 menerima PONG ganda
-  pada 05-d.
+  dimatikan. Praktikan juga dapat menjelaskan, dari alamat pengirim di log,
+  mengapa sebagian PONG di Node1 pada 05-d berasal dari `0x0003`.
 ]
 
 == Verifikasi Hardware --- Log Referensi

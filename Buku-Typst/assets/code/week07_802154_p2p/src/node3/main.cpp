@@ -6,12 +6,12 @@
 #define CHANNEL   15
 #define PAN_ID    0xCAFE
 #define MY_ADDR   0x0003
-#define PEER_ADDR 0x0001
 #define MHR_LEN   11   // FC(2)+Seq(1)+DestPAN(2)+DestAddr(2)+SrcPAN(2)+SrcAddr(2)
 #define FCS_LEN   2    // ikut dihitung pada byte Len; saat RX diganti RSSI+LQI
 
 static volatile bool hasRx = false;
 static char rxPayload[64] = {0};
+static volatile uint16_t rxSrc, rxDst, rxDstPan;  // dibaca dari MHR frame yang diterima
 
 static uint8_t buildFrame(uint8_t *frame, uint16_t dst, const char *payload) {
   uint8_t plen = strlen(payload);
@@ -31,12 +31,25 @@ static uint8_t buildFrame(uint8_t *frame, uint16_t dst, const char *payload) {
 void esp_ieee802154_receive_done(uint8_t *frame, esp_ieee802154_frame_info_t *frame_info) {
   uint8_t len = frame[0];
   uint8_t plen = len - MHR_LEN - FCS_LEN;
-  if (plen > 0 && plen < sizeof(rxPayload)) {
+  // Offset tetap hanya berlaku untuk format buildFrame(): FC 0x8801 (data, addr 16-bit)
+  if (frame[1] == 0x01 && frame[2] == 0x88 && plen > 0 && plen < sizeof(rxPayload)) {
+    rxDstPan = frame[4]  | (frame[5]  << 8);   // dest PAN
+    rxDst    = frame[6]  | (frame[7]  << 8);   // dest addr
+    rxSrc    = frame[10] | (frame[11] << 8);   // src addr: alamat pengirim sebenarnya
     memcpy((void *)rxPayload, &frame[12], plen);
     rxPayload[plen] = '\0';
     hasRx = true;
   }
   esp_ieee802154_receive_handle_done(frame);
+}
+
+// Cetak alamat pengirim dari header frame. Tujuan/PAN ikut dicetak bila frame
+// bukan untuk node ini (broadcast, atau lolos karena promiscuous aktif).
+static void printRx(uint16_t src, uint16_t dst, uint16_t dpan) {
+  if (dst == MY_ADDR && dpan == PAN_ID)
+    Serial.printf("RX dari 0x%04X: %s\n", src, rxPayload);
+  else
+    Serial.printf("RX dari 0x%04X (ke 0x%04X, PAN 0x%04X): %s\n", src, dst, dpan, rxPayload);
 }
 
 void setup() {
@@ -59,14 +72,19 @@ void setup() {
 void loop() {
   if (hasRx) {
     hasRx = false;
-    Serial.printf("RX dari 0x%04X: %s\n", PEER_ADDR, rxPayload);
+    uint16_t src = rxSrc;
+    printRx(src, rxDst, rxDstPan);
 
-    // Balas ke pengirim (Node1)
+    // Hanya PING yang dibalas; PONG milik node lain (tertangkap saat
+    // promiscuous) diabaikan agar tidak terjadi balas-membalas tanpa henti
+    if (strncmp(rxPayload, "PING ", 5) != 0) return;
+
+    // Balas PONG ke alamat pengirim sebenarnya
     char msg[32];
     snprintf(msg, sizeof(msg), "PONG %s", rxPayload + 5);  // hilangkan "PING "
     static uint8_t frame[128];
-    uint8_t total = buildFrame(frame, PEER_ADDR, msg);
+    uint8_t total = buildFrame(frame, src, msg);
     esp_ieee802154_transmit(frame, true);
-    Serial.printf("TX balasan ke 0x%04X: %s\n", PEER_ADDR, msg);
+    Serial.printf("TX balasan ke 0x%04X: %s\n", src, msg);
   }
 }

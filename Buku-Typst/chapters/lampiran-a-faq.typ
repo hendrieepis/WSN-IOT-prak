@@ -466,7 +466,8 @@ border router dua chip (atau gateway khusus), bukan stack pengganti.
 === Efek parameter PAN ID, channel, dan broadcast --- dapatkah diubah dari program saja?
 
 Ya, hampir semuanya cukup dengan mengganti empat `#define` pada
-`src/nodeX/main.cpp` (`CHANNEL`, `PAN_ID`, `MY_ADDR`, `PEER_ADDR`), tanpa
+`src/nodeX/main.cpp` (`CHANNEL`, `PAN_ID`, `MY_ADDR`, dan `PEER_ADDR` yang hanya ada
+di Node1; Node2 dan Node3 membalas ke alamat pengirim), tanpa
 mengubah logika program.
 
 #tbl(
@@ -480,7 +481,7 @@ mengubah logika program.
     [PAN ID beda], [`PAN_ID` pada salah satu node dibedakan], [TX tetap jalan, RX sunyi --- frame *disaring hardware* (promiscuous dimatikan), tidak ada callback],
     [Channel sama], [`CHANNEL` sama], [komunikasi normal],
     [Channel beda], [`CHANNEL` salah satu node dibedakan], [RX sunyi total --- radio *tuli*, tidak mendengar apa pun],
-    [Broadcast], [`PEER_ADDR = 0xFFFF`], [semua node pada channel dan PAN yang sama menerima frame yang sama],
+    [Broadcast], [`PEER_ADDR = 0xFFFF` di Node1], [semua node pada channel dan PAN yang sama menerima frame yang sama; balasan PONG bertabrakan sehingga Node1 hanya menerima PONG dari salah satu node],
   ),
   [Efek perubahan parameter radio pada Modul 07],
   "tbl:faq-efek-parameter",
@@ -503,6 +504,12 @@ Catatan praktis:
 + EXP-05 (promiscuous mode): `esp_ieee802154_set_promiscuous(true)` membuat semua
   frame diterima walaupun PAN atau alamatnya berbeda; ini membuktikan
   penyaringan terjadi di *hardware*, bukan di kode.
++ *Alamat pengirim dibaca dari frame*, bukan konstanta: callback mengambil
+  `SrcAddr` (`frame[10..11]`), mirip info alamat asal pada frame RX mode API
+  XBee. Frame yang bukan untuk node tersebut dicetak lengkap, misalnya
+  `RX dari 0x0001 (ke 0xFFFF, PAN 0xCAFE)`. Dari sinilah terlihat bahwa pada
+  broadcast semua PONG di Node1 datang dari `0x0003` (PONG Node2 hilang karena
+  tabrakan).
 
 === Apakah 6LoWPAN didukung ESP32-H2?
 

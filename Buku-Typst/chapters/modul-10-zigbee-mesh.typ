@@ -311,21 +311,38 @@ bila ZED memilih ZR sebagai parent.
                   └── relay ──► [ZED: EndLight ON/OFF]
 ```.text)
 
-*Expected output --- Coordinator*
+*Expected output --- Coordinator* (nilai channel, PAN ID, dan alamat dari uji
+di board; di board Anda akan berbeda)
 
-#keluaran("Menunggu router & end device ter-binding...
+#keluaran("Network Zigbee terbentuk:
+  Peran          : Coordinator (ZC)
+  Channel        : 21
+  PAN ID         : 0x4D92
+  Extended PAN ID: 74:4D:BD:FF:FE:61:E6:2C
+  Short address  : 0x0000
+  IEEE address   : 74:4D:BD:FF:FE:61:E6:2C
+  Endpoint       : 5 (switch)
+Menunggu router & end device ter-binding...
 Total device ter-bind: 2
  - endpoint 10, short addr 0xFFFF
- - endpoint 11, short addr 0xE04F
+ - endpoint 11, short addr 0xBB28
 -> 0xFFFF ON
--> 0xE04F ON
+-> 0xBB28 ON
 -> 0xFFFF OFF
--> 0xE04F OFF")
+-> 0xBB28 OFF")
 
 *Expected output --- Router*
 
 #keluaran("Router menunggu join ke network...
 Router tergabung (role=ROUTER).
+Info network:
+  Peran          : Router (ZR)
+  Channel        : 21
+  PAN ID         : 0x4D92
+  Extended PAN ID: 74:4D:BD:FF:FE:61:E6:2C
+  Short address  : 0x33F4 (diberikan coordinator)
+  IEEE address   : 74:4D:BD:FF:FE:61:E8:C1
+  Endpoint       : 10 (light)
 RouterLight ON
 RouterLight OFF")
 
@@ -333,8 +350,24 @@ RouterLight OFF")
 
 #keluaran("End device menunggu join (bisa lewat router)...
 End device tergabung (role=END_DEVICE).
+Info network:
+  Peran          : End Device (ED)
+  Channel        : 21
+  PAN ID         : 0x4D92
+  Extended PAN ID: 74:4D:BD:FF:FE:61:E6:2C
+  Short address  : 0xBB28 (diberikan coordinator)
+  IEEE address   : 74:4D:BD:FF:FE:61:F3:97
+  Endpoint       : 11 (light)
 EndLight ON
 EndLight OFF")
+
+Info network ketiga board harus sama: *Channel, PAN ID, dan Extended PAN ID*
+(di sini 21, `0x4D92`, dan IEEE address coordinator). Router juga mendapat
+short address dari coordinator, sama seperti end device. Short address end
+device (`0xBB28`) sama dengan yang tercetak di daftar bound coordinator; router
+tercetak `0xFFFF` di sana. Padanan XBee: `Short address` = MY,
+`IEEE address` = SH + SL, `Channel` = CH, `PAN ID` = OI, `Extended PAN ID` =
+OP --- lihat tabel padanan XBee di Modul 08.
 
 #buka-abstraksi[
   Cari di `src/router/main.cpp` baris kode yang *meneruskan* perintah ke end

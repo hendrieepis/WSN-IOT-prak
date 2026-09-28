@@ -68,7 +68,9 @@ EP_LIGHT = {ep: name for name, ep in LIGHT_EP.items()}
 # Format log firmware week10 (lihat src/coordinator, src/router, src/enddevice)
 RE_BOOT = re.compile(r"^ESP-ROM:")
 RE_FAIL = re.compile(r"Zigbee gagal start!")
-RE_ZC_WAIT = re.compile(r"^Menunggu router & end device ter-binding")
+# Blok info network yang dicetak printNetworkInfo() setelah network terbentuk/join
+RE_NET = re.compile(r"^\s+(Channel|PAN ID|Extended PAN ID|Short address|IEEE address)\s*: (\S+)")
+RE_ZC_WAIT = re.compile(r"^(Menunggu router & end device ter-binding|Network Zigbee terbentuk)")
 RE_ZC_LIST = re.compile(r"^Total device ter-bind: (\d+)")   # dicetak SEBELUM daftar
 RE_ZC_BOUND = re.compile(r"^\s*- endpoint (\d+), short addr 0x([0-9A-Fa-f]{4})")
 RE_ZC_CMD = re.compile(r"^-> 0x([0-9A-Fa-f]{4}) (ON|OFF)")
@@ -101,6 +103,7 @@ class Node:
         self.fails = 0            # "Zigbee gagal start!"
         self.ready = None         # ZC: daftar bound tercetak; lampu: tergabung (relatif boot)
         self.zb_role = ""        # role yang dilaporkan node (ROUTER / END_DEVICE)
+        self.net = {}             # info network: Channel, PAN ID, Short address, ...
         self.events = []          # lampu: (t, "ON"/"OFF") aksi
 
 
@@ -157,6 +160,10 @@ def parse(node, text, now):
         return
     if RE_FAIL.search(text):
         node.fails += 1
+        return
+    m = RE_NET.match(text)
+    if m:
+        node.net[m.group(1)] = m.group(2)
         return
     boot = node.boot if node.boot is not None else t0
 
@@ -274,6 +281,16 @@ def summary(nodes, out):
         role = f", role={n.zb_role}" if n.zb_role else ""
         out(f"  {n.name:<11} {n.port:<14} {n.lines:>4} baris, boot {n.boots}x{extra},"
             f" {what} {ready} sejak boot{role}")
+        if n.net:
+            out(f"  {'':<11} channel {n.net.get('Channel', '?')}, PAN {n.net.get('PAN ID', '?')},"
+                f" ext PAN {n.net.get('Extended PAN ID', '?')}, short {n.net.get('Short address', '?')}")
+
+    nets = [n for n in nodes if n.net]
+    if len(nets) >= 2:
+        keys = ("Channel", "PAN ID", "Extended PAN ID")
+        same = all(len({n.net.get(k) for n in nets}) == 1 for k in keys)
+        out("  Channel/PAN ID/Extended PAN ID semua node: "
+            + ("sama (satu network)" if same else "BERBEDA — ada node yang bergabung ke network lain?"))
 
     if zc.bound:
         out(f"\nDevice ter-bind di coordinator ({zc.total or len(zc.bound)}):")

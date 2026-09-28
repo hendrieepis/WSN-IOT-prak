@@ -203,31 +203,67 @@ Setelah minimal satu light ter-bind, coordinator menunggu 5 detik tambahan (agar
  [ZC] lightOn(ep, addr) / lightOff(ep, addr)  tiap 5 s
 ```
 
-**Expected output — Coordinator**
+**Expected output — Coordinator** (nilai channel, PAN ID, dan alamat dari uji di board; di board Anda akan berbeda)
 
 ```
+Network Zigbee terbentuk:
+  Peran          : Coordinator (ZC)
+  Channel        : 26
+  PAN ID         : 0x1890
+  Extended PAN ID: 74:4D:BD:FF:FE:61:E6:2C
+  Short address  : 0x0000
+  IEEE address   : 74:4D:BD:FF:FE:61:E6:2C
+  Endpoint       : 5 (switch)
 Menunggu light ter-binding (join dalam 180 detik)...
 Daftar device ter-bind:
- - endpoint 10, short addr 0xXXXX
- - endpoint 11, short addr 0xYYYY
+ - endpoint 10, short addr 0xFFFF
+ - endpoint 11, short addr 0xFFFF
 Total 2 device.
--> Light 0xXXXX ON
--> Light 0xYYYY ON
--> Light 0xXXXX OFF
--> Light 0xYYYY OFF
+-> Light 0xFFFF ON
+-> Light 0xFFFF ON
+-> Light 0xFFFF OFF
+-> Light 0xFFFF OFF
 ```
 
-> Salah satu `short addr` sering tercetak `0xFFFF`. Itu **bukan** kegagalan binding — lihat catatan pada "Verifikasi hardware" di bawah.
+> Satu atau kedua `short addr` di daftar bound sering tercetak `0xFFFF` (pada uji ini keduanya), padahal short address asli kedua light terlihat di blok info network masing-masing. Itu **bukan** kegagalan binding — lihat catatan pada "Verifikasi hardware" di bawah.
 
-**Expected output — Light1 / Light2**
+**Expected output — Light1**
 
 ```
+Light1 menunggu join ke network...
 Light1 tergabung ke network!
+Info network:
+  Peran          : End Device (ED)
+  Channel        : 26
+  PAN ID         : 0x1890
+  Extended PAN ID: 74:4D:BD:FF:FE:61:E6:2C
+  Short address  : 0x82C3 (diberikan coordinator)
+  IEEE address   : 74:4D:BD:FF:FE:61:E8:C1
+  Endpoint       : 10 (light)
 Light1 ON
 Light1 OFF
 ```
 
-**Buka abstraksinya** — `getBoundDevices()` mengembalikan `std::list` berisi `zb_device_params_t`. Cetak **seluruh** field struct itu (bukan hanya endpoint dan short address) dan cocokkan dengan alamat IEEE (MAC 64-bit) tiap board yang diperoleh dari `esptool chip_id`. Jawab: entri mana yang benar-benar unik dan stabil — short address atau alamat IEEE?
+**Expected output — Light2**
+
+```
+Light2 menunggu join ke network...
+Light2 tergabung ke network!
+Info network:
+  Peran          : End Device (ED)
+  Channel        : 26
+  PAN ID         : 0x1890
+  Extended PAN ID: 74:4D:BD:FF:FE:61:E6:2C
+  Short address  : 0x127F (diberikan coordinator)
+  IEEE address   : 74:4D:BD:FF:FE:61:F3:97
+  Endpoint       : 11 (light)
+Light2 ON
+Light2 OFF
+```
+
+> Info network ketiga board harus sama: **Channel, PAN ID, dan Extended PAN ID** (di sini 26, `0x1890`, dan IEEE address coordinator). Short address tiap light berbeda dan **dibagikan coordinator** saat join. Padanan XBee: `Short address` = MY, `IEEE address` = SH + SL, `Channel` = CH, `PAN ID` = OI, `Extended PAN ID` = OP — lihat tabel padanan XBee di Modul 08.
+
+**Buka abstraksinya** — `getBoundDevices()` mengembalikan `std::list` berisi `zb_device_params_t`. Cetak **seluruh** field struct itu (bukan hanya endpoint dan short address) dan cocokkan dengan `IEEE address` (MAC 64-bit) yang dicetak tiap light pada blok `Info network`. Jawab: entri mana yang benar-benar unik dan stabil — short address atau alamat IEEE?
 
 > **CHECKPOINT** — Baris `Total 2 device.` muncul, dan setelah itu ada **dua** baris `-> Light 0x....` untuk tiap siklus ON dan tiap siklus OFF. Jika hanya satu baris per siklus, binding kedua gagal.
 

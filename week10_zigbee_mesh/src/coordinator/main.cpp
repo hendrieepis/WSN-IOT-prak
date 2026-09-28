@@ -7,6 +7,29 @@
 
 ZigbeeSwitch zbSwitch = ZigbeeSwitch(5);
 
+// Cetak parameter jaringan yang sedang dipakai. Library Arduino hanya
+// menulisnya ke log debug, jadi dibaca langsung dari stack ESP-Zigbee
+// (wajib di dalam lock karena stack berjalan di task lain).
+void printNetworkInfo() {
+  esp_zb_ieee_addr_t extPanId, ieee;
+  esp_zb_lock_acquire(portMAX_DELAY);
+  uint8_t channel = esp_zb_get_current_channel();
+  uint16_t panId = esp_zb_get_pan_id();
+  uint16_t shortAddr = esp_zb_get_short_address();
+  esp_zb_get_extended_pan_id(extPanId);
+  esp_zb_get_long_address(ieee);
+  esp_zb_lock_release();
+
+  Serial.println("Network Zigbee terbentuk:");
+  Serial.println("  Peran          : Coordinator (ZC)");
+  Serial.printf("  Channel        : %u\n", channel);
+  Serial.printf("  PAN ID         : 0x%04X\n", panId);
+  Serial.printf("  Extended PAN ID: %s\n", ZigbeeCore::formatIEEEAddress(extPanId));
+  Serial.printf("  Short address  : 0x%04X\n", shortAddr);
+  Serial.printf("  IEEE address   : %s\n", ZigbeeCore::formatIEEEAddress(ieee));
+  Serial.println("  Endpoint       : 5 (switch)");
+}
+
 void setup() {
   Serial.begin(115200);
 
@@ -20,6 +43,12 @@ void setup() {
     Serial.println("Zigbee gagal start!");
     ESP.restart();
   }
+
+  // Bagi coordinator, begin() baru kembali setelah network terbentuk (boot
+  // pertama) atau dipulihkan dari NVS (reboot). JANGAN menunggu
+  // Zigbee.connected() di sini: pada reboot dengan setRebootOpenNetwork(),
+  // library Arduino core 3.3.x tidak pernah men-set flag itu untuk coordinator.
+  printNetworkInfo();
 
   Serial.println("Menunggu router & end device ter-binding...");
   while (!zbSwitch.bound()) {

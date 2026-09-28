@@ -81,7 +81,7 @@ class Node:
     def __init__(self, port, color):
         self.port = port
         self.color = color
-        self.name = port          # diganti "Coordinator"/"EndDevice" begitu peran dikenali
+        self.name = port          # diganti "Coordinator"/"ED <port>" begitu peran dikenali
         self.role = None          # "ZC" atau "ED"
         self.lines = 0
         self.boot = None          # waktu boot terakhir (baris ESP-ROM, atau saat port dibuka)
@@ -109,7 +109,8 @@ def show(node, text, use_color, logfile, stamp=None):
 
 def set_role(node, role):
     node.role = role
-    node.name = "Coordinator" if role == "ZC" else "EndDevice"
+    # Port ikut di nama ED supaya beberapa end device bisa dibedakan di log
+    node.name = "Coordinator" if role == "ZC" else f"ED {node.port}"
 
 
 def parse(node, text, now):

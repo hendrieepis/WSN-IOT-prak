@@ -409,7 +409,7 @@ Ya, hampir semuanya cukup ganti **4 `#define`** di `src/nodeX/main.cpp`
 | Eksperimen | Yang diubah | Efek yang terlihat |
 |---|---|---|
 | PAN ID sama | `PAN_ID` sama (mis. `0xCAFE` dua node) | komunikasi normal |
-| PAN ID beda | `PAN_ID` di salah satu node beda | TX tetap jalan, RX sunyi — frame **disaring hardware**, tidak ada callback |
+| PAN ID beda | `PAN_ID` di salah satu node beda | TX tetap jalan, RX sunyi — frame **disaring hardware** (promiscuous dimatikan), tidak ada callback |
 | Channel sama | `CHANNEL` sama | komunikasi normal |
 | Channel beda | `CHANNEL` salah satu node beda | RX sunyi total — radio **tuli**, tidak mendengar apa pun |
 | Broadcast | `PEER_ADDR = 0xFFFF` | semua node di channel + PAN yang sama menerima frame yang sama |
@@ -423,7 +423,11 @@ Catatan praktis:
    terdengar).
 2. **Broadcast butuh node ketiga** (`src/node3`, `MY_ADDR 0x0003`) supaya
    efeknya nyata — bukan sekadar "sama saja dengan unicast".
-3. Bonus investigasi: `esp_ieee802154_set_promiscuous_mode(true)` → semua frame
+3. **Filter PAN tidak aktif dengan sendirinya.** Driver ESP-IDF menyalakan
+   promiscuous mode secara default, sehingga tanpa
+   `esp_ieee802154_set_promiscuous(false)` di `setup()` node dengan PAN ID
+   beda tetap saling menerima — berbeda dengan XBee yang selalu menyaring.
+4. Bonus investigasi: `esp_ieee802154_set_promiscuous(true)` → semua frame
    diterima walau PAN/alamat beda; ini membuktikan penyaringan terjadi di
    **hardware**, bukan di kode.
 

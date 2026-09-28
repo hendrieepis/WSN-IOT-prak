@@ -50,7 +50,8 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (modulas
 |---|---|
 | IEEE 802.15.4 | Standar PHY/MAC nirkabel low-rate low-power; basis Zigbee dan Thread. |
 | Channel | Frekuensi kerja radio (di sini 15); kedua node harus sama. |
-| PAN ID | Identitas jaringan (`0xCAFE`); frame di luar PAN disaring hardware. |
+| PAN ID | Identitas jaringan (`0xCAFE`); frame di luar PAN disaring hardware — **hanya bila promiscuous mode dimatikan**. |
+| Promiscuous mode | Mode "dengar semua": filter PAN ID dan alamat tujuan di MAC dimatikan, setiap frame dengan FCS valid diteruskan ke callback. Driver ESP-IDF menyalakannya **secara default**, sehingga kode memanggil `esp_ieee802154_set_promiscuous(false)` di `setup()`. |
 | Short address | Alamat 16-bit node (`0x0001` / `0x0002`). |
 | Frame / MHR | Header MAC `[Len][FC(2)][Seq(1)][DestPAN(2)][DestAddr(2)][SrcPAN(2)][SrcAddr(2)][payload]`. |
 | FCS | Checksum 2 byte; **isinya** dihitung hardware, tetapi **panjangnya tetap ikut** pada byte `Len`. |
@@ -66,6 +67,8 @@ Teori dibatasi pada apa yang dipakai di percobaan. *Pembahasan mendalam (modulas
 | Buffer TX harus tetap hidup sampai transmisi selesai (`static`, bukan variabel lokal) | Payload sesekali berubah jadi sampah/isi RAM lama |
 
 Aturan ketiga paling menipu: `esp_ieee802154_transmit()` bersifat **asinkron** dan hanya menyimpan *pointer* ke buffer. Bila buffer dideklarasikan sebagai variabel lokal di `loop()`, isinya sudah tertimpa stack frame lain saat radio benar-benar mengirim — sebagian frame berangkat berisi sampah, sebagian lain kebetulan masih utuh. Itulah mengapa gejalanya *intermiten*, bukan gagal total.
+
+**Catatan — filter PAN tidak aktif dengan sendirinya.** `esp_ieee802154_set_panid()` dan `esp_ieee802154_set_short_address()` hanya mengisi register; nilai itu baru dipakai untuk menyaring bila promiscuous mode mati. Karena driver ESP-IDF menyalakan promiscuous secara default, tanpa `esp_ieee802154_set_promiscuous(false)` dua node dengan PAN ID berbeda tetap bisa saling bertukar pesan, dan node lain ikut menerima unicast yang bukan untuknya. Perilaku ini berbeda dengan XBee, yang firmware-nya selalu menyaring PAN ID dan alamat tujuan.
 
 **Sekuens protokol yang diamati**
 
@@ -262,12 +265,12 @@ Semua efek di bawah cukup dicapai dengan **mengubah `#define` di `src/nodeX/main
 
 Perbedaan 04-b vs 04-d adalah inti yang harus bisa dijelaskan:
 
-- **PAN ID beda (04-b):** radio memang menerima transmisi di channel yang sama, tetapi MAC hardware **menyaring frame** dengan PAN ID asing sebelum sampai ke callback. TX di sisi lain tetap berjalan normal — komunikasi terlihat "searah hilang".
+- **PAN ID beda (04-b):** radio memang menerima transmisi di channel yang sama, tetapi MAC hardware **menyaring frame** dengan PAN ID asing sebelum sampai ke callback (berlaku karena `setup()` mematikan promiscuous mode). TX di sisi lain tetap berjalan normal — komunikasi terlihat "searah hilang".
 - **Channel beda (04-d):** radio tidak berada di frekuensi yang sama — tidak ada yang diterima secara fisik. Tidak ada filter yang "menolak" karena memang tidak ada yang masuk.
 
 **Uji broadcast (04-e) — wajib 3 node.** Salin `src/node2` menjadi `src/node3`, ganti `MY_ADDR` menjadi `0x0003`, tambahkan `[env:node3]` di `platformio.ini`, lalu set `PEER_ADDR` Node1 menjadi `0xFFFF`. Amati bahwa Node2 dan Node3 menerima frame yang sama, lalu diskusikan apa yang hilang dibanding unicast (tidak ada ACK, tidak ada penyaringan alamat tujuan).
 
-**Bonus investigasi — promiscuous mode.** Tambahkan `esp_ieee802154_set_promiscuous_mode(true)` di `setup()` Node2 dan biarkan `PAN_ID` berbeda dengan Node1. Semua frame asing kini diterima — bukti bahwa penyaringan PAN ID sebelumnya bekerja di **hardware**, bukan di kode.
+**Bonus investigasi — promiscuous mode.** Pada `setup()` Node2, ubah `esp_ieee802154_set_promiscuous(false)` menjadi `esp_ieee802154_set_promiscuous(true)` dan biarkan `PAN_ID` Node2 berbeda dengan Node1 (`0xBEEF`). Node2 kini mencetak `RX` untuk setiap PING dari PAN asing dan membalas PONG — bukti bahwa penyaringan PAN ID sebelumnya bekerja di **hardware MAC**, bukan di kode (callback tidak pernah memeriksa header). Amati pula bahwa Node1 tetap **tidak** menerima PONG: PONG membawa Dest PAN `0xBEEF`, dan Node1 masih menyaring. Terakhir, hapus baris `set_promiscuous(false)` sepenuhnya — hasilnya sama dengan `true`, karena itulah nilai default driver.
 
 **Data capture — tabel gejala lintas kelompok**
 

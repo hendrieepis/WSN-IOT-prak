@@ -117,6 +117,7 @@ Istilah kerja dirangkum pada @tbl:m07-istilah.
     [Short address], [Alamat 16-bit node (`0x0001` atau `0x0002`).],
     [Frame / MHR], [Header MAC `[Len][FC(2)][Seq(1)][DestPAN(2)][DestAddr(2)][SrcPAN(2)][SrcAddr(2)][payload]`.],
     [Alamat pengirim], [Dibaca callback dari `SrcAddr` (`frame[10..11]`, little-endian) --- setara info alamat asal pada frame RX mode API XBee. Log `RX dari 0x....` mencetak alamat ini; bila frame bukan untuk node tersebut (broadcast atau promiscuous), tujuan dan PAN-nya ikut dicetak: `RX dari 0x0001 (ke 0x0002, PAN 0xCAFE)`. Node2 dan Node3 membalas ke alamat ini dan *hanya membalas PING*.],
+    [RSSI / LQI], [Disalin callback dari `frame_info->rssi` dan `frame_info->lqi`, dicetak di akhir baris RX: `RX dari 0x0002: PONG 1  [RSSI -12 dBm, LQI 11]`. RSSI (dBm) sudah dikoreksi driver ESP-IDF. LQI adalah nilai mentah hardware ESP32-H2 dengan skala khusus chip (teramati 6--11), *tidak* sebanding dengan LQI 0--255 radio lain --- untuk pengukuran jarak pakai RSSI.],
     [FCS], [Checksum 2 byte; *isinya* dihitung hardware, tetapi *panjangnya tetap ikut* pada byte `Len`.],
     [RX when idle], [Radio kembali ke RX setiap selesai TX atau RX --- bukan pengganti `esp_ieee802154_receive()`.],
     [ISR], [`esp_ieee802154_receive_done()` berjalan di konteks interupsi: salin data, set flag, jangan mencetak.],
@@ -251,8 +252,8 @@ Tidak ada library eksternal --- modul ini memanggil API ESP-IDF langsung.
 == Kode Program
 
 #sumber-kode("week07_802154_p2p",
-  ("platformio.ini", "src/node1/main.cpp", "src/node2/main.cpp",
-   "src/node3/main.cpp"))
+  ("platformio.ini", "monitor_serial.py", "src/node1/main.cpp",
+   "src/node2/main.cpp", "src/node3/main.cpp"))
 
 *Pin port agar tidak salah flash* (@lst:m07-ini-readme).
 
@@ -304,11 +305,42 @@ dari `SrcAddr` frame, dan hanya membalas frame berisi PING.
   pecah: true,
 )
 
+Skrip `monitor_serial.py` (@lst:m07-monitor) memantau semua node dari satu
+komputer; cara pakainya ada di bagian Build dan Flash.
+
+#kode-berkas("week07_802154_p2p/monitor_serial.py",
+  [`monitor_serial.py` --- pemantau semua node dalam satu sumbu waktu, dengan ringkasan per link],
+  "lst:m07-monitor",
+  pecah: true,
+)
+
 == Build dan Flash
 
 #keluaran("pio device list
 pio run -d week07_802154_p2p -e node1 -t upload
 pio run -d week07_802154_p2p -e node2 -t upload -t monitor")
+
+*Memantau semua node dari satu komputer.* `pio device monitor` hanya membuka
+satu port. Skrip `monitor_serial.py` (@lst:m07-monitor) membuka semua port UART
+CH343 sekaligus, menampilkan ketiga node dalam satu jendela dengan timestamp
+bersama, lalu mencetak ringkasan per link (terkirim, diterima, loss, RSSI, LQI)
+saat berhenti.
+
+#keluaran("python week07_802154_p2p/monitor_serial.py                     # deteksi port otomatis
+python week07_802154_p2p/monitor_serial.py --duration 120 --log sesi1.txt
+python week07_802154_p2p/monitor_serial.py --port COM5 --port COM11 --port COM13
+python3 week07_802154_p2p/monitor_serial.py --port /dev/ttyACM0 --port /dev/ttyACM2")
+
+Nama node dikenali dari banner saat boot, jadi urutan port tidak perlu
+diingat. Tiap board di-reset sekali saat port dibuka agar hitungan PING dimulai
+dari 1 (pakai `--no-reset` untuk mengamati tanpa reset). Tutup dulu
+`pio device monitor` --- satu port tidak bisa dibuka dua program sekaligus.
+Contoh ringkasan pada baseline:
+
+#keluaran("Link (pengirim -> penerima)      jenis  kirim  terima   loss   RSSI dBm rata2 (min..max)
+------------------------------------------------------------------------------------------
+Node1(0x0001) -> Node2(0x0002)   PING       8      8    0.0%    -11.0 (-11..-11)
+Node2(0x0002) -> Node1(0x0001)   PONG       8      8    0.0%    -12.0 (-12..-12)")
 
 #penting[
   *Pilih port USB-to-UART, bukan USB native.* Setiap board ESP32-H2 muncul
@@ -407,16 +439,19 @@ mencetak), lalu membalas `PONG n`; Node1 menerima balasan itu.
 #keluaran("Node1 (802.15.4 sender) starting...
 Channel 15, PAN 0xCAFE, short addr 0x0001
 TX ke 0x0002: PING 1
-RX dari 0x0002: PONG 1
+RX dari 0x0002: PONG 1  [RSSI -12 dBm, LQI 11]
 TX ke 0x0002: PING 2
-RX dari 0x0002: PONG 2")
+RX dari 0x0002: PONG 2  [RSSI -12 dBm, LQI 11]")
 
 *Expected output --- Node2*
 
 #keluaran("Node2 (802.15.4 receiver) starting...
 Channel 15, PAN 0xCAFE, short addr 0x0002
-RX dari 0x0001: PING 1
+RX dari 0x0001: PING 1  [RSSI -11 dBm, LQI 10]
 TX balasan ke 0x0001: PONG 1")
+
+Nilai RSSI dan LQI bergantung pada jarak dan posisi board; angka di atas
+diambil dengan board berdekatan di meja.
 
 #checkpoint[
   Isi payload harus *terbaca sebagai teks*, bukan karakter acak. Jika muncul
@@ -506,13 +541,21 @@ Amati bahwa Node2 dan Node3 menerima frame yang sama, lalu diskusikan apa yang
 hilang dibanding unicast (tidak ada ACK, tidak ada penyaringan alamat tujuan).
 
 Perhatikan pula *dari alamat mana* PONG di Node1 berasal. Pada uji di
-perangkat (25 detik), Node2 dan Node3 masing-masing menerima 12/12 PING dan
-membalas semuanya, tetapi Node1 hanya mencetak 11 PONG --- *seluruhnya
-`RX dari 0x0003`*. Kedua penerima membalas pada saat yang hampir sama, CCA
-keduanya melihat channel kosong, dan kedua PONG bertabrakan di udara; Node1
-hanya menangkap frame yang lebih kuat (_capture effect_) dan tidak ada ACK yang
-memberi tahu Node2 bahwa PONG-nya hilang. Tanpa pembacaan `SrcAddr`, kehilangan
-ini tidak terlihat sama sekali.
+perangkat (25 detik, `monitor_serial.py`), Node2 dan Node3 masing-masing
+menerima 12/12 PING dan membalas semuanya, tetapi seluruh 12 PONG yang dicetak
+Node1 adalah *`RX dari 0x0003`*. Kedua penerima membalas pada saat yang hampir
+sama, CCA keduanya melihat channel kosong, dan kedua PONG bertabrakan di udara;
+Node1 hanya menangkap frame yang lebih kuat (_capture effect_) dan tidak ada ACK
+yang memberi tahu Node2 bahwa PONG-nya hilang. RSSI menjelaskan siapa yang
+menang: di Node1, sinyal Node3 sekitar −4 dBm, sedangkan sinyal Node2 sekitar
+−12 dBm. Tanpa pembacaan `SrcAddr`, kehilangan ini tidak terlihat sama sekali.
+
+#keluaran("Link (pengirim -> penerima)      jenis  kirim  terima   loss   RSSI dBm rata2 (min..max)
+------------------------------------------------------------------------------------------
+Node1(0x0001) -> Node2(0x0002)   PING      12     12    0.0%    -12.0 (-12..-12)
+Node1(0x0001) -> Node3(0x0003)   PING      12     12    0.0%     -5.4 (-6..-5)
+Node2(0x0002) -> Node1(0x0001)   PONG      12      0  100.0%   -
+Node3(0x0003) -> Node1(0x0001)   PONG      12     12    0.0%     -3.8 (-6..-2)")
 
 *Data capture --- tabel gejala lintas kelompok*
 
@@ -574,7 +617,7 @@ bersangkutan. Channel semua node tetap 15.
     [05-c], [`0xCAFE` / `0xBEEF`], [Node2: baris *dihapus*],
     [Sama dengan 05-b --- tanpa baris ini driver memakai nilai default `true`],
     [05-d], [`0xCAFE` / `0xCAFE`], [Node3: `true` (Node1, Node2: `false`)],
-    [Node3 *ikut* cetak `RX` untuk unicast yang bukan untuknya (`ke 0x0002` atau `ke 0x0001`); sebagian PONG di Node1 berasal dari `0x0003`, bukan `0x0002`],
+    [Node3 *ikut* cetak `RX dari 0x0001 (ke 0x0002, ...)` dan membalas; PONG Node2 bertabrakan dengan PONG Node3, sehingga Node1 hanya menerima PONG dari `0x0003` --- atau tidak sama sekali],
   ),
   [Matriks uji promiscuous mode EXP-05],
   "tbl:m07-exp05",
@@ -595,14 +638,23 @@ Ada tiga hal yang harus bisa dijelaskan dari percobaan ini.
 / Filter alamat tujuan ikut mati (05-d): promiscuous tidak hanya mengabaikan
   PAN ID, tetapi juga alamat tujuan. Node3 menerima PING yang ditujukan ke
   `0x0002` *dan* PONG yang ditujukan ke `0x0001` --- keduanya bukan untuknya,
-  padahal Node1 tidak mengirim ke `0xFFFF`. Buffer penerima hanya satu slot,
-  sehingga hasilnya bergantung pada siapa yang lebih cepat: (1) bila Node3
-  sempat membaca PING, ia mencetak `RX dari 0x0001 (ke 0x0002, ...)` dan ikut
-  membalas; PONG-nya bertabrakan dengan PONG Node2 dan Node1 mencetak
-  `RX dari 0x0003`; (2) bila PING sudah tertimpa PONG Node2, Node3 mencetak
-  `RX dari 0x0002 (ke 0x0001, ...)` dan diam (PONG tidak dibalas), sehingga
-  Node1 mencetak `RX dari 0x0002`. Pada uji 25 detik: 12 PING, Node1 menerima
-  5 PONG dari `0x0002` dan 7 dari `0x0003`.
+  padahal Node1 tidak mengirim ke `0xFFFF`. Node3 mencetak
+  `RX dari 0x0001 (ke 0x0002, ...)` lalu ikut membalas PING itu, sehingga
+  PONG-nya bertabrakan dengan PONG Node2. Pada uji 25 detik
+  (`monitor_serial.py`): 12 PING, Node3 menangkap 12/12, dan Node1 hanya
+  menerima 5 PONG --- *seluruhnya dari `0x0003`* (RSSI sekitar −3 dBm, jauh di
+  atas sinyal Node2 sekitar −12 dBm); 7 PING lainnya tidak terbalas sama sekali
+  karena kedua PONG rusak. Buffer penerima hanya satu slot, jadi kadang PING di
+  Node3 sudah tertimpa PONG Node2 sebelum sempat dibaca; Node3 lalu mencetak
+  `RX dari 0x0002 (ke 0x0001, ...)`, tidak membalas (bukan PING), dan PONG
+  Node2 lolos ke Node1.
+
+#keluaran("Link (pengirim -> penerima)      jenis  kirim  terima   loss   RSSI dBm rata2 (min..max)
+------------------------------------------------------------------------------------------
+Node1(0x0001) -> Node2(0x0002)   PING      12     12    0.0%    -11.0 (-11..-11)
+Node1(0x0001) -> Node3(0x0003)   PING       -     12     n/a     -5.0 (-5..-5)
+Node2(0x0002) -> Node1(0x0001)   PONG      12      0  100.0%   -
+Node3(0x0003) -> Node1(0x0001)   PONG      12      5   58.3%     -3.2 (-4..-2)")
 
 Bandingkan dengan XBee: firmware XBee selalu menyaring PAN ID dan alamat
 tujuan, sehingga perilakunya setara dengan 05-a tanpa perlu diatur. Pada
@@ -643,19 +695,27 @@ node ke `false` dan `PAN_ID 0xCAFE` setelah selesai.
   (Node2 menerima PING, Node1 tidak menerima PONG), dan mengapa 05-c sama
   dengan 05-b. Jawaban yang benar menyebut bahwa `esp_ieee802154_set_panid()`
   hanya mengisi register, sedangkan penyaringan baru aktif bila promiscuous
-  dimatikan. Praktikan juga dapat menjelaskan, dari alamat pengirim di log,
-  mengapa sebagian PONG di Node1 pada 05-d berasal dari `0x0003`.
+  dimatikan. Praktikan juga dapat menjelaskan, dari alamat pengirim dan RSSI di
+  log, mengapa PONG di Node1 pada 05-d berasal dari `0x0003` dan mengapa
+  sebagian PING tidak terbalas sama sekali.
 ]
 
 == Verifikasi Hardware --- Log Referensi
 
-Dijalankan pada 2 × *ESP32-H2 DevKitM-1*, capture 25 detik.
+Dijalankan pada 3 × *ESP32-H2 DevKitM-1* (Node3 menyala tetapi diam), board
+berdekatan di meja, direkam 17,8 detik dengan `monitor_serial.py`. Baris dengan
+timestamp sama diurutkan menurut alur protokol.
 
-#keluaran("# Node1 (ESP32-H2, env node1)          # Node2 (ESP32-H2, env node2)
-[0.201] Channel 15, PAN 0xCAFE, 0x0001 [0.201] Channel 15, PAN 0xCAFE, 0x0002
-[2.204] TX ke 0x0002: PING 1           [2.205] RX dari 0x0001: PING 1
-[2.204] RX dari 0x0002: PONG 1         [2.205] TX balasan ke 0x0001: PONG 1
-[4.208] TX ke 0x0002: PING 2           [4.209] RX dari 0x0001: PING 2")
+#keluaran("[  0.512] Node1 | Channel 15, PAN 0xCAFE, short addr 0x0001
+[  0.512] Node2 | Channel 15, PAN 0xCAFE, short addr 0x0002
+[  2.483] Node1 | TX ke 0x0002: PING 1
+[  2.483] Node2 | RX dari 0x0001: PING 1  [RSSI -11 dBm, LQI 10]
+[  2.483] Node2 | TX balasan ke 0x0001: PONG 1
+[  2.483] Node1 | RX dari 0x0002: PONG 1  [RSSI -12 dBm, LQI 11]
+[  4.498] Node1 | TX ke 0x0002: PING 2
+[  4.498] Node2 | RX dari 0x0001: PING 2  [RSSI -11 dBm, LQI 11]
+[  4.498] Node2 | TX balasan ke 0x0001: PONG 2
+[  4.498] Node1 | RX dari 0x0002: PONG 2  [RSSI -12 dBm, LQI 11]")
 
 #tbl(
   table(
@@ -664,9 +724,11 @@ Dijalankan pada 2 × *ESP32-H2 DevKitM-1*, capture 25 detik.
     inset: (x: 0.6em, y: 0.45em),
     stroke: 0.5pt + luma(170),
     table.header(th[Parameter], th[Hasil terukur]),
-    [PING dikirim / diterima Node2], [12 / 12],
-    [PONG dikirim / diterima Node1], [12 / 12],
-    [Round-trip PING ke PONG], [< 1 ms (di bawah resolusi cetak Serial)],
+    [PING dikirim / diterima Node2], [8 / 8],
+    [PONG dikirim / diterima Node1], [8 / 8],
+    [RSSI PING di Node2 / PONG di Node1], [−11 dBm / −12 dBm],
+    [LQI (mentah hardware)], [9--11],
+    [Round-trip PING ke PONG], [di bawah resolusi timestamp (PING dan PONG tercetak pada milidetik yang sama)],
   ),
   [Hasil verifikasi hardware Modul 07],
   "tbl:m07-verifikasi",
@@ -682,7 +744,8 @@ Dijalankan pada 2 × *ESP32-H2 DevKitM-1*, capture 25 detik.
   Log serial lengkap hasil uji pada board nyata, bukan contoh. Bagian ini
   hanya dicetak pada edisi dosen.
 
-  Hasil aktual dari board nyata. Baud 115200, dua board ESP32-H2.
+  Hasil aktual dari board nyata. Baud 115200, tiga board ESP32-H2, direkam
+  dengan `monitor_serial.py` lewat port UART CH343 di Windows.
 
   *Board & Port*
 
@@ -693,8 +756,9 @@ Dijalankan pada 2 × *ESP32-H2 DevKitM-1*, capture 25 detik.
       inset: (x: 0.6em, y: 0.45em),
       stroke: 0.5pt + luma(170),
       table.header(th[Node], th[Peran], th[short addr], th[Port serial (UART)]),
-      [Node1], [Sender (kirim PING)], [`0x0001`], [`/dev/ttyACM0`],
-      [Node2], [Receiver (balas PONG)], [`0x0002`], [`/dev/ttyACM2`],
+      [Node1], [Sender (kirim PING)], [`0x0001`], [`COM5`],
+      [Node2], [Receiver (balas PONG)], [`0x0002`], [`COM11`],
+      [Node3], [Receiver tambahan (broadcast, promiscuous)], [`0x0003`], [`COM13`],
     ),
     [Board dan port pada rekaman log serial Modul 07],
     "tbl:m07-log-1",
@@ -702,7 +766,7 @@ Dijalankan pada 2 × *ESP32-H2 DevKitM-1*, capture 25 detik.
 
   Channel 15, PAN ID `0xCAFE`.
 
-  *Node1 — `/dev/ttyACM0`*
+  *Node1 --- `COM5`*
 
   #keluaran("ESP-ROM:esp32h2-20221101
 Build:Nov  1 2022
@@ -716,27 +780,27 @@ entry 0x4083c2d0
 Node1 (802.15.4 sender) starting...
 Channel 15, PAN 0xCAFE, short addr 0x0001
 TX ke 0x0002: PING 1
-RX dari 0x0002: PONG 1
+RX dari 0x0002: PONG 1  [RSSI -12 dBm, LQI 11]
 TX ke 0x0002: PING 2
-RX dari 0x0002: PONG 2
+RX dari 0x0002: PONG 2  [RSSI -12 dBm, LQI 11]
 TX ke 0x0002: PING 3
-RX dari 0x0002: PONG 3
+RX dari 0x0002: PONG 3  [RSSI -12 dBm, LQI 11]
 TX ke 0x0002: PING 4
-RX dari 0x0002: PONG 4
+RX dari 0x0002: PONG 4  [RSSI -12 dBm, LQI 11]
 TX ke 0x0002: PING 5
-RX dari 0x0002: PONG 5
+RX dari 0x0002: PONG 5  [RSSI -12 dBm, LQI 11]
 TX ke 0x0002: PING 6
-RX dari 0x0002: PONG 6
+RX dari 0x0002: PONG 6  [RSSI -12 dBm, LQI 10]
 TX ke 0x0002: PING 7
-RX dari 0x0002: PONG 7
+RX dari 0x0002: PONG 7  [RSSI -12 dBm, LQI 9]
 TX ke 0x0002: PING 8
-RX dari 0x0002: PONG 8", pecah: true)
+RX dari 0x0002: PONG 8  [RSSI -12 dBm, LQI 10]", pecah: true)
 
-  *Node2 — `/dev/ttyACM2`*
+  *Node2 --- `COM11`*
 
   #keluaran("ESP-ROM:esp32h2-20221101
 Build:Nov  1 2022
-rst:0x1 (POWERON),boot:0xd (SPI_FAST_FLASH_BOOT)
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
 SPIWP:0xee
 mode:DIO, clock div:1
 load:0x408460f0,len:0x1214
@@ -745,29 +809,93 @@ load:0x4083efd0,len:0x2f7c
 entry 0x4083c2d0
 Node2 (802.15.4 receiver) starting...
 Channel 15, PAN 0xCAFE, short addr 0x0002
-RX dari 0x0001: PING 1
+RX dari 0x0001: PING 1  [RSSI -11 dBm, LQI 10]
 TX balasan ke 0x0001: PONG 1
-RX dari 0x0001: PING 2
+RX dari 0x0001: PING 2  [RSSI -11 dBm, LQI 11]
 TX balasan ke 0x0001: PONG 2
-RX dari 0x0001: PING 3
+RX dari 0x0001: PING 3  [RSSI -11 dBm, LQI 11]
 TX balasan ke 0x0001: PONG 3
-RX dari 0x0001: PING 4
+RX dari 0x0001: PING 4  [RSSI -11 dBm, LQI 10]
 TX balasan ke 0x0001: PONG 4
-RX dari 0x0001: PING 5
+RX dari 0x0001: PING 5  [RSSI -11 dBm, LQI 10]
 TX balasan ke 0x0001: PONG 5
-RX dari 0x0001: PING 6
+RX dari 0x0001: PING 6  [RSSI -11 dBm, LQI 10]
 TX balasan ke 0x0001: PONG 6
-RX dari 0x0001: PING 7
+RX dari 0x0001: PING 7  [RSSI -11 dBm, LQI 10]
 TX balasan ke 0x0001: PONG 7
-RX dari 0x0001: PING 8
+RX dari 0x0001: PING 8  [RSSI -11 dBm, LQI 10]
 TX balasan ke 0x0001: PONG 8", pecah: true)
+
+  *Node3 --- `COM13`* (menyala, tidak menerima apa pun karena PING ditujukan ke `0x0002`)
+
+  #keluaran("ESP-ROM:esp32h2-20221101
+Build:Nov  1 2022
+rst:0x1 (POWERON),boot:0xc (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x408460f0,len:0x1214
+load:0x4083c2d0,len:0xd6c
+load:0x4083efd0,len:0x2f7c
+entry 0x4083c2d0
+Node3 (802.15.4 receiver) starting...
+Channel 15, PAN 0xCAFE, short addr 0x0003")
+
+  *Ringkasan `monitor_serial.py` --- baseline*
+
+  #keluaran("Link (pengirim -> penerima)      jenis  kirim  terima   loss   RSSI dBm rata2 (min..max)
+------------------------------------------------------------------------------------------
+Node1(0x0001) -> Node2(0x0002)   PING       8      8    0.0%    -11.0 (-11..-11)
+Node2(0x0002) -> Node1(0x0001)   PONG       8      8    0.0%    -12.0 (-12..-12)")
+
+  *Ringkasan --- EXP-04-e broadcast* (`PEER_ADDR 0xFFFF` di Node1)
+
+  #keluaran("Link (pengirim -> penerima)      jenis  kirim  terima   loss   RSSI dBm rata2 (min..max)
+------------------------------------------------------------------------------------------
+Node1(0x0001) -> Node2(0x0002)   PING      12     12    0.0%    -12.0 (-12..-12)
+Node1(0x0001) -> Node3(0x0003)   PING      12     12    0.0%     -5.4 (-6..-5)
+Node2(0x0002) -> Node1(0x0001)   PONG      12      0  100.0%   -
+Node3(0x0003) -> Node1(0x0001)   PONG      12     12    0.0%     -3.8 (-6..-2)")
+
+  *Ringkasan --- EXP-05-b* (Node2 `PAN_ID 0xBEEF`, promiscuous `true`)
+
+  #keluaran("[  0.502] Node2 | Node2 (802.15.4 receiver) starting...
+[  0.502] Node2 | Channel 15, PAN 0xBEEF, short addr 0x0002
+[  0.517] Node3 | Node3 (802.15.4 receiver) starting...
+[  0.517] Node1 | Node1 (802.15.4 sender) starting...
+[  0.517] Node1 | Channel 15, PAN 0xCAFE, short addr 0x0001
+[  0.517] Node3 | Channel 15, PAN 0xCAFE, short addr 0x0003
+[  2.483] Node1 | TX ke 0x0002: PING 1
+[  2.499] Node2 | RX dari 0x0001 (ke 0x0002, PAN 0xCAFE): PING 1  [RSSI -11 dBm, LQI 10]
+[  2.499] Node2 | TX balasan ke 0x0001: PONG 1
+[  4.489] Node1 | TX ke 0x0002: PING 2
+[  4.504] Node2 | RX dari 0x0001 (ke 0x0002, PAN 0xCAFE): PING 2  [RSSI -11 dBm, LQI 10]
+[  4.504] Node2 | TX balasan ke 0x0001: PONG 2
+[  6.495] Node1 | TX ke 0x0002: PING 3
+[  6.495] Node2 | RX dari 0x0001 (ke 0x0002, PAN 0xCAFE): PING 3  [RSSI -11 dBm, LQI 10]
+[  6.495] Node2 | TX balasan ke 0x0001: PONG 3")
+
+  #keluaran("Link (pengirim -> penerima)      jenis  kirim  terima   loss   RSSI dBm rata2 (min..max)
+------------------------------------------------------------------------------------------
+Node1(0x0001) -> Node2(0x0002)   PING      12     12    0.0%    -11.0 (-11..-11)
+Node2(0x0002) -> Node1(0x0001)   PONG      12      0  100.0%   -")
+
+  *Ringkasan --- EXP-05-d* (Node3 promiscuous `true`)
+
+  #keluaran("Link (pengirim -> penerima)      jenis  kirim  terima   loss   RSSI dBm rata2 (min..max)
+------------------------------------------------------------------------------------------
+Node1(0x0001) -> Node2(0x0002)   PING      12     12    0.0%    -11.0 (-11..-11)
+Node1(0x0001) -> Node3(0x0003)   PING       -     12     n/a     -5.0 (-5..-5)
+Node2(0x0002) -> Node1(0x0001)   PONG      12      0  100.0%   -
+Node3(0x0003) -> Node1(0x0001)   PONG      12      5   58.3%     -3.2 (-4..-2)
+Frame yang bukan untuk penerimanya (hanya lolos bila promiscuous aktif):
+  Node3(0x0003) menangkap PING dari Node1(0x0001) ke Node2(0x0002): 12x")
 
   *Catatan*
 
-  - Node1 mengirim frame 802.15.4 (raw, tanpa stack Zigbee/Thread) berisi `PING n` tiap 2 detik ke short address `0x0002`.
-  - Node2 menerima, lalu membalas `PONG n` ke `0x0001`.
-  - FCS dihitung otomatis oleh hardware; pada sisi RX dua byte FCS diganti RSSI+LQI.
-  - Komunikasi dua arah terbukti dari sisi Node1 (`RX dari 0x0002: PONG n`) dan sisi Node2 (`RX dari 0x0001: PING n`).
+  - Node1 mengirim frame 802.15.4 (raw, tanpa stack Zigbee/Thread) berisi `PING n` tiap 2 detik ke `PEER_ADDR`.
+  - Node2 dan Node3 membalas `PONG n` ke alamat pengirim yang dibaca dari `SrcAddr` frame, dan hanya membalas PING.
+  - FCS dihitung otomatis oleh hardware; pada sisi RX dua byte FCS diganti RSSI+LQI, yang disalin driver ke `frame_info`.
+  - Baris dengan timestamp sama berasal dari port berbeda, sehingga urutannya tidak selalu mencerminkan urutan kejadian di udara.
   - Baris `ESP-ROM:…` s/d `entry …` adalah log ROM boot, keluar sekali saat reset.
 ]
 
@@ -808,8 +936,10 @@ TX balasan ke 0x0001: PONG 8", pecah: true)
   "tbl:m07-pernode",
 )
 
-RSSI dapat dibaca dari `frame_info->rssi` di dalam `receive_done` --- salin ke
-variabel, cetak di `loop()`, jangan mencetak di ISR.
+RSSI sudah dicetak di setiap baris RX (disalin dari `frame_info->rssi` di
+`receive_done`, dicetak di `loop()` --- tidak di ISR). Cara termudah mengisi
+tabel di atas: jalankan `monitor_serial.py --duration 120` pada tiap jarak, lalu
+ambil RSSI rata-rata (min..max) dan loss per arah dari ringkasannya.
 
 *Baseline untuk M16.* Catat jarak maksimum yang masih 100 % berhasil pada modul
 ini. Angka itu adalah jangkauan radio 802.15.4 *tanpa* bantuan mesh ---
@@ -862,10 +992,15 @@ frame[3] = seq++;
   "lst:m07-ch1",
 )
 
-#tujuan-prak(3, [RSSI sendiri dan broadcast])[
-  / CH-3 --- RSSI dari frame sendiri: Salin `frame_info->rssi` dan
-    `frame_info->lqi` di ISR, cetak di `loop()`, lalu isi kolom RSSI bagian
-    Pengukuran dari data node sendiri (bukan aplikasi luar).
+#tujuan-prak(3, [RSSI, jarak, dan broadcast])[
+  / CH-3 --- RSSI terhadap jarak dan _capture effect_: (a) Dengan
+    `monitor_serial.py --duration 120`, catat RSSI rata-rata (min..max) kedua
+    arah pada kelima jarak di tabel Pengukuran, lalu buat grafik RSSI terhadap
+    jarak. (b) Ulangi uji broadcast 04-e dua kali: sekali dengan Node3 lebih
+    dekat ke Node1 daripada Node2, sekali sebaliknya. Sebelum menjalankan,
+    *prediksi* PONG siapa yang akan diterima Node1 berdasarkan selisih RSSI,
+    lalu buktikan dengan ringkasan monitor. Berapa selisih RSSI minimum agar
+    PONG yang lebih kuat tetap lolos?
 
   / CH-4 --- Broadcast: Ubah `DestAddr` menjadi `0xFFFF` (broadcast) dan
     tambahkan node ketiga. Amati apakah kedua penerima menerima frame yang

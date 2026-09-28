@@ -437,6 +437,16 @@ Catatan praktis:
    `RX dari 0x0001 (ke 0xFFFF, PAN 0xCAFE)`. Dari sinilah terlihat bahwa pada
    broadcast semua PONG di Node1 datang dari `0x0003` (PONG Node2 hilang karena
    tabrakan).
+6. **RSSI dan LQI ikut dicetak** di akhir setiap baris RX, misalnya
+   `RX dari 0x0002: PONG 1  [RSSI -12 dBm, LQI 11]`. RSSI menjelaskan tabrakan
+   di atas: sinyal Node3 di Node1 sekitar −4 dBm, sinyal Node2 sekitar −12 dBm,
+   sehingga PONG Node3 yang tertangkap (*capture effect*). LQI ESP32-H2 adalah
+   nilai mentah hardware (teramati 6–11), tidak sebanding dengan LQI 0–255 radio
+   lain — pakai RSSI untuk mengukur jarak.
+7. **Pantau ketiga node dari satu komputer** dengan
+   `python week07_802154_p2p/monitor_serial.py`: port CH343 dideteksi otomatis,
+   log ketiga node tampil dalam satu sumbu waktu, dan ringkasan per link
+   (terkirim, diterima, loss, RSSI, LQI) dicetak saat berhenti.
 
 ### Apakah 6LoWPAN didukung ESP32-H2?
 

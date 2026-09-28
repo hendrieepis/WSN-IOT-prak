@@ -11,6 +11,8 @@
 static volatile bool hasRx = false;
 static char rxPayload[64] = {0};
 static volatile uint16_t rxSrc, rxDst, rxDstPan;  // dibaca dari MHR frame yang diterima
+static volatile int8_t  rxRssi;                   // kekuatan sinyal (dBm, sudah dikoreksi driver)
+static volatile uint8_t rxLqi;                    // LQI mentah hardware (skala khusus chip)
 
 static uint8_t buildFrame(uint8_t *frame, uint16_t dst, const char *payload) {
   uint8_t plen = strlen(payload);
@@ -35,6 +37,8 @@ void esp_ieee802154_receive_done(uint8_t *frame, esp_ieee802154_frame_info_t *fr
     rxDstPan = frame[4]  | (frame[5]  << 8);   // dest PAN
     rxDst    = frame[6]  | (frame[7]  << 8);   // dest addr
     rxSrc    = frame[10] | (frame[11] << 8);   // src addr: alamat pengirim sebenarnya
+    rxRssi   = frame_info->rssi;
+    rxLqi    = frame_info->lqi;
     memcpy((void *)rxPayload, &frame[12], plen);
     rxPayload[plen] = '\0';
     hasRx = true;
@@ -46,9 +50,11 @@ void esp_ieee802154_receive_done(uint8_t *frame, esp_ieee802154_frame_info_t *fr
 // bukan untuk node ini (broadcast, atau lolos karena promiscuous aktif).
 static void printRx(uint16_t src, uint16_t dst, uint16_t dpan) {
   if (dst == MY_ADDR && dpan == PAN_ID)
-    Serial.printf("RX dari 0x%04X: %s\n", src, rxPayload);
+    Serial.printf("RX dari 0x%04X: %s  [RSSI %d dBm, LQI %u]\n",
+                  src, rxPayload, rxRssi, rxLqi);
   else
-    Serial.printf("RX dari 0x%04X (ke 0x%04X, PAN 0x%04X): %s\n", src, dst, dpan, rxPayload);
+    Serial.printf("RX dari 0x%04X (ke 0x%04X, PAN 0x%04X): %s  [RSSI %d dBm, LQI %u]\n",
+                  src, dst, dpan, rxPayload, rxRssi, rxLqi);
 }
 
 void setup() {

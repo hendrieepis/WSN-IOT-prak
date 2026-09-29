@@ -64,6 +64,9 @@ RE_READY = re.compile(r"^Bergabung ke mesh")
 RE_TX = re.compile(r"^TX multicast: NODE(\d+):(\d+)")
 RE_RX = re.compile(r"^RX \[([0-9a-fA-F:]+)\]: NODE(\d+):(\d+)")
 RE_OT_ERR = re.compile(r"^E \(\d+\) OT_")
+# Blok "Info network Thread:" yang dicetak printNetworkInfo() setelah attach
+RE_NET = re.compile(r"^\s+(Network name|Channel|PAN ID|Extended PAN ID|RLOC16|Extended addr|EUI-64"
+                    r"|Mesh-Local EID)\s*: (\S+)")
 
 # RX dianggap salinan TX bernomor sama bila tiba dalam jendela ini (detik).
 MATCH_WINDOW = (-0.5, 5.0)
@@ -85,6 +88,7 @@ class Node:
         self.attach = None        # detik sejak boot sampai "Attached as"
         self.ready = None         # waktu "Bergabung ke mesh" (mulai menerima multicast)
         self.ot_errors = 0
+        self.net = {}             # info network: Channel, PAN ID, RLOC16, EUI-64, ...
         self.tx = []              # (t, seq)
         self.rx = []              # (t, eid, nama pengirim, seq)
 
@@ -116,6 +120,10 @@ def parse(node, text, now):
         return
     if RE_OT_ERR.match(text):
         node.ot_errors += 1
+        return
+    m = RE_NET.match(text)
+    if m:
+        node.net[m.group(1)] = m.group(2)
         return
     m = RE_ATTACHED.match(text)
     if m:
@@ -207,7 +215,7 @@ def link(src, rcv):
 
 def summary(nodes, out):
     out(f"\nDurasi: {time.time() - t0:.1f} s")
-    eids = {}
+    eids = {n.name: n.net["Mesh-Local EID"].lower() for n in nodes if "Mesh-Local EID" in n.net}
     for n in nodes:
         for _, eid, name, _ in n.rx:
             eids.setdefault(name, eid)
@@ -218,6 +226,17 @@ def summary(nodes, out):
             f" attach {attach} sejak boot{warn}")
         if n.name in eids:
             out(f"         EID {eids[n.name]}")
+        if n.net:
+            out(f"         network {n.net.get('Network name', '?')}, channel {n.net.get('Channel', '?')},"
+                f" PAN {n.net.get('PAN ID', '?')}, RLOC16 {n.net.get('RLOC16', '?')},"
+                f" EUI-64 {n.net.get('EUI-64', '?')}")
+
+    nets = [n for n in nodes if n.net]
+    if len(nets) >= 2:
+        keys = ("Network name", "Channel", "PAN ID", "Extended PAN ID")
+        same = all(len({n.net.get(k) for n in nets}) == 1 for k in keys)
+        out("  Network name/Channel/PAN ID/Extended PAN ID semua node: "
+            + ("sama (satu network)" if same else "BERBEDA — dataset tidak identik?"))
 
     out("\nLink (pengirim -> penerima)  kirim  terima    loss   TX->RX ms rata2 (min..max)   jeda terpanjang")
     out("-" * 98)

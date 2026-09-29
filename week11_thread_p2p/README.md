@@ -68,6 +68,23 @@ const uint8_t OT_ML_PREFIX[OT_MESH_LOCAL_PREFIX_SIZE] =
 
 Tanpa langkah itu tiap board memakai prefix acak sendiri. Gejalanya menyesatkan: kedua node **tetap attach** (MLE hanya mencocokkan channel, PAN ID, ext PAN ID, dan network key) dan Serial Monitor tampak normal, tetapi tidak satu pun paket multicast `ff03::` sampai — karena penerusan multicast realm-local terikat pada prefix mesh-local jaringan. Cirinya: dua node dengan awalan Mesh-Local EID berbeda, misal `fdcd:8b6:7a73:...` di satu sisi dan `fd99:6dd0:2d68:...` di sisi lain.
 
+**Alamat di Thread: di mana MY, SH, dan SL?** Setelah attach, tiap node mencetak blok `Info network Thread:` (fungsi `printNetworkInfo()`). Isinya bisa dipetakan ke parameter XBee dan Zigbee (Modul 08), dengan dua perbedaan penting:
+
+| XBee | Zigbee (M08) | Thread (modul ini) | Catatan |
+|---|---|---|---|
+| **MY** | `Short address` | `RLOC16` | Alamat 16-bit yang dibagikan jaringan. Di Thread nilainya menyandi **Router ID + Child ID**, jadi berubah bila peran atau parent berubah. |
+| **SH + SL** | `IEEE address` | `EUI-64` | Alamat pabrik 64-bit, tetap, unik — padanan nomor di label XBee. |
+| — | (sama dengan IEEE) | `Extended addr` | Alamat MAC 64-bit yang **diacak** Thread demi privasi, jadi **tidak sama** dengan EUI-64. |
+| **CH** | `Channel` | `Channel` | Di Thread diambil dari dataset yang ditulis kode (15), bukan dipilih jaringan. |
+| **OI** | `PAN ID` | `PAN ID` | Dari dataset (`0xABCD`). |
+| **OP** | `Extended PAN ID` | `Extended PAN ID` | Dari dataset (`DE:AD:00:BE:EF:00:CA:FE`). |
+| — | — | `Network name` | Nama jaringan dari dataset (`ESP_OT_P2P`). XBee tidak punya padanannya (NI adalah nama *node*, bukan nama jaringan). |
+| — | — | `Mesh-Local EID` | Alamat **IPv6** node di dalam mesh — alamat yang muncul di baris `RX [...]` dan dipakai untuk unicast balik. |
+
+Dua perbedaan yang paling penting: **(1)** parameter jaringan (channel, PAN ID, Extended PAN ID, network name) di Thread **ditentukan dataset di kode**, sedangkan di Zigbee dipilih coordinator; **(2)** aplikasi Thread berbicara dengan **alamat IPv6** (Mesh-Local EID), bukan alamat 16-bit seperti DH/DL di XBee atau binding di Zigbee.
+
+**Membaca RLOC16.** 6 bit atas adalah Router ID, 9 bit bawah adalah Child ID. Router/Leader punya Child ID 0 (mis. `0xE800` = Router ID 58); child memakai Router ID parent-nya (mis. `0xE801` = child nomor 1 dari router `0xE800`). Jadi dari RLOC16 saja terlihat siapa parent sebuah child.
+
 **Sekuens protokol yang diamati**
 
 ```
@@ -201,15 +218,24 @@ Node1 bind grup multicast port 5050 dan juga unicast; Node2 mengirim `PING` mult
  [N2] RX PONG dari EID Node1
 ```
 
-**Expected output — Node1**
+**Expected output — Node1** (dari uji di board; alamat dan peran di board Anda akan berbeda)
 
 ```
 Node1 (Thread Leader) starting...
 Menunggu attach...
-Attached as: Leader        <- bisa juga Child, tergantung urutan boot
-Mesh-Local EID: fdde:ad00:beef:0:xxxx:xxxx:xxxx:xxxx
+Attached as: Child         <- bisa juga Leader, tergantung urutan boot
+Info network Thread:
+  Peran          : Child
+  Network name   : ESP_OT_P2P
+  Channel        : 15
+  PAN ID         : 0xABCD
+  Extended PAN ID: DE:AD:00:BE:EF:00:CA:FE
+  RLOC16         : 0xE801
+  Extended addr  : FA:FE:07:23:A6:B1:A9:FB
+  EUI-64         : 74:4D:BD:FF:FE:61:E6:2C
+  Mesh-Local EID : fdde:ad00:beef:0:e54c:17e1:80ad:62a4
 Mendengarkan [ff03::abcd]:5050 (dan unicast)
-RX [fdde:ad00:beef:0:xxxx:...]:5050 -> 'PING'
+RX [fdde:ad00:beef:0:cbc4:ae06:ccea:2768]:5050 -> 'PING'
 TX PONG (unicast ke pengirim)
 ```
 
@@ -218,11 +244,24 @@ TX PONG (unicast ke pengirim)
 ```
 Node2 (Thread Child) starting...
 Menunggu join ke network Leader...
-Attached as: Child         <- bisa juga Leader, tergantung urutan boot
-Mesh-Local EID: fdde:ad00:beef:0:yyyy:...
+Attached as: Leader        <- bisa juga Child, tergantung urutan boot
+Info network Thread:
+  Peran          : Leader
+  Network name   : ESP_OT_P2P
+  Channel        : 15
+  PAN ID         : 0xABCD
+  Extended PAN ID: DE:AD:00:BE:EF:00:CA:FE
+  RLOC16         : 0xE800
+  Extended addr  : 3E:CC:8F:12:00:85:DF:E5
+  EUI-64         : 74:4D:BD:FF:FE:61:E8:C1
+  Mesh-Local EID : fdde:ad00:beef:0:cbc4:ae06:ccea:2768
 TX PING (multicast)
-RX [fdde:ad00:beef:0:xxxx:...]:5050 -> 'PONG'
+TX PING (multicast)
+TX PING (multicast)
+RX [fdde:ad00:beef:0:e54c:17e1:80ad:62a4]:5050 -> 'PONG'
 ```
+
+> Blok info network kedua node harus sama pada **Network name, Channel, PAN ID, dan Extended PAN ID**. Pada uji ini Node2 yang menjadi Leader (`RLOC16 0xE800`) dan Node1 menjadi child-nya (`0xE801`) — peran tidak ditentukan kode. Perhatikan juga `Extended addr` ≠ `EUI-64` (lihat tabel alamat di Dasar Teori).
 
 > **CHECKPOINT** — Alamat yang tercetak pada baris `RX` di Node2 harus **sama persis** dengan Mesh-Local EID Node1. Jika tidak cocok, ada node lain di ruangan yang ikut membalas — catat, itu temuan menarik untuk analisis.
 

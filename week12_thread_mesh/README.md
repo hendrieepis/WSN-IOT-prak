@@ -202,18 +202,30 @@ Setiap 5 detik tiap node mengirim `NODEn:<counter>` ke `ff03::abcd:5050` dan men
  [tiap node] TX multicast ──► [semua node lain] RX [fdde:ad00:beef:0:...]: NODEx:c
 ```
 
-**Expected output — contoh Node1**
+**Expected output — contoh Node1** (dari uji di board; alamat dan peran di board Anda akan berbeda)
 
 ```
 Node1 (Thread) starting...
-Attached as: Leader        <- bisa Router atau Child, tergantung urutan boot
+Attached as: Router        <- bisa Leader atau Child, tergantung urutan boot
+Info network Thread:
+  Peran          : Router
+  Network name   : ESP_OT_MESH
+  Channel        : 15
+  PAN ID         : 0xABCD
+  Extended PAN ID: DE:AD:00:BE:EF:00:CA:FE
+  RLOC16         : 0x1C00
+  Extended addr  : 56:22:E4:9A:19:AC:56:CA
+  EUI-64         : 74:4D:BD:FF:FE:61:E6:2C
+  Mesh-Local EID : fdde:ad00:beef:0:d44d:fcf1:5002:f8c7
 Bergabung ke mesh, siap kirim/terima.
 TX multicast: NODE1:1
-RX [fdde:ad00:beef:0:yyyy:...]: NODE2:1
-RX [fdde:ad00:beef:0:zzzz:...]: NODE3:1
+RX [fdde:ad00:beef:0:6c6f:63ae:ba2c:a98d]: NODE2:1
+RX [fdde:ad00:beef:0:f915:1df2:1a01:26c9]: NODE3:2
 TX multicast: NODE1:2
-RX [fdde:ad00:beef:0:yyyy:...]: NODE2:2
+RX [fdde:ad00:beef:0:6c6f:63ae:ba2c:a98d]: NODE2:2
 ```
+
+> Blok info network ketiga node harus sama pada **Network name, Channel, PAN ID, dan Extended PAN ID**. Dari `RLOC16` terbaca topologinya: pada uji ini Node3 Leader `0x6C00`, Node1 Router `0x1C00`, dan Node2 Child `0x1C01` — Router ID-nya sama dengan Node1, jadi **parent Node2 adalah Node1**. Padanan alamat XBee/Zigbee/Thread ada di Modul 11.
 
 > **CHECKPOINT** — Di **setiap** Serial Monitor muncul baris RX dari **dua** sumber berbeda (bukan satu). Jika hanya satu, node ketiga belum masuk mesh atau prefix-nya berbeda. Cocokkan juga counter: harus berurutan tanpa lompat.
 

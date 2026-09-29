@@ -32,6 +32,37 @@ static void applyMeshLocalPrefix() {
 
 OThreadUDP OtUdp;
 
+// Cetak 8 byte sebagai XX:XX:...:XX (Extended PAN ID, alamat 64-bit).
+static void printHex8(const char *label, const uint8_t *b) {
+  Serial.print(label);
+  if (b == nullptr) {
+    Serial.println("?");
+    return;
+  }
+  for (int i = 0; i < 8; i++) {
+    Serial.printf(i ? ":%02X" : "%02X", b[i]);
+  }
+  Serial.println();
+}
+
+// Cetak parameter jaringan Thread yang sedang dipakai node ini. Getter
+// OThread sudah mengunci stack OpenThread sendiri.
+static void printNetworkInfo() {
+  uint8_t eui64[8];
+  bool hasEui = OThread.getEui64(eui64);
+
+  Serial.println("Info network Thread:");
+  Serial.printf("  Peran          : %s\n", OThread.otGetStringDeviceRole());
+  Serial.printf("  Network name   : %s\n", OThread.getNetworkName().c_str());
+  Serial.printf("  Channel        : %u\n", OThread.getChannel());
+  Serial.printf("  PAN ID         : 0x%04X\n", OThread.getPanId());
+  printHex8("  Extended PAN ID: ", OThread.getExtendedPanId());
+  Serial.printf("  RLOC16         : 0x%04X\n", OThread.getRloc16());
+  printHex8("  Extended addr  : ", OThread.getExtendedAddress());
+  printHex8("  EUI-64         : ", hasEui ? eui64 : nullptr);
+  Serial.printf("  Mesh-Local EID : %s\n", OThread.getMeshLocalEid().toString().c_str());
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println("Node2 (Thread Child) starting...");
@@ -58,7 +89,7 @@ void setup() {
     delay(250);
   }
   Serial.printf("Attached as: %s\n", OThread.otGetStringDeviceRole());
-  Serial.printf("Mesh-Local EID: %s\n", OThread.getMeshLocalEid().toString().c_str());
+  printNetworkInfo();
 
   OtUdp.begin(PORT);  // bind untuk menerima balasan unicast
 }

@@ -239,26 +239,65 @@ Setelah attach, H2 mengirim `suhu:XX.X` ke grup multicast tiap 3 detik. Amati pa
 
 Catatan: alamat yang tercetak gateway adalah `OtUdp.remoteIP()` — mesh-local EID **node pengirim** (`fdde:ad00:...`), bukan alamat grup `ff03::abcd` yang dituju.
 
-**Expected output — H2**
+**Expected output — H2** (dari uji di board; alamat, peran, dan IP di board Anda akan berbeda)
 
 ```
 Sensor H2 (Thread node) starting...
 Menunggu join ke gateway (C6)...
-Attached as: child
-TX via Thread: suhu:25.4
-TX via Thread: suhu:26.1
+Attached as: Leader        <- bisa juga Child, tergantung urutan boot
+Info network Thread:
+  Peran          : Leader
+  Network name   : ESP_OT_GW
+  Channel        : 15
+  PAN ID         : 0xABCD
+  Extended PAN ID: DE:AD:00:BE:EF:00:CA:FE
+  RLOC16         : 0x6C00
+  Extended addr  : D6:48:6C:1E:E0:BC:16:6B
+  EUI-64         : 74:4D:BD:FF:FE:61:E6:2C
+  Mesh-Local EID : fdde:ad00:beef:0:7c1b:2b3:3487:1195
+TX via Thread: suhu:24.4
+TX via Thread: suhu:25.0
 ```
 
 **Expected output — C6**
 
 ```
-Konek Wi-Fi NAMA_WIFI....
-Wi-Fi OK, IP: 192.168.x.x
+Konek Wi-Fi SprH-3......
+Wi-Fi OK, IP: 192.168.1.109 | RSSI: -63 dBm
+coex preference = WIFI (err=0)
 Menunggu attach Thread...
-Thread attached as: leader
+Thread attached as: Child
+Default netif dikembalikan ke Wi-Fi STA (err=0)
+Info network Thread:
+  Peran          : Child
+  Network name   : ESP_OT_GW
+  Channel        : 15
+  PAN ID         : 0xABCD
+  Extended PAN ID: DE:AD:00:BE:EF:00:CA:FE
+  RLOC16         : 0x6C01
+  Extended addr  : BE:21:63:FE:AC:75:5F:60
+  EUI-64         : 40:4C:CA:FF:FE:5E:C5:40
+  Mesh-Local EID : fdde:ad00:beef:0:15c:9037:1e71:3135
+Info network Wi-Fi:
+  SSID           : SprH-3
+  IP             : 192.168.1.109
+  RSSI           : -64 dBm
+  Channel Wi-Fi  : 8
+  BSSID (AP)     : 24:C0:13:CB:4B:27
+  MAC            : 40:4C:CA:5E:C5:40
 Gateway siap (Thread -> Wi-Fi).
-RX via Thread [fdde:ad00:beef:0:xxxx:xxxx:xxxx:xxxx]: suhu:25.4
+SIM sensor (Thread): suhu:25.8
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1
+RX via Thread [fdde:ad00:beef:0:7c1b:2b3:3487:1195]: suhu:24.8
+Forward via Wi-Fi -> http://192.168.1.5:8080/post | HTTP -1
 ```
+
+> **Membaca info network.** Kedua board harus sama pada **Network name, Channel, PAN ID, dan Extended PAN ID** Thread. Peran dipilih jaringan: pada uji ini H2 attach lebih dulu dan menjadi **Leader** (`RLOC16 0x6C00`), gateway C6 menjadi **Child**-nya (`0x6C01`) — gateway tidak harus Leader. Dua hal khusus modul ini:
+>
+> - **EUI-64 C6 diturunkan dari MAC Wi-Fi-nya**: MAC `40:4C:CA:5E:C5:40` → EUI-64 `40:4C:CA:FF:FE:5E:C5:40` (disisipi `FF:FE` di tengah). Satu chip, satu identitas pabrik untuk kedua radio.
+> - **Channel Wi-Fi vs channel Thread.** Wi-Fi memakai channel AP (di sini 8, ±2447 MHz), Thread channel 15 (2425 MHz). Walau frekuensinya tidak bertumpuk, keduanya tetap **berbagi satu radio dan satu antena** di C6 — itu sumber masalah koeksistensi, bukan tumpang tindih frekuensi.
+>
+> **Mengapa banyak telemetri H2 hilang.** Pada rekaman ini `SERVER_URL` tidak menunjuk ke server yang hidup, sehingga setiap `http.POST()` gagal (`HTTP -1`) setelah timeout ±8 s. Selama itu `loop()` gateway tertahan dan tidak membaca socket UDP: hanya satu paket yang tertampung, sisanya dibuang. Hasilnya hanya 8 dari 22 telemetri H2 yang tercetak `RX via Thread`, masing-masing tertunda beberapa detik. Kehilangan ini terjadi di **aplikasi gateway**, bukan di radio Thread — hop Thread-nya sendiri sehat. Jalankan `http_sink.py` dan arahkan `SERVER_URL` ke IP laptop untuk melihat perbedaannya.
 
 **Buka abstraksinya** — perhatikan urutan di `setup()` gateway: `OThread.begin()` dulu, lalu Wi-Fi, baru `OThread.start()`. Coba dua variasi, flash, dan catat gejalanya masing-masing:
 

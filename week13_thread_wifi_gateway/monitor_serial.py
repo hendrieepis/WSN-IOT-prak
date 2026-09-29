@@ -81,9 +81,15 @@ RE_GW_SKIP = re.compile(r"^Wi-Fi terputus, skip forward")
 RE_H2_BANNER = re.compile(r"^Sensor H2 \(Thread node\)")
 RE_H2_ATTACHED = re.compile(r"^Attached as: (\w+)")
 RE_H2_TX = re.compile(r"^TX via Thread: (.+)$")
+# Blok "Info network Thread:" / "Info network Wi-Fi:" dari printThreadInfo()/printWifiInfo()
+RE_NET = re.compile(r"^\s+(Channel Wi-Fi|Network name|Channel|PAN ID|Extended PAN ID|RLOC16"
+                    r"|Extended addr|EUI-64|Mesh-Local EID|SSID|BSSID \(AP\)|MAC)\s*: (\S+)")
 
 # RX di gateway dianggap salinan TX H2 berisi sama bila tiba dalam jendela ini (detik).
-MATCH_WINDOW = (-0.5, 5.0)
+# Batas atas longgar karena loop() gateway tertahan selama http.POST() (timeout
+# 8 s bila server tidak terjangkau), sehingga RX via Thread bisa tercetak
+# belasan detik setelah H2 mengirim.
+MATCH_WINDOW = (-0.5, 15.0)
 
 print_lock = threading.Lock()
 stop = threading.Event()
@@ -111,6 +117,7 @@ class Node:
         self.rx = []              # (t, eid, payload) telemetri Thread asli
         # node sensor
         self.tx = []              # (t, payload)
+        self.net = {}             # info network Thread (+ Wi-Fi di gateway)
 
 
 def show(node, text, use_color, logfile, stamp=None):
@@ -136,6 +143,10 @@ def parse(node, text, now):
         return
     if RE_PANIC.search(text):
         node.panics += 1
+        return
+    m = RE_NET.match(text)
+    if m:
+        node.net[m.group(1)] = m.group(2)
         return
     boot = node.boot if node.boot is not None else t0
 
@@ -275,6 +286,20 @@ def summary(nodes, out):
             rssi = (f", RSSI {sum(n.wifi_rssi) / len(n.wifi_rssi):.0f} dBm" if n.wifi_rssi else "")
             retry = f", {n.wifi_retries}x coba sambung ulang" if n.wifi_retries else ""
             out(f"           Wi-Fi: {n.wifi or '?'}{rssi}{retry}")
+            if "Channel Wi-Fi" in n.net:
+                out(f"           Wi-Fi channel {n.net['Channel Wi-Fi']}, SSID {n.net.get('SSID', '?')},"
+                    f" MAC {n.net.get('MAC', '?')}")
+        if "Network name" in n.net:
+            out(f"           Thread {n.net.get('Network name')}, channel {n.net.get('Channel', '?')},"
+                f" PAN {n.net.get('PAN ID', '?')}, RLOC16 {n.net.get('RLOC16', '?')},"
+                f" EUI-64 {n.net.get('EUI-64', '?')}")
+
+    nets = [n for n in nodes if "Network name" in n.net]
+    if len(nets) >= 2:
+        keys = ("Network name", "Channel", "PAN ID", "Extended PAN ID")
+        same = all(len({n.net.get(k) for n in nets}) == 1 for k in keys)
+        out("  Network name/Channel/PAN ID/Extended PAN ID Thread: "
+            + ("sama (satu network)" if same else "BERBEDA — dataset tidak identik?"))
 
     gw = next((n for n in nodes if n.name == "Gateway"), None)
     h2 = next((n for n in nodes if n.name == "SensorH2"), None)

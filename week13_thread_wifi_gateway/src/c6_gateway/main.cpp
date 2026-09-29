@@ -66,6 +66,54 @@ static void restoreWifiAsDefaultNetif() {
 
 OThreadUDP OtUdp;
 
+// Cetak 8 byte sebagai XX:XX:...:XX (Extended PAN ID, alamat 64-bit).
+static void printHex8(const char *label, const uint8_t *b) {
+  Serial.print(label);
+  if (b == nullptr) {
+    Serial.println("?");
+    return;
+  }
+  for (int i = 0; i < 8; i++) {
+    Serial.printf(i ? ":%02X" : "%02X", b[i]);
+  }
+  Serial.println();
+}
+
+// Cetak parameter jaringan Thread yang sedang dipakai node ini. Getter
+// OThread sudah mengunci stack OpenThread sendiri.
+static void printThreadInfo() {
+  uint8_t eui64[8];
+  bool hasEui = OThread.getEui64(eui64);
+
+  Serial.println("Info network Thread:");
+  Serial.printf("  Peran          : %s\n", OThread.otGetStringDeviceRole());
+  Serial.printf("  Network name   : %s\n", OThread.getNetworkName().c_str());
+  Serial.printf("  Channel        : %u\n", OThread.getChannel());
+  Serial.printf("  PAN ID         : 0x%04X\n", OThread.getPanId());
+  printHex8("  Extended PAN ID: ", OThread.getExtendedPanId());
+  Serial.printf("  RLOC16         : 0x%04X\n", OThread.getRloc16());
+  printHex8("  Extended addr  : ", OThread.getExtendedAddress());
+  printHex8("  EUI-64         : ", hasEui ? eui64 : nullptr);
+  Serial.printf("  Mesh-Local EID : %s\n", OThread.getMeshLocalEid().toString().c_str());
+}
+
+// Cetak parameter sisi Wi-Fi gateway. Channel Wi-Fi dicetak karena berbagi
+// pita 2,4 GHz dengan channel 802.15.4 Thread (koeksistensi).
+static void printWifiInfo() {
+  Serial.println("Info network Wi-Fi:");
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.printf("  Status         : belum tersambung (status=%d)\n", (int)WiFi.status());
+    Serial.printf("  MAC            : %s\n", WiFi.macAddress().c_str());
+    return;
+  }
+  Serial.printf("  SSID           : %s\n", WiFi.SSID().c_str());
+  Serial.printf("  IP             : %s\n", WiFi.localIP().toString().c_str());
+  Serial.printf("  RSSI           : %d dBm\n", (int)WiFi.RSSI());
+  Serial.printf("  Channel Wi-Fi  : %d\n", (int)WiFi.channel());
+  Serial.printf("  BSSID (AP)     : %s\n", WiFi.BSSIDstr().c_str());
+  Serial.printf("  MAC            : %s\n", WiFi.macAddress().c_str());
+}
+
 // SIMULASI sensor H2 (tidak ada board fisik): bangkitkan nilai suhu sintetis
 // agar alur gateway (forward -> Wi-Fi -> HTTP) tetap bisa diuji end-to-end.
 static float readSensor() {
@@ -143,6 +191,8 @@ void setup() {
   Serial.printf("Thread attached as: %s\n", OThread.otGetStringDeviceRole());
 
   restoreWifiAsDefaultNetif();
+  printThreadInfo();
+  printWifiInfo();
 
   OtUdp.beginMulticast(GROUP, PORT);
 

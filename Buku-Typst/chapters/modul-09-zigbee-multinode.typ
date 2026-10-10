@@ -254,12 +254,81 @@ sehingga tidak diulang di sini.
   pecah: true,
 )
 
+=== Channel antar Kelompok (wajib kelas paralel)
+
+Seperti diperkenalkan pada Modul 08, setiap kelompok memakai *channel operasi
+yang berbeda* supaya node yang baru di-`erase` tidak salah join ke coordinator
+kelompok lain saat window join terbuka bersamaan, dan supaya angka loss serta
+latency tidak tercemar trafik kelompok tetangga pada channel yang sama.
+
+Channel ditentukan coordinator saat membentuk jaringan; ketiga berkas pada
+listing di atas (@lst:m09-coordinator, @lst:m09-light1, @lst:m09-light2)
+memakai mask yang sama supaya kedua light hanya dapat menemukan jaringan
+kelompoknya sendiri. Jatah untuk enam kelompok ada pada @tbl:m09-channel.
+
+#tbl(
+  table(
+    columns: (auto, auto, 1fr),
+    align: (center + horizon, center + horizon, left),
+    inset: (x: 0.6em, y: 0.45em),
+    stroke: 0.5pt + luma(170),
+    table.header(th[Kelompok], th[Channel],
+      th[Baris yang disisipkan sebelum `Zigbee.begin(...)`]),
+    [1], [15], [`Zigbee.setPrimaryChannelMask(1UL << 15);`],
+    [2], [20], [`Zigbee.setPrimaryChannelMask(1UL << 20);`],
+    [3], [25], [`Zigbee.setPrimaryChannelMask(1UL << 25);`],
+    [4], [11], [`Zigbee.setPrimaryChannelMask(1UL << 11);`],
+    [5], [17], [`Zigbee.setPrimaryChannelMask(1UL << 17);`],
+    [6], [22], [`Zigbee.setPrimaryChannelMask(1UL << 22);`],
+  ),
+  [Jatah channel untuk enam kelompok --- setiap kelompok memakai mask-nya sendiri],
+  "tbl:m09-channel",
+)
+
+#peringatan[
+  Pada coordinator baris ini menentukan channel jaringan yang dibentuk. Pada
+  `src/light1/main.cpp` dan `src/light2/main.cpp` baris yang sama *bukan*
+  memilih channel --- kedua light tetap mengikuti channel coordinator ---
+  melainkan membatasi channel yang boleh dipindai.
+]
+
+#tip[
+  Mengganti channel berarti mengganti jaringan yang tersimpan di NVS, jadi
+  *jalankan `-t erase` di ketiga board* sebelum flash ulang. Setelah join,
+  cocokkan `Channel` dan `Extended PAN ID` pada ketiga log: nilainya harus
+  sama dengan coordinator kelompok sendiri. Bila sebuah light menampilkan
+  channel kelompok lain, NVS-nya masih menyimpan keanggotaan lama --- erase
+  lalu join ulang.
+]
+
 == Build dan Flash
+
+*Linux/macOS (bash):*
 
 #keluaran("for e in coordinator light1 light2; do pio run -d week09_zigbee_multinode -e $e -t erase; done
 pio run -d week09_zigbee_multinode -e coordinator -t upload -t monitor
 pio run -d week09_zigbee_multinode -e light1 -t upload      # dalam 180 s
 pio run -d week09_zigbee_multinode -e light2 -t upload      # dalam 180 s")
+
+*Windows (PowerShell):*
+
+#keluaran("$env:PYTHONIOENCODING='utf-8'; $env:PYTHONUTF8='1'   # sekali per sesi terminal
+pio run -e coordinator -t erase  --upload-port COM5    # port contoh; ganti
+pio run -e light1      -t erase  --upload-port COM11   # sesuai pio device list
+pio run -e light2      -t erase  --upload-port COM12
+pio run -e coordinator -t upload --upload-port COM5
+pio run -e light1      -t upload --upload-port COM11   # dalam 180 s
+pio run -e light2      -t upload --upload-port COM12   # dalam 180 s")
+
+#catatan[
+  Prefix `$env:PYTHONIOENCODING='utf-8'; $env:PYTHONUTF8='1'` mencegah `pio run`
+  *menggantung tanpa batas* saat upload/erase di Windows --- progress bar
+  esptool memakai karakter Unicode (`█`, `░`) yang tidak terwakili codepage
+  default Windows. Setel ulang setiap membuka terminal baru. Erase cukup
+  dijalankan sekali sebelum flash pertama, atau saat berganti
+  channel/kelompok; mengulang percobaan dengan firmware yang sama tidak perlu
+  erase lagi.
+]
 
 #penting[
   *Pilih port USB-to-UART, bukan USB native.* Setiap board ESP32-H2 muncul
@@ -278,6 +347,8 @@ pio run -d week09_zigbee_multinode -e light2 -t upload      # dalam 180 s")
 
 #checklist((
   [`pio device list` dijalankan, tiga port dicatat dan diisikan di atas.],
+  [Channel kelompok disetel pada ketiga berkas dan berbeda dari kelompok lain
+   --- lihat @tbl:m09-channel.],
   [*Hapus NVS ketiga board* (`-t erase`) sebelum flash pertama.],
   [Flash `coordinator` (ZCZR, `partitions_zczr.csv`).],
   [Flash `light1` dan `light2` (ED, `partitions_ed.csv`) *dalam window

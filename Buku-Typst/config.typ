@@ -18,7 +18,7 @@
 //                   disembunyikan. Listing kode tetap dimuat lengkap
 //                   sehingga buku berdiri sendiri.
 
-#let edisi_buku = "dosen"
+#let edisi_buku = "mahasiswa" // "dosen" atau "mahasiswa"
 
 // ---------------------------------------------------------------------
 //  Turunan otomatis dari edisi di atas (tidak perlu diubah)

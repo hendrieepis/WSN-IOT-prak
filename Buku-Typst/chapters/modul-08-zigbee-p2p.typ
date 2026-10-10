@@ -367,14 +367,93 @@ monitor_port = /dev/ttyACM2
   pecah: true,
 )
 
+=== Channel antar Kelompok (wajib kelas paralel)
+
+Satu ruangan praktikum biasanya menampung beberapa kelompok, sehingga berdiri
+beberapa jaringan Zigbee sekaligus. Satu node tetap hanya menjadi anggota satu
+jaringan; yang harus dicegah adalah dua hal: node yang baru di-`erase` dapat
+*salah join* ke coordinator kelompok lain bila beberapa window join terbuka
+bersamaan, dan beberapa jaringan pada channel yang sama saling berebut airtime
+sehingga angka loss serta latency --- data pengukuran modul ini --- tercemar
+oleh tetangga.
+
+Channel operasi ditentukan coordinator saat membentuk jaringan (baris *SC*
+pada @tbl:m08-xbee), jadi nilainya disetel lewat `setPrimaryChannelMask()`
+sebelum `Zigbee.begin()` pada *kedua* berkas (@lst:m08-coordinator dan
+@lst:m08-enddevice). Jatah untuk enam kelompok ada pada @tbl:m08-channel ---
+contoh pada listing memakai jatah Kelompok 1.
+
+#tbl(
+  table(
+    columns: (auto, auto, 1fr),
+    align: (center + horizon, center + horizon, left),
+    inset: (x: 0.6em, y: 0.45em),
+    stroke: 0.5pt + luma(170),
+    table.header(th[Kelompok], th[Channel],
+      th[Baris yang disisipkan sebelum `Zigbee.begin(...)`]),
+    [1], [15], [`Zigbee.setPrimaryChannelMask(1UL << 15);`],
+    [2], [20], [`Zigbee.setPrimaryChannelMask(1UL << 20);`],
+    [3], [25], [`Zigbee.setPrimaryChannelMask(1UL << 25);`],
+    [4], [11], [`Zigbee.setPrimaryChannelMask(1UL << 11);`],
+    [5], [17], [`Zigbee.setPrimaryChannelMask(1UL << 17);`],
+    [6], [22], [`Zigbee.setPrimaryChannelMask(1UL << 22);`],
+  ),
+  [Jatah channel untuk enam kelompok --- setiap kelompok memakai mask-nya sendiri],
+  "tbl:m08-channel",
+)
+
+Mask Zigbee adalah satu bit per channel (`1UL << n` berarti *hanya* channel n);
+mask default `0x07FFF800` mencakup channel 11--26 sehingga coordinator bebas
+memilih di antaranya.
+
+#peringatan[
+  Pada coordinator baris ini menentukan channel jaringan yang dibentuk. Pada
+  `src/enddevice/main.cpp` baris yang sama *bukan* memilih channel --- end
+  device tetap mengikuti channel coordinator --- melainkan membatasi channel
+  yang boleh dipindai, supaya hanya jaringan kelompok sendiri yang dapat
+  ditemukan.
+]
+
+#tip[
+  Channel 15, 20, dan 25 adalah pilihan klasik Zigbee karena paling longgar
+  terhadap Wi-Fi 2,4 GHz; 11, 17, dan 22 melengkapi sebaran agar antar
+  kelompok terpisah minimal dua kanal. Mengganti channel berarti mengganti
+  jaringan yang tersimpan di NVS, jadi *jalankan `-t erase` di kedua board*
+  sebelum flash ulang. Setelah join, cocokkan `Channel` dan `Extended PAN ID`
+  pada kedua log: `Channel` harus sesuai jatah kelompok dan `Extended PAN ID`
+  harus IEEE address coordinator sendiri. Bila board menampilkan channel
+  kelompok lain, NVS-nya masih menyimpan keanggotaan lama --- erase lalu join
+  ulang.
+]
+
 == Build dan Flash
 
 Coordinator dulu, lalu end device *dalam 180 detik*.
+
+*Linux/macOS (bash):*
 
 #keluaran("pio run -d week08_zigbee_p2p -e enddevice   -t erase     # bersihkan NVS
 pio run -d week08_zigbee_p2p -e coordinator -t erase
 pio run -d week08_zigbee_p2p -e coordinator -t upload -t monitor
 pio run -d week08_zigbee_p2p -e enddevice   -t upload    # jangan lewat 180 s")
+
+*Windows (PowerShell):*
+
+#keluaran("$env:PYTHONIOENCODING='utf-8'; $env:PYTHONUTF8='1'   # sekali per sesi terminal
+pio run -e coordinator -t erase  --upload-port COM5    # port contoh; ganti
+pio run -e enddevice   -t erase  --upload-port COM11   # sesuai pio device list
+pio run -e coordinator -t upload --upload-port COM5
+pio run -e enddevice   -t upload --upload-port COM11   # dalam 180 s")
+
+#catatan[
+  Prefix `$env:PYTHONIOENCODING='utf-8'; $env:PYTHONUTF8='1'` mencegah `pio run`
+  *menggantung tanpa batas* saat upload/erase di Windows --- progress bar
+  esptool memakai karakter Unicode (`█`, `░`) yang tidak terwakili codepage
+  default Windows. Setel ulang setiap membuka terminal baru. Erase cukup
+  dijalankan sekali sebelum flash pertama, atau saat berganti
+  channel/kelompok; mengulang percobaan dengan firmware yang sama tidak perlu
+  erase lagi.
+]
 
 #penting[
   *Pilih port USB-to-UART, bukan USB native.* Setiap board ESP32-H2 muncul
@@ -391,6 +470,8 @@ pio run -d week08_zigbee_p2p -e enddevice   -t upload    # jangan lewat 180 s")
 
 #checklist((
   [`pio device list` dijalankan, dua port dicatat dan diisikan di atas.],
+  [Channel kelompok disetel pada kedua berkas dan berbeda dari kelompok lain
+   --- lihat @tbl:m08-channel.],
   [*Hapus NVS kedua board sebelum flash pertama:*
    `pio run -d week08_zigbee_p2p -e enddevice -t erase`. Tanpa ini, board yang
    pernah join jaringan lain akan terus mencari koordinator lama.],

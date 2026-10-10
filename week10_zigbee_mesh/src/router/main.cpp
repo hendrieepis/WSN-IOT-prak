@@ -47,6 +47,8 @@ void setup() {
 
   Zigbee.addEndpoint(&zbLight);
 
+  Zigbee.setPrimaryChannelMask(1UL << 15);
+
   // Peran ROUTER: bisa meneruskan trafik ke node lain (mesh)
   if (!Zigbee.begin(ZIGBEE_ROUTER)) {
     Serial.println("Zigbee gagal start!");

@@ -45,6 +45,7 @@ void setup() {
 
   // Buka network 180 detik agar end device bisa join
   Zigbee.setRebootOpenNetwork(180);
+  Zigbee.setPrimaryChannelMask(1UL << 15);
 
   if (!Zigbee.begin(ZIGBEE_COORDINATOR)) {
     Serial.println("Zigbee gagal start!");

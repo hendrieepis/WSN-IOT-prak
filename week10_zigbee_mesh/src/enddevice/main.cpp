@@ -47,6 +47,8 @@ void setup() {
 
   Zigbee.addEndpoint(&zbLight);
 
+  Zigbee.setPrimaryChannelMask(1UL << 15);
+
   if (!Zigbee.begin()) {  // default = ZIGBEE_END_DEVICE
     Serial.println("Zigbee gagal start!");
     ESP.restart();

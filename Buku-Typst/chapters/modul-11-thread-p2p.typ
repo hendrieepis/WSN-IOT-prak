@@ -293,6 +293,53 @@ core 3.x.
   pecah: true,
 )
 
+=== Channel antar Kelompok (wajib kelas paralel)
+
+Seperti pada blok Zigbee (Modul 08--10), satu ruangan praktikum berisi
+beberapa kelompok sehingga berdiri beberapa jaringan Thread sekaligus. Pada
+Thread, channel adalah bagian dari *Active Dataset* yang ditulis firmware ke
+tiap node sebelum `OThread.start()`; jaringan terbentuk pada channel dataset
+itu, dan node lain attach ke sana. Karena network name, PAN ID, dan network
+key dibuat sama di semua kelompok, pemisah antar kelompok yang andal adalah
+*channel yang berbeda* --- beda channel berarti radio tuli total.
+
+Jatah untuk enam kelompok sama dengan blok Zigbee. Ubah satu baris
+`OT_CHANNEL` pada *kedua* berkas modul ini (@lst:m11-node1 dan
+@lst:m11-node2):
+
+#tbl(
+  table(
+    columns: (auto, auto, 1fr),
+    align: (center + horizon, center + horizon, left),
+    inset: (x: 0.6em, y: 0.45em),
+    stroke: 0.5pt + luma(170),
+    table.header(th[Kelompok], th[Channel], th[Baris yang diubah]),
+    [1], [15], [`const uint8_t OT_CHANNEL = 15;`],
+    [2], [20], [`const uint8_t OT_CHANNEL = 20;`],
+    [3], [25], [`const uint8_t OT_CHANNEL = 25;`],
+    [4], [11], [`const uint8_t OT_CHANNEL = 11;`],
+    [5], [17], [`const uint8_t OT_CHANNEL = 17;`],
+    [6], [22], [`const uint8_t OT_CHANNEL = 22;`],
+  ),
+  [Jatah channel Thread untuk enam kelompok --- satu nilai untuk semua node kelompok],
+  "tbl:m11-channel",
+)
+
+#peringatan[
+  Semua node dalam satu kelompok harus memakai nilai `OT_CHANNEL` yang sama.
+  Bila Leader dan Child berbeda channel, keduanya tidak akan pernah saling
+  dengar dan Child berhenti di `Menunggu join ke network Leader...`. Setelah
+  upload, cocokkan baris `Channel` pada `Info network Thread` semua node.
+]
+
+#tip[
+  Mengganti `OT_CHANNEL` tidak memerlukan erase NVS: dataset ditulis ulang
+  setiap boot (`commitDataSet`), jadi cukup build + upload ulang seluruh
+  board kelompok. Channel 15, 20, dan 25 adalah pilihan klasik karena paling
+  longgar terhadap Wi-Fi 2,4 GHz; 11, 17, dan 22 melengkapi sebaran agar
+  antar kelompok terpisah.
+]
+
 == Build dan Flash
 
 #keluaran("pio run -d week11_thread_p2p -e node1 -t erase
@@ -304,6 +351,8 @@ pio run -d week11_thread_p2p -e node2 -t upload -t monitor")
 
 #checklist((
   [`pio device list` dijalankan, dua port dicatat dan diisikan pada tiap env.],
+  [Channel kelompok disetel (`OT_CHANNEL`) sama di kedua berkas dan berbeda
+   dari kelompok lain --- lihat @tbl:m11-channel.],
   [Flash environment `node1` dan `node2` (role Leader atau Child dipilih
    otomatis oleh stack, bukan oleh nama environment).],
   [Mesh-local prefix di kedua firmware sama: `fdde:ad00:beef::/64`.],

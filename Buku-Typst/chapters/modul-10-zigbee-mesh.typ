@@ -244,19 +244,103 @@ identik dengan milik Modul 08 (@lst:m08-part-zczr dan @lst:m08-part-ed).
   pecah: true,
 )
 
+=== Channel antar Kelompok (wajib kelas paralel)
+
+Satu ruangan praktikum biasanya menampung beberapa kelompok, sehingga berdiri
+beberapa jaringan Zigbee sekaligus. Satu node tetap hanya menjadi anggota satu
+jaringan; yang harus dicegah adalah dua hal: node yang baru di-`erase` dapat
+*salah join* ke coordinator kelompok lain bila beberapa window join terbuka
+bersamaan, dan beberapa jaringan pada channel yang sama saling berebut airtime
+sehingga angka loss serta latency --- data utama modul ini --- tercemar oleh
+tetangga.
+
+Channel operasi ditentukan coordinator saat membentuk jaringan (parameter *SC*,
+lihat Modul 08), jadi nilainya disetel lewat `setPrimaryChannelMask()` sebelum
+`Zigbee.begin()` --- pada *ketiga* berkas. Tiga listing di atas sudah memuat
+baris itu (@lst:m10-coordinator, @lst:m10-router, @lst:m10-enddevice) dengan
+jatah Kelompok 1; setiap kelompok mengganti angka `15` sesuai @tbl:m10-channel.
+
+#tbl(
+  table(
+    columns: (auto, auto, 1fr),
+    align: (center + horizon, center + horizon, left),
+    inset: (x: 0.6em, y: 0.45em),
+    stroke: 0.5pt + luma(170),
+    table.header(th[Kelompok], th[Channel],
+      th[Baris yang disisipkan sebelum `Zigbee.begin(...)`]),
+    [1], [15], [`Zigbee.setPrimaryChannelMask(1UL << 15);`],
+    [2], [20], [`Zigbee.setPrimaryChannelMask(1UL << 20);`],
+    [3], [25], [`Zigbee.setPrimaryChannelMask(1UL << 25);`],
+    [4], [11], [`Zigbee.setPrimaryChannelMask(1UL << 11);`],
+    [5], [17], [`Zigbee.setPrimaryChannelMask(1UL << 17);`],
+    [6], [22], [`Zigbee.setPrimaryChannelMask(1UL << 22);`],
+  ),
+  [Jatah channel untuk enam kelompok --- setiap kelompok memakai mask-nya sendiri],
+  "tbl:m10-channel",
+)
+
+Mask Zigbee adalah satu bit per channel (`1UL << n` berarti *hanya* channel n).
+Mask default `0x07FFF800` mencakup channel 11--26 sehingga coordinator bebas
+memilih di antaranya; dengan jatah di @tbl:m10-channel, tiap kelompok mengunci
+satu channel saja.
+
+#peringatan[
+  Pada coordinator baris ini menentukan channel jaringan yang dibentuk. Pada
+  `src/router/main.cpp` dan `src/enddevice/main.cpp` baris yang sama *bukan*
+  memilih channel --- ZR dan ZED tetap mengikuti channel coordinator ---
+  melainkan membatasi channel yang boleh dipindai, supaya keduanya hanya dapat
+  menemukan jaringan kelompoknya sendiri.
+]
+
+#tip[
+  Channel 15, 20, dan 25 adalah pilihan klasik Zigbee karena paling longgar
+  terhadap Wi-Fi 2,4 GHz; 11, 17, dan 22 melengkapi sebaran agar antar
+  kelompok terpisah minimal dua kanal. Mengganti channel berarti mengganti
+  jaringan yang tersimpan di NVS, jadi *jalankan `-t erase` di ketiga board*
+  sebelum flash ulang. Setelah join, cocokkan `Channel` dan `Extended PAN ID`
+  pada ketiga log: `Channel` harus sesuai jatah kelompok dan `Extended PAN ID`
+  harus IEEE address coordinator sendiri. Bila sebuah board menampilkan
+  channel kelompok lain, NVS-nya masih menyimpan keanggotaan lama --- erase
+  lalu join ulang.
+]
+
 == Build dan Flash
 
 Urutan penting: ZC, lalu ZR, lalu ZED.
+
+*Linux/macOS (bash):*
 
 #keluaran("for e in coordinator router enddevice; do pio run -d week10_zigbee_mesh -e $e -t erase; done
 pio run -d week10_zigbee_mesh -e coordinator -t upload -t monitor
 pio run -d week10_zigbee_mesh -e router      -t upload    # dalam 180 s
 pio run -d week10_zigbee_mesh -e enddevice   -t upload    # dalam 180 s")
 
+*Windows (PowerShell):*
+
+#keluaran("$env:PYTHONIOENCODING='utf-8'; $env:PYTHONUTF8='1'   # sekali per sesi terminal
+pio run -e coordinator -t erase  --upload-port COM5    # port contoh; ganti
+pio run -e router      -t erase  --upload-port COM11   # sesuai pio device list
+pio run -e enddevice   -t erase  --upload-port COM12
+pio run -e coordinator -t upload --upload-port COM5
+pio run -e router      -t upload --upload-port COM11   # dalam 180 s
+pio run -e enddevice   -t upload --upload-port COM12   # dalam 180 s")
+
+#catatan[
+  Prefix `$env:PYTHONIOENCODING='utf-8'; $env:PYTHONUTF8='1'` mencegah `pio run`
+  *menggantung tanpa batas* saat upload/erase di Windows --- progress bar
+  esptool memakai karakter Unicode (`█`, `░`) yang tidak terwakili codepage
+  default Windows. Setel ulang setiap membuka terminal baru. Erase cukup
+  dijalankan sekali sebelum flash pertama, atau saat berganti
+  channel/kelompok; mengulang percobaan dengan firmware yang sama tidak perlu
+  erase lagi.
+]
+
 *Pre-flight checklist*
 
 #checklist((
   [`pio device list` dijalankan, tiga port dicatat dan diisikan pada tiap env.],
+  [Channel kelompok disetel pada ketiga berkas dan berbeda dari kelompok lain
+   --- lihat @tbl:m10-channel.],
   [*Hapus NVS ketiga board* (`-t erase`) sebelum flash pertama.],
   [Flash `coordinator` (ZCZR), `router` (ZCZR, mulai sebagai `ZIGBEE_ROUTER`),
    dan `enddevice` (ED) --- semuanya dalam window 180 detik.],

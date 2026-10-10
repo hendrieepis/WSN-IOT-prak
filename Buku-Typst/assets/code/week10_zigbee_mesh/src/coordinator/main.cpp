@@ -38,6 +38,7 @@ void setup() {
 
   Zigbee.addEndpoint(&zbSwitch);
   Zigbee.setRebootOpenNetwork(180);
+  Zigbee.setPrimaryChannelMask(1UL << 15);
 
   if (!Zigbee.begin(ZIGBEE_COORDINATOR)) {
     Serial.println("Zigbee gagal start!");

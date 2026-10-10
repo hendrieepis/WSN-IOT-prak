@@ -268,6 +268,52 @@ upload_port  = /dev/ttyACM2
   pecah: true,
 )
 
+=== Channel antar Kelompok (wajib kelas paralel)
+
+Seperti pada blok Zigbee (Modul 08--10), satu ruangan praktikum berisi
+beberapa kelompok sehingga berdiri beberapa jaringan Thread sekaligus. Pada
+Thread, channel adalah bagian dari *Active Dataset* yang ditulis firmware ke
+tiap node sebelum `OThread.start()`; jaringan terbentuk pada channel dataset
+itu, dan node lain attach ke sana. Karena network name, PAN ID, dan network
+key dibuat sama di semua kelompok, pemisah antar kelompok yang andal adalah
+*channel yang berbeda* --- beda channel berarti radio tuli total.
+
+Jatah untuk enam kelompok sama dengan blok Zigbee. Ubah satu baris
+`OT_CHANNEL` pada *kedua* firmware modul ini (@lst:m13-h2 dan @lst:m13-c6):
+
+#tbl(
+  table(
+    columns: (auto, auto, 1fr),
+    align: (center + horizon, center + horizon, left),
+    inset: (x: 0.6em, y: 0.45em),
+    stroke: 0.5pt + luma(170),
+    table.header(th[Kelompok], th[Channel], th[Baris yang diubah]),
+    [1], [15], [`const uint8_t OT_CHANNEL = 15;`],
+    [2], [20], [`const uint8_t OT_CHANNEL = 20;`],
+    [3], [25], [`const uint8_t OT_CHANNEL = 25;`],
+    [4], [11], [`const uint8_t OT_CHANNEL = 11;`],
+    [5], [17], [`const uint8_t OT_CHANNEL = 17;`],
+    [6], [22], [`const uint8_t OT_CHANNEL = 22;`],
+  ),
+  [Jatah channel Thread untuk enam kelompok --- satu nilai untuk kedua firmware],
+  "tbl:m13-channel",
+)
+
+#peringatan[
+  Node H2 dan gateway C6 harus memakai nilai `OT_CHANNEL` yang sama. Bila
+  berbeda, node sensor tidak akan pernah attach dan berhenti di
+  `Menunggu join ke gateway (C6)...`. Setelah upload, cocokkan baris
+  `Channel` pada `Info network Thread` kedua board.
+]
+
+#tip[
+  Mengganti `OT_CHANNEL` tidak memerlukan erase NVS: dataset ditulis ulang
+  setiap boot (`commitDataSet`), jadi cukup build + upload ulang kedua board.
+  Pada gateway C6, channel Thread juga berpengaruh pada koeksistensi dengan
+  Wi-Fi 2,4 GHz --- 15, 20, dan 25 adalah pilihan klasik; 11, 17, dan 22
+  melengkapi sebaran agar antar kelompok terpisah.
+]
+
 === Server HTTP Lokal --- `http_sink.py`
 
 Bila `httpbin.org` terblokir (gejala di Serial Monitor: `HTTP -1`), gunakan
@@ -311,6 +357,21 @@ Contoh keluaran setiap POST yang sampai:
   bagian Pengukuran).
 ]
 
+#catatan[
+  *Windows Firewall.* Bila sink sudah berjalan tetapi board selalu mencetak
+  `HTTP -1` dan sink tidak menerima satu POST pun, periksa firewall Windows
+  --- koneksi masuk ke python bisa diblokir. Di mesin uji lab ini ditemukan
+  rule *Block* inbound untuk python PlatformIO
+  (`~\.platformio\python3\python.exe`). Dua solusi: jalankan sink dengan python
+  lain yang sudah diizinkan (misalnya python miniconda), atau tambahkan rule
+  izin dari PowerShell *Administrator*:
+
+  #keluaran("New-NetFirewallRule -DisplayName WSN-http_sink-8080 -Direction Inbound -Protocol TCP -LocalPort 8080 -Action Allow -Profile Private")
+
+  Uji berhasil bila gateway mencetak `HTTP 200` dan sink mencetak baris
+  `POST /post from …` beserta isi suhunya.
+]
+
 == Build dan Flash
 
 #keluaran("pio run -d week13_thread_wifi_gateway -e c6_gateway -t upload -t monitor
@@ -332,6 +393,8 @@ pio run -d week13_thread_wifi_gateway -e h2_node    -t upload")
 #checklist((
   [ESP32-H2 dan ESP32-C6 terhubung ke PC via kabel USB, port dicatat lewat
    `pio device list`.],
+  [Channel kelompok disetel (`OT_CHANNEL`) sama di kedua berkas dan berbeda
+   dari kelompok lain --- lihat @tbl:m13-channel.],
   [`WIFI_SSID`, `WIFI_PASS`, dan `SERVER_URL` pada `src/c6_gateway/main.cpp`
    sudah disesuaikan.],
   [Hotspot atau Wi-Fi *2,4 GHz* aktif dan kedua board berada dalam jangkauan

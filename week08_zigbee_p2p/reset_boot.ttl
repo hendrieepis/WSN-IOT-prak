@@ -1,0 +1,22 @@
+; reset_boot.ttl — paksa reset board lewat jalur auto-reset agar log boot
+; muncul di Tera Term. Setara cara kerja monitor_serial.py (DTR nonaktif,
+; lalu RTS dipulse ke EN).
+;
+; Cara pakai:
+;   1) Dobel-klik file ini, atau dari Tera Term: Control -> Macros...
+;   2) Jendela Tera Term terbuka, board ter-reset, log boot tampil lengkap.
+;
+; Board coordinator ada di COM5; ubah '/C=5' menjadi '/C=11' untuk end device.
+;
+; Kenapa perlu begini: rangkaian auto-reset board ini baru bekerja bila DTR
+; nonaktif (IO9 HIGH). Kalau Tera Term menahan DTR aktif, RTS tidak akan
+; men-reset board; dan bila board di-reset (tombol RST) dengan DTR aktif,
+; chip justru boot ke mode download sehingga ROM tidak mencetak apa pun.
+
+connect '/C=5'
+setbaud 115200
+setdtr 0
+setrts 1
+pause 1
+setrts 0
+end
